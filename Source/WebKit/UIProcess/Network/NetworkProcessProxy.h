@@ -223,7 +223,8 @@ public:
 
     void hasAppBoundSession(PAL::SessionID, CompletionHandler<void(bool)>&&);
     void setInAppBrowserPrivacyEnabled(PAL::SessionID, bool, CompletionHandler<void()>&&);
-    
+    void getAppBoundDomains(PAL::SessionID, CompletionHandler<void(HashSet<WebCore::RegistrableDomain>&&)>&&);
+
 private:
     // AuxiliaryProcessProxy
     ASCIILiteral processName() const final { return "Networking"_s; }
@@ -307,8 +308,6 @@ private:
 #if ENABLE(CONTENT_EXTENSIONS)
     HashSet<WebUserContentControllerProxy*> m_webUserContentControllerProxies;
 #endif
-
-    HashMap<PAL::SessionID, RefPtr<WebsiteDataStore>> m_websiteDataStores;
 
     struct UploadActivity {
         std::unique_ptr<ProcessAssertion> uiAssertion;

@@ -1,3 +1,631 @@
+2020-04-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Content disappears on CSS parallax example
+        https://bugs.webkit.org/show_bug.cgi?id=210732
+        <rdar://problem/61997636>
+
+        Reviewed by Darin Adler.
+
+        If scrolling affects the computation of coverage rect of a TiledBacking, we plumb
+        that expanded coverage back into TransformState which is maintained during GraphicsLayer flushing,
+        and it's used to compute coverage rect for descendants.
+
+        It's passed into TransformState::setLastPlanarSecondaryQuad(), which has to map it back into
+        the coordinate system of the last flattening ancestor. However, TransformState::mapQuad()
+        had a missing return and the quad mapping was wrong. The new code is now the same as
+        TransformState::mappedPoint() (you can see where the copy/paste error came from).
+
+        Test: compositing/tiling/coverage-adjustment-secondary-quad-mapping.html
+
+        * platform/graphics/transforms/TransformState.cpp:
+        (WebCore::TransformState::mapQuad const):
+        (WebCore::TransformState::flattenWithTransform):
+
+2020-04-20  Zalan Bujtas  <zalan@apple.com>
+
+        [LFC][TFC] Add support for border-collapse: collapse.
+        https://bugs.webkit.org/show_bug.cgi?id=210747
+
+        Reviewed by Antti Koivisto.
+
+        Test: fast/layoutformattingcontext/table-flex-width-border-collapse.html
+
+        * layout/tableformatting/TableFormattingContext.cpp:
+        (WebCore::Layout::TableFormattingContext::ensureTableGrid):
+
+2020-04-20  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+        Oversized caret and selection rects in text fields on ganji.com and netflix.com/login
+        https://bugs.webkit.org/show_bug.cgi?id=210622
+        <rdar://problem/45945636>
+
+        Reviewed by Darin Adler.
+
+        Currently, selection and caret rects in text fields on some web pages can be excessively tall. This patch makes
+        a small adjustment to allow the top of the caret or selection rect to snap to the top of the inline box instead
+        of being at the end of the previous line, in the case where there is no previous inline box.
+
+        In the case where we compute the caret rect for an empty renderer (i.e. no children), we make an additional
+        tweak so that the caret rect's height is based on the computed font height instead of line height, and then we
+        ensure that the caret is (logically) vertically centered.
+
+        See below for more details.
+
+        Test: editing/selection/selection-and-caret-do-not-extend-to-line-height.html
+
+        * rendering/RenderBlockFlow.cpp:
+        (WebCore::RenderBlockFlow::positionForPointWithInlineChildren):
+
+        Specify ForHitTesting::Yes when asking for selectionTop().
+
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::localCaretRectForEmptyElement):
+
+        Use FontMetric's height when computing the height of the caret rect, and then center it vertically in the
+        renderer.
+
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::positionForPoint):
+
+        Specify ForHitTesting::Yes when asking for selectionTop(). See below for more information.
+
+        * rendering/RenderTextLineBoxes.cpp:
+        (WebCore::RenderTextLineBoxes::positionForPoint const):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::selectionTop const):
+
+        When computing selectionTop(), we currently fall back to using the top of the containing RenderBlockFlow
+        (`blockFlow().borderAndPaddingBefore()`) in the case where there is no previous root box. However, this can lead
+        to selection and caret rects being taller than expected; instead, we can use the max of the `selectionTop`
+        (that is, the top of the line box, adjusted for annotations) and the top of the RenderBlockFlow. This has the
+        effect of allowing the caret and selection to visually snap to the top of a run of text, provided there is not
+        already a line of text that precedes it. Taking the maximum of the two values ensures that we don't
+        unintentionally make the selection or caret rects even larger, if the line top is above the top of the block.
+
+        Note that we also avoid shrinking the selection and caret rects when hit-testing renderers for positions and
+        ranges. This allows users to still click and drag to select text in the extra line-height area above a piece of
+        text, even if the selection is only painted over the text (and not in the region containing the line-height).
+        This behavior was established in the fix for webkit.org/b/14911, and is covered by the layout test
+        `editing/selection/inline-closest-leaf-child.html`.
+
+        * rendering/RootInlineBox.h:
+
+2020-04-20  Darin Adler  <darin@apple.com>
+
+        Use #import instead of #include in Objective-C and don't use #pragma once
+        https://bugs.webkit.org/show_bug.cgi?id=210724
+
+        Reviewed by David Kilzer.
+
+        * page/cocoa/SettingsBaseCocoa.mm:
+        (WebCore::sansSerifTraditionalHanFontFamily): Deleted.
+        (WebCore::sansSerifSimplifiedHanFontFamily): Deleted.
+        (WebCore::SettingsBase::initializeDefaultFontFamilies): Just use font name
+        strings directly since there are no conditionals any more.
+
+        * Modules/applepay/PaymentRequestValidator.mm:
+        * Modules/applepay/cocoa/PaymentContactCocoa.mm:
+        * accessibility/ios/WebAccessibilityObjectWrapperIOS.h:
+        * accessibility/mac/AXObjectCacheMac.mm:
+        * accessibility/mac/WebAccessibilityObjectWrapperBase.h:
+        * accessibility/mac/WebAccessibilityObjectWrapperMac.h:
+        * bridge/objc/WebScriptObjectPrivate.h:
+        * bridge/objc/objc_class.mm:
+        * bridge/testbindings.mm:
+        * crypto/mac/SerializedCryptoKeyWrapMac.mm:
+        * editing/cocoa/WebArchiveResourceFromNSAttributedString.h:
+        * editing/cocoa/WebArchiveResourceWebResourceHandler.h:
+        * editing/cocoa/WebContentReaderCocoa.mm:
+        * history/mac/HistoryItemMac.mm:
+        * loader/cocoa/DiskCacheMonitorCocoa.mm:
+        * loader/cocoa/SubresourceLoaderCocoa.mm:
+        * loader/mac/ResourceLoaderMac.mm:
+        * page/cocoa/MemoryReleaseCocoa.mm:
+        * page/cocoa/ResourceUsageOverlayCocoa.mm:
+        * page/cocoa/ResourceUsageThreadCocoa.mm:
+        * page/ios/WebEventRegion.h:
+        * page/mac/ChromeMac.mm:
+        * page/mac/EventHandlerMac.mm:
+        * page/mac/WheelEventDeltaFilterMac.mm:
+        * page/scrolling/cocoa/ScrollingStateNode.mm:
+        * page/scrolling/mac/ScrollingCoordinatorMac.mm:
+        * page/scrolling/mac/ScrollingMomentumCalculatorMac.mm:
+        * page/scrolling/mac/ScrollingStateScrollingNodeMac.mm:
+        * page/scrolling/mac/ScrollingThreadMac.mm:
+        * page/scrolling/mac/ScrollingTreeMac.mm:
+        * platform/audio/cocoa/MediaSessionManagerCocoa.mm:
+        * platform/audio/mac/AudioSampleDataSource.mm:
+        * platform/cocoa/DataDetectorsCoreSoftLink.mm:
+        * platform/cocoa/PasteboardCocoa.mm:
+        * platform/cocoa/ScrollSnapAnimatorState.mm:
+        * platform/cocoa/SystemVersion.mm:
+        * platform/gamepad/cocoa/GameControllerGamepad.mm:
+        * platform/graphics/avfoundation/AVTrackPrivateAVFObjCImpl.mm:
+        * platform/graphics/avfoundation/MediaSelectionGroupAVFObjC.mm:
+        * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+        * platform/graphics/avfoundation/objc/MediaSourcePrivateAVFObjC.mm:
+        * platform/graphics/avfoundation/objc/VideoLayerManagerObjC.mm:
+        * platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm:
+        * platform/graphics/ca/cocoa/WebSystemBackdropLayer.h:
+        * platform/graphics/ca/cocoa/WebTiledBackingLayer.h:
+        * platform/graphics/ca/cocoa/WebVideoContainerLayer.h:
+        * platform/graphics/cocoa/GraphicsContextGLOpenGLCocoa.mm:
+        * platform/graphics/cocoa/IOSurfacePoolCocoa.mm:
+        * platform/graphics/cocoa/TextTrackRepresentationCocoa.mm:
+        * platform/graphics/cocoa/WebGLLayer.h:
+        * platform/graphics/cocoa/WebGLLayer.mm:
+        * platform/graphics/cocoa/WebGPULayer.h:
+        * platform/graphics/cocoa/WebGPULayer.mm:
+        * platform/graphics/cv/ImageRotationSessionVT.mm:
+        * platform/graphics/cv/ImageTransferSessionVT.mm:
+        * platform/graphics/cv/TextureCacheCV.mm:
+        * platform/graphics/gpu/cocoa/GPUBufferMetal.mm:
+        * platform/graphics/gpu/cocoa/GPUComputePassEncoderMetal.mm:
+        * platform/graphics/mac/ComplexTextControllerCoreText.mm:
+        * platform/graphics/mac/FloatPointMac.mm:
+        * platform/graphics/mac/FloatSizeMac.mm:
+        * platform/graphics/mac/IntPointMac.mm:
+        * platform/graphics/mac/IntSizeMac.mm:
+        * platform/graphics/mac/WebLayer.h:
+        * platform/graphics/mac/WebLayer.mm:
+        * platform/ios/LegacyTileCache.mm:
+        * platform/ios/LegacyTileGrid.mm:
+        * platform/ios/LegacyTileGridTile.mm:
+        * platform/ios/LegacyTileLayer.h:
+        * platform/ios/LegacyTileLayer.mm:
+        * platform/ios/LegacyTileLayerPool.mm:
+        * platform/ios/LocalCurrentTraitCollection.mm:
+        * platform/ios/LocalizedDeviceModel.mm:
+        * platform/ios/ScrollbarThemeIOS.mm:
+        * platform/ios/WebCoreMotionManager.h:
+        * platform/ios/WebItemProviderPasteboard.mm:
+        * platform/ios/WebVideoFullscreenControllerAVKit.h:
+        * platform/mac/LocalCurrentGraphicsContext.mm:
+        * platform/mac/LocalDefaultSystemAppearance.mm:
+        * platform/mac/LoggingMac.mm:
+        * platform/mac/PlatformEventFactoryMac.mm:
+        * platform/mac/RemoteCommandListenerMac.mm:
+        * platform/mac/ScrollAnimatorMac.mm:
+        * platform/mac/SerializedPlatformDataCueMac.mm:
+        * platform/mac/WebCoreFullScreenPlaceholderView.mm:
+        * platform/mac/WebCoreFullScreenWarningView.h:
+        * platform/mac/WebCoreFullScreenWarningView.mm:
+        * platform/mac/WebCoreFullScreenWindow.h:
+        * platform/mac/WebCoreObjCExtras.mm:
+        * platform/mediarecorder/cocoa/MediaRecorderPrivateWriterCocoa.mm:
+        * platform/mediasession/mac/MediaSessionInterruptionProviderMac.mm:
+        * platform/mediastream/ios/AVAudioSessionCaptureDevice.mm:
+        * platform/mediastream/ios/CoreAudioCaptureSourceIOS.mm:
+        * platform/mediastream/mac/RealtimeIncomingVideoSourceCocoa.mm:
+        * platform/mediastream/mac/RealtimeMediaSourceCenterMac.mm:
+        * platform/mediastream/mac/RealtimeVideoUtilities.mm:
+        * platform/mediastream/mac/ScreenDisplayCaptureSourceMac.mm:
+        * platform/network/cocoa/CertificateInfoCocoa.mm:
+        * platform/network/cocoa/WebCoreNSURLSession.h:
+        * platform/network/mac/BlobDataFileReferenceMac.mm:
+        * platform/network/mac/CredentialStorageMac.mm:
+        * platform/network/mac/SynchronousLoaderClient.mm:
+        * platform/network/mac/WebCoreResourceHandleAsOperationQueueDelegate.h:
+        * platform/text/cocoa/LocaleCocoa.mm:
+        * testing/ServiceWorkerInternals.mm:
+        * testing/cocoa/WebViewVisualIdentificationOverlay.h:
+        More #import, less #pragma once.
+
+2020-04-20  Youenn Fablet  <youenn@apple.com>
+
+        Safari doesn't apply frameRate limit when request stream from Camera
+        https://bugs.webkit.org/show_bug.cgi?id=210186
+        <rdar://problem/61452794>
+
+        Reviewed by Eric Carlson.
+
+        Add support to RealtimeVideoSource to decimate the video samples based on the observed frame rate of its capture source.
+        This allows supporting two tracks using the same capture device, one track being low frame rate and the other one high frame rate.
+
+        Clean-up refactoring to make RealtimeVideoSource directly inherit from RealtimeVideoCaptureSource.
+        Migrate size and format of frame adaptation from RealtimeVideoCaptureSource to RealtimeVideoSource.
+        Fix mock capture source to update its frame rate when asked by applyConstraints.
+
+        Tests: fast/mediastream/mediastreamtrack-video-frameRate-clone-decreasing.html
+               fast/mediastream/mediastreamtrack-video-frameRate-clone-increasing.html
+               fast/mediastream/mediastreamtrack-video-frameRate-decreasing.html
+               fast/mediastream/mediastreamtrack-video-frameRate-increasing.html
+
+        * platform/mediastream/RealtimeVideoCaptureSource.cpp:
+        (WebCore::RealtimeVideoCaptureSource::dispatchMediaSampleToObservers):
+        (WebCore::RealtimeVideoCaptureSource::clientUpdatedSizeAndFrameRate):
+        * platform/mediastream/RealtimeVideoCaptureSource.h:
+        (WebCore::RealtimeVideoCaptureSource::observedFrameRate const):
+        * platform/mediastream/RealtimeVideoSource.cpp:
+        (WebCore::RealtimeVideoSource::RealtimeVideoSource):
+        (WebCore::m_source):
+        (WebCore::RealtimeVideoSource::adaptVideoSample):
+        (WebCore::RealtimeVideoSource::videoSampleAvailable):
+        * platform/mediastream/RealtimeVideoSource.h:
+        * platform/mock/MockRealtimeVideoSource.cpp:
+        (WebCore::MockRealtimeVideoSource::setFrameRateWithPreset):
+        * testing/Internals.cpp:
+        (WebCore::Internals::observeMediaStreamTrack):
+
+2020-04-20  Antoine Quint  <graouts@apple.com>
+
+        WebAnimations API doesn't properly apply keyframe easings to transforms
+        https://bugs.webkit.org/show_bug.cgi?id=210526
+        <rdar://problem/61800424>
+
+        Reviewed by Antti Koivisto.
+
+        GraphicsLayerCA has code that determines whether an animation can be accelerated looking at the timing function of its keyframes and excluding
+        animations that use a steps timing function as one of its values. However, we we would fail to set the timing function on the KeyframeValue for
+        each keyframe in the KeyframeList we create for a JS-originated animation. We now do this correctly.
+
+        Test: webanimations/transform-animation-with-steps-timing-function-not-accelerated.html
+
+        * animation/KeyframeEffect.cpp:
+        (WebCore::KeyframeEffect::updateBlendingKeyframes):
+
+2020-04-20  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        StructuredClone algorithm should be aware of BigInt
+        https://bugs.webkit.org/show_bug.cgi?id=210728
+
+        Reviewed by Mark Lam.
+
+        This patch adds structured-cloning for BigInt and BigIntObject.
+        The logic is adding BigIntTag & BigIntObjectTag. And then we put content of BigInt with length.
+        And deserialization reads them to reconstruct BigInt or BigIntObject.
+
+        * bindings/js/SerializedScriptValue.cpp:
+        (WebCore::CloneSerializer::dumpImmediate):
+        (WebCore::CloneSerializer::dumpBigIntData):
+        (WebCore::CloneSerializer::dumpBigInt32Data):
+        (WebCore::CloneSerializer::dumpHeapBigIntData):
+        (WebCore::CloneSerializer::dumpIfTerminal):
+        (WebCore::CloneDeserializer::readBigInt):
+        (WebCore::CloneDeserializer::readTerminal):
+
+2020-04-20  Carlos Garcia Campos  <cgarcia@igalia.com>
+
+        [GTK][WPE] Enable resource load statistics
+        https://bugs.webkit.org/show_bug.cgi?id=210184
+
+        Reviewed by Žan Doberšek.
+
+        * platform/network/soup/NetworkStorageSessionSoup.cpp:
+        (WebCore::NetworkStorageSession::setCookiesFromDOM const): Return early if cookies are blocked and update the
+        persistent cookies expiration if needed.
+        (WebCore::NetworkStorageSession::deleteCookiesForHostnames): Implement this when receiving
+        IncludeHttpOnlyCookies parameter.
+        (WebCore::NetworkStorageSession::hasCookies const): Implement this.
+        (WebCore::NetworkStorageSession::getRawCookies const): Honor shouldAskITP parameter.
+        (WebCore::cookiesForSession): Ditto.
+        (WebCore::NetworkStorageSession::cookiesForDOM const): Ditto.
+        (WebCore::NetworkStorageSession::cookieRequestHeaderFieldValue const): Ditto.
+
+2020-04-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Use Optional<FloatQuad> in TransformState
+        https://bugs.webkit.org/show_bug.cgi?id=144226
+
+        Reviewed by Sam Weinig.
+
+        Use Optional<> instead of pointers in TransformState, make it loggable, make FloatQuad loggable.
+
+        * platform/graphics/FloatQuad.cpp:
+        (WebCore::operator<<):
+        * platform/graphics/FloatQuad.h:
+        * platform/graphics/ca/GraphicsLayerCA.cpp:
+        (WebCore::GraphicsLayerCA::flushCompositingState):
+        (WebCore::GraphicsLayerCA::computeVisibleAndCoverageRect const):
+        (WebCore::GraphicsLayerCA::recursiveCommitChanges):
+        * platform/graphics/transforms/TransformState.cpp:
+        (WebCore::TransformState::operator=):
+        (WebCore::TransformState::mappedSecondaryQuad const):
+        (WebCore::TransformState::setLastPlanarSecondaryQuad):
+        (WebCore::TransformState::flattenWithTransform):
+        (WebCore::operator<<):
+        * platform/graphics/transforms/TransformState.h:
+        (WebCore::TransformState::setSecondaryQuad):
+        (WebCore::TransformState::lastPlanarSecondaryQuad const):
+        (WebCore::TransformState::isMappingSecondaryQuad const):
+        (WebCore::TransformState::accumulatedTransform const):
+
+2020-04-19  Rob Buis  <rbuis@igalia.com>
+
+        Remove unneeded code from FrameLoader::loadURL
+        https://bugs.webkit.org/show_bug.cgi?id=210696
+
+        Reviewed by Darin Adler.
+
+        Remove unneeded code from FrameLoader::loadURL, since the only way the load type can be Reload
+        is if loadFrameRequest set it, and the only way loadFrameRequest can set it is if cachePolicy
+        is ReloadIgnoringCacheData, so no need to set it again in FrameLoader::loadURL.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadURL):
+
+2020-04-19  Brady Eidson  <beidson@apple.com>
+
+        Add WKScriptMessageHandler API that asynchronously responds with a promise.
+        rdar://problem/57243492 and https://bugs.webkit.org/show_bug.cgi?id=206398
+
+        Reviewed by Andy Estes.
+
+        Covered by new API tests.
+
+        Updated for moving an #include into implementation files:
+        * bindings/js/JSDOMPromiseDeferred.cpp:
+        * bindings/js/JSDOMPromiseDeferred.h:    
+        * html/HTMLMediaElement.cpp:
+        * page/DOMWindow.cpp:
+        * workers/service/ServiceWorkerGlobalScope.cpp:
+        
+        * page/UserMessageHandler.cpp:
+        (WebCore::UserMessageHandler::postMessage): Return a promise to be fulfilled by the API client.
+        * page/UserMessageHandler.h:
+        * page/UserMessageHandler.idl:
+        * page/UserMessageHandlerDescriptor.h:
+
+2020-04-19  Zalan Bujtas  <zalan@apple.com>
+
+        [LFC][TFC] Add column spanning support for flexible table width
+        https://bugs.webkit.org/show_bug.cgi?id=210713
+
+        Reviewed by Antti Koivisto.
+
+        Test: fast/layoutformattingcontext/table-flex-width-colspans.html
+
+        This patch slightly changes the extra space distribution logic by using either the minimum or
+        the maximum width as the base initial width for the columns.
+
+        * layout/tableformatting/TableFormattingContext.cpp:
+        (WebCore::Layout::TableFormattingContext::layoutInFlowContent):
+        (WebCore::Layout::TableFormattingContext::computeColumnWidths):
+        (WebCore::Layout::TableFormattingContext::computeAndDistributeExtraHorizontalSpace): Deleted.
+        * layout/tableformatting/TableFormattingContext.h:
+
+2020-04-19  Emilio Cobos Álvarez  <emilio@crisal.io>
+
+        Don't use the inherited custom properties to store environment variables.
+        https://bugs.webkit.org/show_bug.cgi?id=210707
+
+        Reviewed by Antti Koivisto.
+
+        It leaks this implementation detail when enumerating the computed style.
+
+        Tests: imported/w3c/web-platform-tests/css/css-cascade/all-prop-initial-xml.xhtml
+               imported/w3c/web-platform-tests/css/cssom/getComputedStyle-logical-enumeration.html
+
+        * css/CSSVariableReferenceValue.cpp:
+        (WebCore::resolveVariableReference):
+        (WebCore::resolveTokenRange):
+        * style/StyleResolveForDocument.cpp:
+        (WebCore::Style::resolveForDocument):
+
+2020-04-19  Antti Koivisto  <antti@apple.com>
+
+        [CSS selectors] :is() / :where() should not allow pseudo-elements at parse-time
+        https://bugs.webkit.org/show_bug.cgi?id=210701
+
+        Reviewed by Anders Carlsson.
+
+        https://drafts.csswg.org/selectors/#matches:
+
+        "Pseudo-elements cannot be represented by the matches-any pseudo-class; they are not valid within :is()."
+
+        Test: fast/selectors/pseudo-element-in-is-where.html
+
+        * css/parser/CSSSelectorParser.cpp:
+        (WebCore::CSSSelectorParser::consumePseudo):
+
+2020-04-19  Zalan Bujtas  <zalan@apple.com>
+
+        [LFC][TFC] Take border spacing into account when distributing column spanners width.
+        https://bugs.webkit.org/show_bug.cgi?id=210712
+
+        Reviewed by Antti Koivisto.
+
+        While distributing the column spanner extra space among individual columns,
+        the spacing between these columns (set by border-spacing) should be taken into
+        account and subtract it from the width to distribute.
+
+        <table style="border-spacing: 50px"><tr><td colspan=2>long long text</td></tr><tr><td>lo</td><td>xt</td><tr></table>
+        [long long text]
+        [lo]        [xt]
+        The individual columns don't require any extra space from the spanner.
+ 
+        * layout/FormattingContext.h:
+        (WebCore::Layout::FormattingContext::IntrinsicWidthConstraints::operator+=):
+        (WebCore::Layout::FormattingContext::IntrinsicWidthConstraints::operator-=):
+        * layout/tableformatting/TableFormattingContext.cpp:
+        (WebCore::Layout::TableFormattingContext::computedIntrinsicWidthConstraints):
+        (WebCore::Layout::TableFormattingContext::computedPreferredWidthForColumns):
+        (WebCore::Layout::TableFormattingContext::computeAndDistributeExtraHorizontalSpace):
+        * layout/tableformatting/TableGrid.h:
+        (WebCore::Layout::TableGrid::horizontalSpacing const):
+        (WebCore::Layout::TableGrid::totalHorizontalSpacing const): Deleted.
+
+2020-04-19  Emilio Cobos Álvarez  <emilio@crisal.io>
+
+        Fix the logic to decide whether a property is enumerated in a computed style declaration.
+        https://bugs.webkit.org/show_bug.cgi?id=210695
+
+        Reviewed by Antti Koivisto.
+
+        Fix the logic to decide whether a property is enumerated in a computed
+        style declaration.
+
+        Logical properties don't need stylebuilder code, but still should be
+        generated. Using the specification->category for this seems a bit
+        hacky, but unclear if it's worse than adding a new flag.
+
+        Tests: fast/css/getComputedStyle/computed-style-enumeration.html
+               imported/w3c/web-platform-tests/css/cssom/getComputedStyle-logical-enumeration.html
+
+        * css/makeprop.pl:
+        (skippedFromComputedStyle):
+        (isLogical):
+        (sortWithPrefixedPropertiesLast):
+
+2020-04-18  Antti Koivisto  <antti@apple.com>
+
+        [CSS selectors] Support :where() pseudo class
+        https://bugs.webkit.org/show_bug.cgi?id=210690
+
+        Reviewed by Sam Weinig.
+
+        "The Specificity-adjustment pseudo-class, :where(), is a functional pseudo-class with the same
+        syntax and functionality as :is(). Unlike :is(), neither the :where pseudo-class, nor any of
+        its arguments contribute to the specificity of the selector—its specificity is always zero.
+
+        This is useful for introducing filters in a selector while keeping the associated style
+        declarations easy to override."
+
+        https://drafts.csswg.org/selectors-4/#zero-matches
+
+        In terms of implementation this is just another alias for :is() with different (always 0) specificity.
+
+        Test: fast/selectors/where-specificity.html
+
+        * css/CSSSelector.cpp:
+        (WebCore::simpleSelectorSpecificityInternal):
+
+        Here is where it differs from PseudoClassIs.
+
+        (WebCore::CSSSelector::selectorText const):
+        * css/CSSSelector.h:
+        * css/SelectorChecker.cpp:
+        (WebCore::SelectorChecker::checkOne const):
+        * css/SelectorPseudoClassAndCompatibilityElementMap.in:
+        * css/parser/CSSSelectorParser.cpp:
+        (WebCore::isOnlyPseudoClassFunction):
+        (WebCore::CSSSelectorParser::consumePseudo):
+        * cssjit/SelectorCompiler.cpp:
+        (WebCore::SelectorCompiler::addPseudoClassType):
+
+2020-04-18  Rob Buis  <rbuis@igalia.com>
+
+        Reduce parameter list of the FrameLoadRequest constructor
+        https://bugs.webkit.org/show_bug.cgi?id=210668
+
+        Reviewed by Darin Adler.
+
+        Reduce parameter list of the FrameLoadRequest constructor by
+        instead using various setters. By choosing the most common
+        defaults the actual number of setters to call are minimized.
+
+        * inspector/InspectorFrontendClientLocal.cpp:
+        (WebCore::InspectorFrontendClientLocal::openInNewTab):
+        * inspector/agents/InspectorPageAgent.cpp:
+        (WebCore::InspectorPageAgent::navigate):
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::handleProvisionalLoadFailureFromContentFilter):
+        * loader/FrameLoadRequest.cpp:
+        (WebCore::FrameLoadRequest::FrameLoadRequest):
+        * loader/FrameLoadRequest.h:
+        (WebCore::FrameLoadRequest::FrameLoadRequest):
+        (WebCore::FrameLoadRequest::disableShouldReplaceDocumentIfJavaScriptURL):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::changeLocation):
+        (WebCore::FrameLoader::loadURLIntoChildFrame):
+        * loader/NavigationScheduler.cpp:
+        (WebCore::NavigationScheduler::scheduleLocationChange):
+        * page/ContextMenuController.cpp:
+        (WebCore::openNewWindow):
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::createWindow):
+        * page/DragController.cpp:
+        (WebCore::DragController::performDragOperation):
+
+2020-04-18  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt #3 to fix tvOS build
+
+        Unreviewed.
+
+        * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+        (WebCore::MediaPlayerPrivateAVFoundationObjC::createAVPlayerLayer):
+        (WebCore::MediaPlayerPrivateAVFoundationObjC::updateDisableExternalPlayback):
+        - Use !PLATFORM(APPLETV) to comment out functions declared within
+          ENABLE(VIDEO_PRESENTATION_MODE) from r260307 and r260308.
+
+2020-04-18  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        [WTF] Move DataRef.h from WebCore to WTF to utilize it in JSC
+        https://bugs.webkit.org/show_bug.cgi?id=210689
+
+        Reviewed by Anders Carlsson.
+
+        No behavior change, just moving header from WebCore to WTF.
+
+        * Headers.cmake:
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/style/NinePieceImage.h:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/SVGRenderStyle.h:
+        * rendering/style/StyleRareInheritedData.cpp:
+        * rendering/style/StyleRareInheritedData.h:
+        * rendering/style/StyleRareNonInheritedData.h:
+
+2020-04-18  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt #2 to fix tvOS build
+
+        Unreviewed.
+
+        * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+        - Add #if ENABLE(VIDEO_PRESENTATION_MODE)/#endif to protect
+          methods defined in MediaPlayerPrivate.h.
+        - The previous commit was (r260307) also to fix tvOS, not watchOS.
+
+2020-04-18  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt to fix watchOS build
+
+        Unreviewed.
+
+        * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.h:
+        - Add #if ENABLE(VIDEO_PRESENTATION_MODE)/#endif to protect
+          methods defined in MediaPlayerPrivate.h.
+
+2020-04-17  Simon Fraser  <simon.fraser@apple.com>
+
+        Group overflow controls layers into a single container layer
+        https://bugs.webkit.org/show_bug.cgi?id=210675
+
+        Reviewed by Zalan Bujtas.
+
+        Overflow control layers are going to change z-order in a future change. To make this
+        easier, group the overflow controls layer into their own container layer.
+
+        * rendering/RenderLayerBacking.cpp:
+        (WebCore::RenderLayerBacking::updateDebugIndicators):
+        (WebCore::RenderLayerBacking::updateGeometry): Size the overflow controls layer using paddingBoxRectIncludingScrollbar().
+        (WebCore::RenderLayerBacking::updateInternalHierarchy): New parenting.
+        (WebCore::RenderLayerBacking::updateOverflowControlsLayers): Some refactoring with a nice lambda.
+        (WebCore::RenderLayerBacking::positionOverflowControlsLayers): Lovely lambda here. Nice.
+        * rendering/RenderLayerBacking.h:
+
+2020-04-17  Kate Cheney  <katherine_cheney@apple.com>
+
+        Enable service workers for app-bound domains
+        https://bugs.webkit.org/show_bug.cgi?id=210451
+        <rdar://problem/61479474>
+
+        Reviewed by Brent Fulgham.
+
+        SWServer now retrieves the app-bound domains from the UI Process and
+        only continues with the load if the proper entitlement is present
+        or the load is coming from an app-bound domain.
+
+        * workers/service/server/SWServer.cpp:
+        (WebCore::SWServer::addRegistrationFromStore):
+        (WebCore::SWServer::SWServer):
+        (WebCore::SWServer::validateRegistrationDomain):
+        (WebCore::SWServer::scheduleJob):
+        * workers/service/server/SWServer.h:
+
 2020-04-17  Dean Jackson  <dino@apple.com>
 
         [WebGL] Confirm there are no errors when setting up framebuffers

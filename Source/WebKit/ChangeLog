@@ -1,3 +1,648 @@
+2020-04-20  Chris Dumez  <cdumez@apple.com>
+
+        [iOS] Refactor WebKit media playback process assertion logic to minimize chances of leaking them
+        https://bugs.webkit.org/show_bug.cgi?id=210670
+
+        Reviewed by Geoffrey Garen.
+
+        Refactor WebKit media playback process assertion logic to minimize chances of leaking them. In particular,
+        the following changes were made:
+        1. Instead of the WebProcessPool having a HashMap of media playback process assertions for
+           the WebProcess, we now store the assertion on the WebProcessProxy object itself. This is
+           less likely to get out of sync and leak.
+        2. Add a RefCounter to the WebProcessPool to count WebProcesses that have audible media.
+           Whenever a WebProcess starts or stops playing audible media, it merely grabs a RefCounter
+           token or releases it. The WebProcessPool relies on this counter to decide whether or not
+           to take a media playback assertion on behalf of the UIProcess. Since this is token-based
+           and the token is stored on the WebProcessProxy object, it makes it less likely to leak
+           the assertion.
+        3. The WebProcessProxy object now has a AudibleMediaActivity data structure wrapping both
+           its media playback assertion and its WebProcessWithAudibleMediaToken that it got from
+           the WebProcessPool. When the WebProcess shuts down (normally or due to crash/termination),
+           we make sure to clear this data structure.
+        4. Make sure that the WebProcessProxy updates its AudibleMediaActivity whenever a page is
+           removed from the WebProcess.
+
+        * UIProcess/WebPageProxy.cpp:
+        * UIProcess/WebProcessPool.cpp:
+        (WebKit::m_webProcessWithAudibleMediaCounter):
+        (WebKit::WebProcessPool::disconnectProcess):
+        (WebKit::WebProcessPool::webProcessWithAudibleMediaToken const):
+        (WebKit::WebProcessPool::updateAudibleMediaAssertions):
+        * UIProcess/WebProcessPool.h:
+        * UIProcess/WebProcessProxy.cpp:
+        (WebKit::WebProcessProxy::shutDown):
+        (WebKit::WebProcessProxy::removeWebPage):
+        (WebKit::WebProcessProxy::updateAudibleMediaAssertions):
+        * UIProcess/WebProcessProxy.h:
+
+2020-04-20  Kate Cheney  <katherine_cheney@apple.com>
+
+        <rdar://problem/62059046>
+
+        Unreviewed macCatalyst build fix.
+
+        * NetworkProcess/NetworkProcess.messages.in:
+
+2020-04-20  Darin Adler  <darin@apple.com>
+
+        Use #import instead of #include in Objective-C and don't use #pragma once
+        https://bugs.webkit.org/show_bug.cgi?id=210724
+
+        Reviewed by David Kilzer.
+
+        * mac/MigrateHeadersFromWebKitLegacy.make: Delete stale MemoryMeasure.h
+        forwarding header from incremental WebKit builds and ignore when generating
+        new forwarding headers.
+
+        * Platform/foundation/LoggingFoundation.mm:
+        (WebKit::logLevelString): Use string directly instead of a named constant.
+
+        * UIProcess/mac/WebColorPickerMac.h: Mark class final.
+
+        * GPUProcess/webrtc/LibWebRTCCodecsProxy.mm:
+        * NetworkProcess/WebStorage/ios/LocalStorageDatabaseTrackerIOS.mm:
+        * NetworkProcess/cache/NetworkCacheDataCocoa.mm:
+        * NetworkProcess/cache/NetworkCacheIOChannelCocoa.mm:
+        * NetworkProcess/cocoa/NetworkActivityTrackerCocoa.mm:
+        * NetworkProcess/cocoa/NetworkSessionCocoa.mm:
+        * NetworkProcess/webrtc/NetworkRTCProvider.mm:
+        * Platform/spi/Cocoa/DeviceManagementSPI.h:
+        * Platform/spi/Cocoa/LocalAuthenticationSPI.h:
+        * Platform/spi/Cocoa/NearFieldSPI.h:
+        * Platform/spi/Cocoa/SafeBrowsingSPI.h:
+        * Platform/spi/mac/AppKitSPI.h:
+        * Shared/API/Cocoa/RemoteObjectInvocation.mm:
+        * Shared/API/Cocoa/WKMain.mm:
+        * Shared/APIWebArchive.mm:
+        * Shared/APIWebArchiveResource.mm:
+        * Shared/Authentication/cocoa/AuthenticationChallengeDispositionCocoa.mm:
+        * Shared/Cocoa/LoadParametersCocoa.mm:
+        * Shared/Cocoa/SandboxInitialiationParametersCocoa.mm:
+        * Shared/Cocoa/WKNSData.mm:
+        * Shared/DocumentEditingContext.mm:
+        * Shared/Plugins/mac/PluginSandboxProfile.mm:
+        * Shared/RemoteLayerTree/WKAnimationDelegate.h:
+        * Shared/UserInterfaceIdiom.mm:
+        * Shared/ios/WebIconUtilities.mm:
+        * Shared/mac/CodeSigning.mm:
+        * Shared/mac/ColorSpaceData.mm:
+        * Shared/mac/HangDetectionDisablerMac.mm:
+        * Shared/mac/PDFKitImports.mm:
+        * UIProcess/API/Cocoa/APIContentRuleListStoreCocoa.mm:
+        * UIProcess/API/Cocoa/APIHTTPCookieStoreCocoa.mm:
+        * UIProcess/API/Cocoa/APISerializedScriptValueCocoa.mm:
+        * UIProcess/API/Cocoa/WKContentRuleList.mm:
+        * UIProcess/API/Cocoa/WKMenuItemIdentifiers.mm:
+        * UIProcess/API/Cocoa/WKNavigationActionPrivate.h:
+        * UIProcess/API/Cocoa/WKPreviewActionItemIdentifiers.mm:
+        * UIProcess/API/Cocoa/WKWebViewInternal.h:
+        * UIProcess/API/Cocoa/WKWebpagePreferencesInternal.h:
+        * UIProcess/API/Cocoa/_WKApplicationManifest.h:
+        * UIProcess/API/Cocoa/_WKAttachment.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadInfoInternal.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadStatisticsFirstPartyInternal.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadStatisticsThirdPartyInternal.h:
+        * UIProcess/API/Cocoa/_WKTextManipulationExclusionRule.mm:
+        * UIProcess/API/Cocoa/_WKUserContentFilter.mm:
+        * UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponseInternal.h:
+        * UIProcess/API/Cocoa/_WKWebAuthenticationPanelInternal.h:
+        * UIProcess/API/Cocoa/_WKWebsiteDataStoreDelegate.h:
+        * UIProcess/Authentication/mac/WebCredentialMac.mm:
+        * UIProcess/Automation/cocoa/WebAutomationSessionCocoa.mm:
+        * UIProcess/Cocoa/IconLoadingDelegate.mm:
+        * UIProcess/Cocoa/MediaUtilities.mm:
+        * UIProcess/Cocoa/PreferenceObserver.h:
+        * UIProcess/Cocoa/PreferenceObserver.mm:
+        * UIProcess/Cocoa/SOAuthorization/NavigationSOAuthorizationSession.mm:
+        * UIProcess/Cocoa/SOAuthorization/SOAuthorizationNSURLExtras.h:
+        * UIProcess/Cocoa/SOAuthorization/SOAuthorizationSession.mm:
+        * UIProcess/Cocoa/SOAuthorization/WKSOAuthorizationDelegate.h:
+        * UIProcess/Cocoa/WKEditCommand.h:
+        * UIProcess/Cocoa/WKFullKeyboardAccessWatcher.h:
+        * UIProcess/Cocoa/WebPageProxyCocoa.mm:
+        * UIProcess/Gamepad/cocoa/UIGamepadProviderCocoa.mm:
+        * UIProcess/Inspector/mac/WKInspectorViewController.h:
+        * UIProcess/Inspector/mac/WKInspectorWKWebView.h:
+        * UIProcess/RemoteLayerTree/ios/RemoteLayerTreeViews.h:
+        * UIProcess/RemoteLayerTree/ios/ScrollingTreeScrollingNodeDelegateIOS.h:
+        * UIProcess/RemoteLayerTree/mac/ScrollerMac.mm:
+        * UIProcess/RemoteLayerTree/mac/ScrollerPairMac.mm:
+        * UIProcess/WebAuthentication/Cocoa/LocalAuthenticator.mm:
+        * UIProcess/WebAuthentication/Cocoa/WKNFReaderSessionDelegate.h:
+        * UIProcess/WebsiteData/Cocoa/WebsiteDataStoreCocoa.mm:
+        * UIProcess/ios/WKDeferringGestureRecognizer.h:
+        * UIProcess/ios/WKHighlightLongPressGestureRecognizer.h:
+        * UIProcess/ios/WebDataListSuggestionsDropdownIOS.h:
+        * UIProcess/ios/WebDataListSuggestionsDropdownIOS.mm:
+        * UIProcess/ios/forms/WKDatePickerViewController.h:
+        * UIProcess/ios/forms/WKDatePickerViewController.mm:
+        * UIProcess/ios/forms/WKFocusedFormControlView.h:
+        * UIProcess/ios/forms/WKFocusedFormControlView.mm:
+        * UIProcess/ios/forms/WKFormColorPicker.mm:
+        * UIProcess/ios/forms/WKNumberPadViewController.h:
+        * UIProcess/ios/forms/WKNumberPadViewController.mm:
+        * UIProcess/ios/forms/WKQuickboardListViewController.h:
+        * UIProcess/ios/forms/WKQuickboardListViewController.mm:
+        * UIProcess/ios/forms/WKSelectMenuListViewController.h:
+        * UIProcess/ios/forms/WKTimePickerViewController.h:
+        * UIProcess/ios/forms/WKTimePickerViewController.mm:
+        * UIProcess/ios/fullscreen/WKFullScreenViewController.h:
+        * UIProcess/ios/fullscreen/WKFullscreenStackView.h:
+        * UIProcess/ios/fullscreen/WKFullscreenStackView.mm:
+        * UIProcess/mac/PageClientImplMac.mm:
+        * UIProcess/mac/WKSharingServicePickerDelegate.h:
+        * WebProcess/GPU/media/cocoa/MediaPlayerPrivateRemoteCocoa.mm:
+        * WebProcess/GPU/media/cocoa/VideoLayerRemoteCocoa.h:
+        * WebProcess/InjectedBundle/API/c/mac/WKBundlePageBannerMac.mm:
+        * WebProcess/WebCoreSupport/mac/WebFrameNetworkingContext.mm:
+        * WebProcess/WebPage/RemoteLayerTree/PlatformCAAnimationRemote.mm:
+        * WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemote.cpp:
+        * WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteCustom.mm:
+        * WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteTiledBacking.cpp:
+        * WebProcess/WebPage/WKAccessibilityWebPageObjectIOS.h:
+        * WebProcess/WebPage/mac/PageBannerMac.mm:
+        * WebProcess/WebPage/mac/WKAccessibilityWebPageObjectBase.h:
+        * WebProcess/WebPage/mac/WKAccessibilityWebPageObjectMac.h:
+        * WebProcess/cocoa/WebProcessCocoa.mm:
+        More #import, less #pragma once.
+
+2020-04-20  Pablo Saavedra  <psaavedra@igalia.com>
+
+        [GTK][WPE] lowWatermarkPages() in MemoryPressureMonitor.cpp only searches the "low" value inside the first "Node" section
+        https://bugs.webkit.org/show_bug.cgi?id=210345
+
+        Reviewed by Adrian Perez de Castro.
+
+        * UIProcess/linux/MemoryPressureMonitor.cpp:
+        (WebKit::lowWatermarkPages):
+
+2020-04-20  Carlos Garcia Campos  <cgarcia@igalia.com>
+
+        [GTK][WPE] Enable resource load statistics
+        https://bugs.webkit.org/show_bug.cgi?id=210184
+
+        Reviewed by Žan Doberšek.
+
+        * NetworkProcess/NetworkDataTask.cpp:
+        (WebKit::NetworkDataTask::create): Pass page and frame identifiers to the constructor.
+        (WebKit::NetworkDataTask::isThirdPartyRequest const): Moved from NetworkDataTaskCocoa.mm.
+        (WebKit::NetworkDataTask::restrictRequestReferrerToOriginIfNeeded): Ditto.
+        * NetworkProcess/NetworkDataTask.h:
+        * NetworkProcess/cocoa/NetworkDataTaskCocoa.h:
+        * NetworkProcess/cocoa/NetworkDataTaskCocoa.mm:
+        * NetworkProcess/soup/NetworkDataTaskSoup.cpp:
+        (WebKit::NetworkDataTaskSoup::NetworkDataTaskSoup): Initialize m_frameID and m_pageID.
+        (WebKit::NetworkDataTaskSoup::createRequest): Add WasBlockingCookies parameter. Call
+        restrictRequestReferrerToOriginIfNeeded() and disable cookies in the soup message if cookies should be blocked.
+        (WebKit::NetworkDataTaskSoup::clearRequest): Reset m_isBlockingCookies.
+        (WebKit::NetworkDataTaskSoup::continueHTTPRedirection): Pass WasBlockingCookies to createRequest().
+        * NetworkProcess/soup/NetworkDataTaskSoup.h:
+        * UIProcess/API/C/WKPage.cpp:
+        (WKPageLoadedThirdPartyDomains): Added for tests.
+        (WKPageClearLoadedThirdPartyDomains): Ditto.
+        * UIProcess/API/C/WKPagePrivate.h:
+        * UIProcess/glib/WebsiteDataStoreGLib.cpp:
+        (WebKit::WebsiteDataStore::defaultResourceLoadStatisticsDirectory): Use lowercase for consistency with other
+        default directories.
+
+2020-04-20  David Kilzer  <ddkilzer@apple.com>
+
+        REGRESSION (r259610): Leak of RBSAssertionInvalidationCallbackType due to missing -dealloc
+        <https://webkit.org/b/210711>
+        <rdar://problem/61993361>
+
+        Reviewed by Geoffrey Garen.
+
+        * UIProcess/ios/ProcessAssertionIOS.mm:
+        (-[WKRBSAssertionDelegate dealloc]): Add.
+        - Release _invalidationCallback to fix the leak.
+
+2020-04-19  Brady Eidson  <beidson@apple.com>
+
+        Add WKScriptMessageHandler API that asynchronously responds with a promise.
+        rdar://problem/57243492 and https://bugs.webkit.org/show_bug.cgi?id=206398
+
+        Reviewed by Andy Estes.
+        
+        Change webkit.messageHandlers.<name>.postMessage() to return a promise instead of undefined.
+        
+        Allow for that promise to be resolved by an asynchronous reply block up in the API client.
+        This is like the spiritual opposite version of [WKWebView callAsyncFunction:...]
+        
+        And while we're adding a new script message handler variant, we're adding it sandboxed by WKContentWorld.
+
+        * Shared/API/APISerializedScriptValue.h:
+        * UIProcess/API/Cocoa/APISerializedScriptValueCocoa.mm:
+        (API::validateObject):
+        (API::coreValueFromNSObject):
+        (API::SerializedScriptValue::createFromNSObject):
+        (API::SerializedScriptValue::wireBytesFromNSObject): Deleted.
+
+        * UIProcess/API/Cocoa/WKScriptMessage.h: Now that script message handlers can be per-world, messages
+          declare which world they were posted from.
+        * UIProcess/API/Cocoa/WKScriptMessage.mm:
+        (-[WKScriptMessage _initWithBody:webView:frameInfo:name:world:]):
+        (-[WKScriptMessage world]):
+        (-[WKScriptMessage _initWithBody:webView:frameInfo:name:]): Deleted.
+        * UIProcess/API/Cocoa/WKScriptMessageInternal.h:
+
+        * UIProcess/API/Cocoa/WKScriptMessageHandlerWithReply.h: Added.
+          Declare the new protocol for a script message handler that can reply to messages asynchronously.
+
+        * UIProcess/API/Cocoa/WKUserContentController.h:
+        * UIProcess/API/Cocoa/WKUserContentController.mm:
+        (-[WKUserContentController _addScriptMessageHandler:]):
+        (-[WKUserContentController addScriptMessageHandler:name:]):
+        (-[WKUserContentController addScriptMessageHandler:contentWorld:name:]):
+        (-[WKUserContentController addScriptMessageHandlerWithReply:contentWorld:name:]):
+        (-[WKUserContentController removeScriptMessageHandlerForName:contentWorld:]):
+        (-[WKUserContentController removeAllScriptMessageHandlersFromContentWorld:]):
+        (-[WKUserContentController removeAllScriptMessageHandlers]):
+        * UIProcess/API/Cocoa/WKUserContentControllerInternal.h:
+        * UIProcess/API/Cocoa/WKUserContentControllerPrivate.h:
+        
+        * UIProcess/API/Cocoa/WKWebView.mm:
+        (-[WKWebView _evaluateJavaScript:asAsyncFunction:withArguments:forceUserGesture:inFrame:inWorld:completionHandler:]):
+        Update for new shared API::SerializedScriptValue initialization.
+        
+        * UIProcess/API/glib/WebKitUserContentManager.cpp:
+        * UIProcess/API/gtk/WebKitRemoteInspectorProtocolHandler.cpp:
+        * UIProcess/Inspector/socket/RemoteInspectorProtocolHandler.cpp:
+        
+        * UIProcess/UserContent/WebScriptMessageHandler.h:
+        * UIProcess/UserContent/WebUserContentControllerProxy.cpp:
+        (WebKit::WebUserContentControllerProxy::removeAllUserMessageHandlers):
+        (WebKit::WebUserContentControllerProxy::didPostMessage):
+        * UIProcess/UserContent/WebUserContentControllerProxy.h:
+        * UIProcess/UserContent/WebUserContentControllerProxy.messages.in:
+        
+        * WebKit.xcodeproj/project.pbxproj:
+        
+        * WebProcess/InjectedBundle/API/gtk/DOM/WebKitDOMDOMWindow.cpp:
+        (webkit_dom_dom_window_webkit_message_handlers_post_message):
+        
+        * WebProcess/UserContent/WebUserContentController.cpp:
+        (WebKit::WebUserContentController::removeAllUserScriptMessageHandlers):
+        (WebKit::WebUserContentController::removeAllUserScriptMessageHandlersForWorlds):
+        * WebProcess/UserContent/WebUserContentController.h:
+        * WebProcess/UserContent/WebUserContentController.messages.in:
+
+2020-04-19  David Kilzer  <ddkilzer@apple.com>
+
+        REGRESSION (r244091): Leak of TaskStateChangedCallbackType due to missing -dealloc
+        <https://webkit.org/b/210710>
+        <rdar://problem/61992856>
+
+        Reviewed by Darin Adler.
+
+        * Shared/Cocoa/ProcessTaskStateObserver.mm:
+        (-[WKProcessTaskStateObserverDelegate dealloc]): Add.
+        - Release _taskStateChangedCallback to fix the leak.
+
+2020-04-19  David Kilzer  <ddkilzer@apple.com>
+
+        [IPC hardening] Use MESSAGE_CHECK in WebPageProxy::loadRecentSearches() and WebPageProxy::saveRecentSearches()
+        <https://webkit.org/b/210683>
+        <rdar://problem/59240446>
+
+        Reviewed by Geoffrey Garen.
+
+        * UIProcess/Cocoa/WebPageProxyCocoa.mm:
+        (MESSAGE_CHECK): Add.
+        (MESSAGE_CHECK_COMPLETION): Add.
+        (WebKit::WebPageProxy::saveRecentSearches):
+        (WebKit::WebPageProxy::loadRecentSearches):
+        - Replace boolean check of const String& with MESSAGE_CHECK.
+
+2020-04-18  Darin Adler  <darin@apple.com>
+
+        Update header postprocessing version cutoff to keep Apple internal builds working
+        https://bugs.webkit.org/show_bug.cgi?id=210708
+
+        Reviewed by Brady Eidson.
+
+        * Configurations/WebKit.xcconfig: Update versions to make building with older
+        Apple internal SDKs continue to work.
+
+        * Shared/API/Cocoa/WKFoundation.h:
+        * Shared/API/Cocoa/_WKFrameHandle.h:
+        * Shared/API/Cocoa/_WKRemoteObjectInterface.h:
+        * UIProcess/API/Cocoa/WKContentWorld.h:
+        * UIProcess/API/Cocoa/WKFindConfiguration.h:
+        * UIProcess/API/Cocoa/WKFindResult.h:
+        * UIProcess/API/Cocoa/WKFrameInfoPrivate.h:
+        * UIProcess/API/Cocoa/WKHTTPCookieStorePrivate.h:
+        * UIProcess/API/Cocoa/WKNavigationDelegatePrivate.h:
+        * UIProcess/API/Cocoa/WKPDFConfiguration.h:
+        * UIProcess/API/Cocoa/WKPreferences.h:
+        * UIProcess/API/Cocoa/WKPreferencesPrivate.h:
+        * UIProcess/API/Cocoa/WKProcessPoolPrivate.h:
+        * UIProcess/API/Cocoa/WKUIDelegatePrivate.h:
+        * UIProcess/API/Cocoa/WKURLSchemeTaskPrivate.h:
+        * UIProcess/API/Cocoa/WKUserScriptPrivate.h:
+        * UIProcess/API/Cocoa/WKWebView.h:
+        * UIProcess/API/Cocoa/WKWebViewConfiguration.h:
+        * UIProcess/API/Cocoa/WKWebViewConfigurationPrivate.h:
+        * UIProcess/API/Cocoa/WKWebViewPrivate.h:
+        * UIProcess/API/Cocoa/WKWebpagePreferences.h:
+        * UIProcess/API/Cocoa/WKWebpagePreferencesPrivate.h:
+        * UIProcess/API/Cocoa/WKWebsiteDataRecordPrivate.h:
+        * UIProcess/API/Cocoa/WKWebsiteDataStorePrivate.h:
+        * UIProcess/API/Cocoa/_WKDownload.h:
+        * UIProcess/API/Cocoa/_WKFrameTreeNode.h:
+        * UIProcess/API/Cocoa/_WKInputDelegate.h:
+        * UIProcess/API/Cocoa/_WKInspectorDebuggableInfo.h:
+        * UIProcess/API/Cocoa/_WKProcessPoolConfiguration.h:
+        * UIProcess/API/Cocoa/_WKRemoteWebInspectorViewController.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadDelegate.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadInfo.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadStatisticsFirstParty.h:
+        * UIProcess/API/Cocoa/_WKResourceLoadStatisticsThirdParty.h:
+        * UIProcess/API/Cocoa/_WKTextManipulationConfiguration.h:
+        * UIProcess/API/Cocoa/_WKTextManipulationExclusionRule.h:
+        * UIProcess/API/Cocoa/_WKTextManipulationItem.h:
+        * UIProcess/API/Cocoa/_WKTextManipulationToken.h:
+        * UIProcess/API/Cocoa/_WKUserContentWorld.h:
+        * UIProcess/API/Cocoa/_WKUserStyleSheet.h:
+        * UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponse.h:
+        * UIProcess/API/Cocoa/_WKWebAuthenticationPanel.h:
+        * UIProcess/API/Cocoa/_WKWebsiteDataStoreConfiguration.h:
+        * UIProcess/API/Cocoa/_WKWebsitePolicies.h:
+        Because the way we do post-processing of headers in the legacy Xcode
+        build system won't work once the files have been processed once, touch
+        each file that has WK_MAC_TBA, WK_IOS_TBA, or
+        WK_FRAMEWORK_HEADER_POSTPROCESSING_ENABLED in it. Found something to
+        change in each file. This is likely unnecessary in the new Xcode build
+        system, but I wasn't able to test that locally.
+
+        * WebKit.xcodeproj/project.pbxproj:
+        (postprocess-header-rule): Added dependencies so that post-processing will be
+        redone if Configurations/WebKit.xcconfig is touched, since that is where
+        WK_FRAMEWORK_HEADER_POSTPROCESSING_DISABLED is set, or if
+        Scripts/postprocess-header-rule is touched, since that is where the
+        post-processing code is. If either of those files changes it could affect the
+        output of post-processing. This should make a change like this work in the
+        new Xcode build system without touching files as is done above.
+
+2020-04-18  Brady Eidson  <beidson@apple.com>
+
+        Fix WebUserContentControllerProxy vs ContentWorld lifetime
+        https://bugs.webkit.org/show_bug.cgi?id=210700
+
+        Reviewed by Alex Christensen.
+
+        Covered by API test.
+        
+        WebUserContentControllerProxy currently keeps all of its associated API::ContentWorlds alive via RefPtrs.
+        
+        This is despite the fact that all of the associated WebScriptMessageHandlers, UserScripts, and 
+        UserStyleSheets already keep their associated API::ContentWorlds alive.
+
+        It then decideds to tell WebProcesses to forget a content world after all of its clients are removed.
+        
+        Unfortunately, content worlds are used for more than just content controller stuff. They're used for direct
+        JavaScript evaluation as well.
+        
+        So a client could:
+          - Add a script message handler in a content world.
+          - Evaluate JavaScript in that content world, setting up some persistent state.
+          - Remove the script message handler.
+          - Find that their persistent state from the JavaScript evaluation is gone from that world, even though they
+            still retain a usable handle to that world.
+        
+        The only party who has any business managing the lifetime of an API::ContentWorld is the API::ContentWorld itself.
+        
+        Making this change is:
+          1 - Nice cleanup
+          2 - Fixes the above mentioned bug
+        
+        * UIProcess/API/APIContentWorld.cpp:
+        (API::ContentWorld::worldForIdentifier):
+        (API::ContentWorld::ContentWorld):
+        (API::ContentWorld::sharedWorldWithName):
+        (API::ContentWorld::~ContentWorld):
+        (API::ContentWorld::addAssociatedUserContentControllerProxy):
+        (API::ContentWorld::userContentControllerProxyDestroyed):
+        * UIProcess/API/APIContentWorld.h:
+
+        * UIProcess/UserContent/WebUserContentControllerProxy.cpp:
+        (WebKit::WebUserContentControllerProxy::parameters const):
+        (WebKit::WebUserContentControllerProxy::addContentWorld):
+        (WebKit::WebUserContentControllerProxy::contentWorldDestroyed):
+        (WebKit::WebUserContentControllerProxy::addUserScript):
+        (WebKit::WebUserContentControllerProxy::removeUserScript):
+        (WebKit::WebUserContentControllerProxy::removeAllUserScripts):
+        (WebKit::WebUserContentControllerProxy::addUserStyleSheet):
+        (WebKit::WebUserContentControllerProxy::removeUserStyleSheet):
+        (WebKit::WebUserContentControllerProxy::removeAllUserStyleSheets):
+        (WebKit::WebUserContentControllerProxy::addUserScriptMessageHandler):
+        (WebKit::WebUserContentControllerProxy::removeUserMessageHandlerForName):
+        (WebKit::WebUserContentControllerProxy::removeAllUserMessageHandlers):
+        (WebKit::WebUserContentControllerProxy::addContentWorldUse): Deleted.
+        (WebKit::WebUserContentControllerProxy::shouldSendRemoveContentWorldsMessage): Deleted.
+        (WebKit::WebUserContentControllerProxy::removeContentWorldUses): Deleted.
+        * UIProcess/UserContent/WebUserContentControllerProxy.h:
+
+2020-04-18  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt #4 to fix tvOS build
+
+        Unreviewed.
+
+        * WebProcess/cocoa/WebProcessCocoa.mm:
+        (WebKit::WebProcess::platformInitializeWebProcess):
+        - Add #if ENABLE(VIDEO_PRESENTATION_MODE)/#endif to protect
+          function defined in WebCore/PictureInPictureSupport.h.
+        - See previous build fixes in r260307, r260308 and r260313.
+
+2020-04-18  Alex Christensen  <achristensen@webkit.org>
+
+        Fix client certificate authentication when using non-default WKWebsiteDataStores
+        https://bugs.webkit.org/show_bug.cgi?id=210681
+
+        Reviewed by Brady Eidson.
+
+        NetworkProcessProxy was trying to keep a map of WebsiteDataStores, but it wasn't as accurate as the one WebsiteDataStore was maintaining.
+        Use the latter map instead and client certificate authentication works.  Otherwise, the credential isn't serialized correctly.
+        I found this while working on <rdar://problem/60340449> but this was unrelated so I put it in a different change.
+        This may fix <rdar://problem/60910392>.
+
+        * UIProcess/Network/NetworkProcessProxy.cpp:
+        (WebKit::NetworkProcessProxy::websiteDataStoreFromSessionID):
+
+2020-04-18  Pablo Saavedra  <psaavedra@igalia.com>
+
+        [GTK][WPE] Replace evil strtok() calls with fscanf() in MemoryPressureMonitor.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=210346
+
+        Reviewed by Adrian Perez de Castro.
+
+        * UIProcess/linux/MemoryPressureMonitor.cpp:
+        (WebKit::lowWatermarkPages):
+        (WebKit::getCgroupControllerPath):
+        (WebKit::systemMemoryUsedAsPercentage):
+        (WebKit::CGroupMemoryController::getCgroupFileValue):
+
+2020-04-18  Rob Buis  <rbuis@igalia.com>
+
+        Reduce parameter list of the FrameLoadRequest constructor
+        https://bugs.webkit.org/show_bug.cgi?id=210668
+
+        Reviewed by Darin Adler.
+
+        Adapt to API change.
+
+        * WebProcess/Inspector/WebInspector.cpp:
+        (WebKit::WebInspector::openInNewTab):
+        * WebProcess/Plugins/PluginView.cpp:
+        (WebKit::PluginView::performFrameLoadURLRequest):
+        (WebKit::PluginView::loadURL):
+        * WebProcess/WebPage/WebPage.cpp:
+        (WebKit::WebPage::loadURLInFrame):
+        (WebKit::WebPage::loadDataInFrame):
+        (WebKit::WebPage::loadRequest):
+        (WebKit::WebPage::loadDataImpl):
+
+2020-04-18  David Kilzer  <ddkilzer@apple.com>
+
+        [IPC hardening] Use MESSAGE_CHECK in WebPasteboardProxy
+        <https://webkit.org/b/210684>
+        <rdar://problem/59906721>
+
+        Reviewed by Wenson Hsieh.
+
+        * UIProcess/Cocoa/WebPasteboardProxyCocoa.mm:
+        - Add missing #undef of MESSAGE_CHECK_COMPLETION and
+          MESSAGE_CHECK_WITH_RETURN_VALUE.
+        (WebKit::WebPasteboardProxy::getPasteboardPathnamesForType):
+        (WebKit::WebPasteboardProxy::getPasteboardStringForType):
+        (WebKit::WebPasteboardProxy::getPasteboardStringsForType):
+        (WebKit::WebPasteboardProxy::getPasteboardBufferForType):
+        (WebKit::WebPasteboardProxy::setPasteboardStringForType):
+        (WebKit::WebPasteboardProxy::setPasteboardBufferForType):
+        (WebKit::WebPasteboardProxy::typesSafeForDOMToReadAndWrite):
+        (WebKit::WebPasteboardProxy::readStringFromPasteboard):
+        (WebKit::WebPasteboardProxy::readBufferFromPasteboard):
+        - Replace existing code with MESSAGE_CHECK_COMPLETION macros.
+
+        * UIProcess/WebPasteboardProxy.cpp:
+        (WebKit::WebPasteboardProxy::typesSafeForDOMToReadAndWrite):
+        * UIProcess/WebPasteboardProxy.h:
+        * UIProcess/WebPasteboardProxy.messages.in:
+        - Add IPC::Connection to TypesSafeForDOMToReadAndWrite.
+
+2020-04-17  Kate Cheney  <katherine_cheney@apple.com>
+
+        Enable service workers for app-bound domains
+        https://bugs.webkit.org/show_bug.cgi?id=210451
+        <rdar://problem/61479474>
+
+        Reviewed by Brent Fulgham.
+
+        * NetworkProcess/NetworkConnectionToWebProcess.cpp:
+        (WebKit::NetworkConnectionToWebProcess::createFetchTask):
+        (WebKit::NetworkConnectionToWebProcess::scheduleResourceLoad):
+        (WebKit::NetworkConnectionToWebProcess::swConnection):
+        (WebKit::NetworkConnectionToWebProcess::isServiceWorkerAllowed const): Deleted.
+        * NetworkProcess/NetworkConnectionToWebProcess.h:
+        Removed ASSERTS and service worker entitlement checks which are now done along with app-bound
+        domain checks in SWServer.cpp.
+
+        * NetworkProcess/NetworkProcess.cpp:
+        (WebKit::NetworkProcess::initializeNetworkProcess):
+        (WebKit::NetworkProcess::addWebsiteDataStore):
+        Remove the check for parentProcessHasServiceWorkerEntitlement() before
+        adding a serviceWorkerSession. This doesn't do anything except add an
+        entry to a map, and simplifies the case where we need a session for
+        app-bound instances which should have service workers but have no entitlement.
+
+        Pass the entitlement and a new callback to request app-bound domains
+        from the UI Process to the SWServer. This will make sure the server
+        checks for the entitlement or list of app-bound domains before completing a load.
+
+        (WebKit::NetworkProcess::registerSWServerConnection):
+        Remove unnecessary ASSERT for entitlement.
+
+        * NetworkProcess/NetworkProcess.h:
+        * NetworkProcess/NetworkProcess.messages.in:
+        * NetworkProcess/ios/NetworkProcessIOS.mm:
+        (WebKit::NetworkProcess::parentProcessHasServiceWorkerEntitlement const):
+        (WebKit::NetworkProcess::disableServiceWorkerEntitlement):
+        (WebKit::NetworkProcess::clearServiceWorkerEntitlementOverride):
+        In order to test this thoroughly, TestWebKitAPI needed a way to
+        temporarily disable the service worker entitlement. This function
+        overrides the check for the entitlement if the bool is set, disabling
+        the entitlement.
+
+        * Shared/WebPageCreationParameters.cpp:
+        (WebKit::WebPageCreationParameters::encode const):
+        (WebKit::WebPageCreationParameters::decode):
+        * Shared/WebPageCreationParameters.h:
+        WebPage needs to know if it is app-bound when created so it can update
+        the service worker preferences key accordingly.
+
+        * Shared/WebPreferences.yaml:
+        * UIProcess/API/Cocoa/WKPreferences.mm:
+        (-[WKPreferences _serviceWorkerEntitlementDisabledForTesting]):
+        (-[WKPreferences _setServiceWorkerEntitlementDisabledForTesting:]):
+        * UIProcess/API/Cocoa/WKPreferencesPrivate.h:
+        Disable entitlement for testing.
+
+        * UIProcess/API/APIPageConfiguration.cpp:
+        (API::PageConfiguration::copy const):
+        * UIProcess/API/APIPageConfiguration.h:
+        (API::PageConfiguration::limitsNavigationsToAppBoundDomains const):
+        (API::PageConfiguration::setLimitsNavigationsToAppBoundDomains):
+        (API::PageConfiguration::limitsNavigationToAppBoundDomains const): Deleted.
+        (API::PageConfiguration::setLimitsNavigationToAppBoundDomains): Deleted.
+        (-[WKWebViewConfiguration limitsNavigationsToAppBoundDomains]):
+        (-[WKWebViewConfiguration setLimitsNavigationsToAppBoundDomains:]):
+        (-[WKWebViewConfiguration limitsNavigationToAppBoundDomains]): Deleted.
+        (-[WKWebViewConfiguration setLimitsNavigationToAppBoundDomains:]): Deleted.
+        * UIProcess/API/Cocoa/WKWebViewConfiguration.mm:
+        Inconsistent naming (Navigation vs Navigations).
+
+        * UIProcess/API/Cocoa/WKWebView.mm:
+        (-[WKWebView _setupPageConfiguration:]):
+        Check for entitlement or app-bound webview.
+
+        (-[WKWebView _serviceWorkersEnabled:]):
+        (-[WKWebView _clearServiceWorkerEntitlementOverride:]):
+        * UIProcess/API/Cocoa/WKWebViewPrivate.h:
+        Testing SPIs.
+
+        * UIProcess/Network/NetworkProcessProxy.cpp:
+        (WebKit::NetworkProcessProxy::getAppBoundDomains):
+        * UIProcess/Network/NetworkProcessProxy.h:
+        * UIProcess/Network/NetworkProcessProxy.messages.in:
+        Sends the app-bound domains to the Network Process.
+
+        * UIProcess/WebPageProxy.cpp:
+        (WebKit::m_limitsNavigationsToAppBoundDomains):
+        (WebKit::m_limitsNavigationToAppBoundDomains): Deleted.
+        Naming inconsistency.
+
+        (WebKit::WebPageProxy::disableServiceWorkerEntitlementInNetworkProcess):
+        (WebKit::WebPageProxy::clearServiceWorkerEntitlementOverride):
+        * UIProcess/WebPageProxy.h:
+        Disable entitlement for testing.
+
+        * WebProcess/WebPage/WebPage.cpp:
+        (WebKit::m_isNavigatingToAppBoundDomain):
+        Set this parameter in the constructor so it will be accurate when
+        updating preferences.
+
+        (WebKit::WebPage::updatePreferences):
+        * WebProcess/WebPage/WebPage.h:
+        (WebKit::WebPage::clearServiceWorkerEntitlementOverride):
+        * WebProcess/WebPage/WebPage.messages.in:
+        * WebProcess/WebPage/ios/WebPageIOS.mm:
+        (WebKit::WebPage::parentProcessHasServiceWorkerEntitlement const):
+        (WebKit::WebPage::disableServiceWorkerEntitlement):
+        (WebKit::WebPage::clearServiceWorkerEntitlementOverride):
+        Disable entitlement for testing.
+
 2020-04-17  Alex Christensen  <achristensen@webkit.org>
 
         NetworkSessionCocoa should request client certificate only once per host/port

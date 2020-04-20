@@ -1,3 +1,71 @@
+2020-04-20  Darin Adler  <darin@apple.com>
+
+        Use #import instead of #include in Objective-C and don't use #pragma once
+        https://bugs.webkit.org/show_bug.cgi?id=210724
+
+        Reviewed by David Kilzer.
+
+        * wtf/cocoa/Entitlements.mm:
+        * wtf/cocoa/FileSystemCocoa.mm:
+        * wtf/cocoa/MainThreadCocoa.mm:
+        * wtf/cocoa/SystemTracingCocoa.cpp:
+        * wtf/mac/DeprecatedSymbolsUsedBySafari.mm:
+        * wtf/mac/SchedulePairMac.mm:
+        * wtf/text/cocoa/StringCocoa.mm:
+        * wtf/text/cocoa/TextStreamCocoa.mm:
+        More #import.
+
+2020-04-19  Brady Eidson  <beidson@apple.com>
+
+        Add WKScriptMessageHandler API that asynchronously responds with a promise.
+        rdar://problem/57243492 and https://bugs.webkit.org/show_bug.cgi?id=206398
+
+        Reviewed by Andy Estes.
+
+        * wtf/CompletionHandler.h:
+        (WTF::CompletionHandlerWithFinalizer<Out): Add a variant of CompletionHandler that allows for a Finalizer function
+          to handle cases where the Completion function hasn't been called at destruction time.
+
+2020-04-19  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        [JSC] Enable BigInt
+        https://bugs.webkit.org/show_bug.cgi?id=210726
+
+        Reviewed by Mark Lam.
+
+        * wtf/PlatformUse.h:
+
+2020-04-18  Robin Morisset  <rmorisset@apple.com>
+
+        Support an inlined representation in JSValue of small BigInts ("BigInt32")
+        https://bugs.webkit.org/show_bug.cgi?id=206182
+
+        Reviewed by Yusuke Suzuki.
+
+        Add a USE(BIGINT32) flag.
+
+        * wtf/PlatformUse.h:
+
+2020-04-18  Keith Miller  <keith_miller@apple.com>
+
+        Redesign how we do for-of iteration for JSArrays
+        https://bugs.webkit.org/show_bug.cgi?id=175454
+
+        Reviewed by Filip Pizlo.
+
+        * wtf/EnumClassOperatorOverloads.h:
+
+2020-04-18  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        [WTF] Move DataRef.h from WebCore to WTF to utilize it in JSC
+        https://bugs.webkit.org/show_bug.cgi?id=210689
+
+        Reviewed by Anders Carlsson.
+
+        * WTF.xcodeproj/project.pbxproj:
+        * wtf/CMakeLists.txt:
+        * wtf/DataRef.h: Renamed from Source/WebCore/rendering/style/DataRef.h.
+
 2020-04-17  Saam Barati  <sbarati@apple.com>
 
         GetTypedArrayByteOffset is broken on arm64e

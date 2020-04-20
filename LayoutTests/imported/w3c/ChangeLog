@@ -1,3 +1,49 @@
+2020-04-20  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        StructuredClone algorithm should be aware of BigInt
+        https://bugs.webkit.org/show_bug.cgi?id=210728
+
+        Reviewed by Mark Lam.
+
+        * web-platform-tests/IndexedDB/bigint_value-expected.txt:
+        * web-platform-tests/html/infrastructure/safe-passing-of-structured-data/structured_clone_bigint-expected.txt:
+
+2020-04-19  Emilio Cobos Álvarez  <emilio@crisal.io>
+
+        Don't use the inherited custom properties to store environment variables.
+        https://bugs.webkit.org/show_bug.cgi?id=210707
+
+        Reviewed by Antti Koivisto.
+
+        Annotate the progressions.
+
+        * web-platform-tests/css/css-cascade/all-prop-initial-xml-expected.txt:
+        * web-platform-tests/css/cssom/getComputedStyle-logical-enumeration-expected.txt:
+
+
+2020-04-19  Emilio Cobos Álvarez  <emilio@crisal.io>
+
+        Fix the logic to decide whether a property is enumerated in a computed style declaration.
+        https://bugs.webkit.org/show_bug.cgi?id=210695
+
+        Reviewed by Antti Koivisto.
+
+        Import the test from
+        https://github.com/web-platform-tests/wpt/pull/23088. One subtest is
+        failing, separate bug.
+
+        * web-platform-tests/css/cssom/getComputedStyle-logical-enumeration-expected.txt: Added.
+        * web-platform-tests/css/cssom/getComputedStyle-logical-enumeration.html: Added.
+
+2020-04-18  Antti Koivisto  <antti@apple.com>
+
+        [CSS selectors] Support :where() pseudo class
+        https://bugs.webkit.org/show_bug.cgi?id=210690
+
+        Reviewed by Sam Weinig.
+
+        * web-platform-tests/css/selectors/invalidation/where-expected.txt:
+
 2020-04-17  Jason Lawrence  <lawrence.j@apple.com>
 
         REGRESSION: (r260243) [ Mac and iOS ] imported/w3c/web-platform-tests/css/cssom-view/MediaQueryList-addListener-handleEvent.html fails.

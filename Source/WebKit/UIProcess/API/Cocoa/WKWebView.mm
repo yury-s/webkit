@@ -121,6 +121,7 @@
 #import <WebCore/MIMETypeRegistry.h>
 #import <WebCore/PlatformScreen.h>
 #import <WebCore/RuntimeApplicationChecks.h>
+#import <WebCore/RuntimeEnabledFeatures.h>
 #import <WebCore/SQLiteDatabaseTracker.h>
 #import <WebCore/Settings.h>
 #import <WebCore/SharedBuffer.h>
@@ -523,8 +524,9 @@ static void hardwareKeyboardAvailabilityChangedCallback(CFNotificationCenterRef,
 #endif
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(SERVICE_WORKER)
-    if (!WTF::processHasEntitlement("com.apple.developer.WebKit.ServiceWorkers"))
+    if ((!WTF::processHasEntitlement("com.apple.developer.WebKit.ServiceWorkers") || !![_configuration preferences]._serviceWorkerEntitlementDisabledForTesting) && ![_configuration limitsNavigationsToAppBoundDomains])
         pageConfiguration->preferences()->setServiceWorkersEnabled(false);
+    pageConfiguration->preferences()->setServiceWorkerEntitlementDisabledForTesting(!![_configuration preferences]._serviceWorkerEntitlementDisabledForTesting);
 #endif
 
     if (!linkedOnOrAfter(WebKit::SDKVersion::FirstWhereSiteSpecificQuirksAreEnabledByDefault))
@@ -896,15 +898,13 @@ static bool validateArgument(id argument)
 
     for (id key in arguments) {
         id value = [arguments objectForKey:key];
-        if (!validateArgument(value)) {
-            errorMessage = @"Function argument values must be one of the following types, or contain only the following types: NSString, NSNumber, NSDate, NSArray, and NSDictionary";
+        auto serializedValue = API::SerializedScriptValue::createFromNSObject(value);
+        if (!serializedValue) {
+            errorMessage = @"Function argument values must be one of the following types, or contain only the following types: NSNumber, NSNull, NSDate, NSString, NSArray, and NSDictionary";
             break;
         }
-    
-        auto wireBytes = API::SerializedScriptValue::wireBytesFromNSObject(value);
-        // Since we've validated the input dictionary above, we should never fail to serialize it into wire bytes.
-        ASSERT(wireBytes);
-        argumentsMap->set(key, *wireBytes);
+
+        argumentsMap->set(key, serializedValue->internalRepresentation().toWireBytes());
     }
 
     if (errorMessage && handler) {
@@ -2647,6 +2647,19 @@ static inline WebKit::FindOptions toFindOptions(_WKFindOptions wkFindOptions)
 {
     _page->isNavigatingToAppBoundDomainTesting([completionHandler = makeBlockPtr(completionHandler)] (bool isAppBound) {
         completionHandler(isAppBound);
+    });
+}
+
+- (void)_serviceWorkersEnabled:(void(^)(BOOL))completionHandler
+{
+    auto enabled = [_configuration preferences]->_preferences.get()->serviceWorkersEnabled() || WebCore::RuntimeEnabledFeatures::sharedFeatures().serviceWorkerEnabled();
+    completionHandler(enabled);
+}
+
+- (void)_clearServiceWorkerEntitlementOverride:(void (^)(void))completionHandler
+{
+    _page->clearServiceWorkerEntitlementOverride([completionHandler = makeBlockPtr(completionHandler)] {
+        completionHandler();
     });
 }
 

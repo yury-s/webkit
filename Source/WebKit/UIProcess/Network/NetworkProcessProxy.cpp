@@ -84,9 +84,6 @@ NetworkProcessProxy::NetworkProcessProxy(WebProcessPool& processPool)
     , m_throttler(*this, processPool.shouldTakeUIBackgroundAssertion())
 {
     connect();
-
-    if (auto* websiteDataStore = m_processPool.websiteDataStore())
-        m_websiteDataStores.set(websiteDataStore->sessionID(), makeRef(*websiteDataStore));
 }
 
 NetworkProcessProxy::~NetworkProcessProxy()
@@ -1203,7 +1200,6 @@ void NetworkProcessProxy::addSession(Ref<WebsiteDataStore>&& store)
 #if ENABLE(INDEXED_DATABASE)
         createSymLinkForFileUpgrade(store->resolvedIndexedDatabaseDirectory());
 #endif
-        m_websiteDataStores.set(sessionID, WTFMove(store));
     }
 }
 
@@ -1211,25 +1207,13 @@ void NetworkProcessProxy::removeSession(PAL::SessionID sessionID)
 {
     if (canSendMessage())
         send(Messages::NetworkProcess::DestroySession { sessionID }, 0);
-    if (!sessionID.isEphemeral())
-        m_websiteDataStores.remove(sessionID);
 }
 
 WebsiteDataStore* NetworkProcessProxy::websiteDataStoreFromSessionID(PAL::SessionID sessionID)
 {
-    auto iterator = m_websiteDataStores.find(sessionID);
-    if (iterator != m_websiteDataStores.end())
-        return iterator->value.get();
-
-    if (auto* websiteDataStore = m_processPool.websiteDataStore()) {
-        if (sessionID == websiteDataStore->sessionID())
-            return websiteDataStore;
-    }
-
-    if (sessionID != PAL::SessionID::defaultSessionID())
-        return nullptr;
-
-    return WebKit::WebsiteDataStore::defaultDataStore().ptr();
+    if (sessionID == PAL::SessionID::defaultSessionID())
+        return WebsiteDataStore::defaultDataStore().ptr();
+    return WebsiteDataStore::existingNonDefaultDataStoreForSessionID(sessionID);
 }
 
 void NetworkProcessProxy::retrieveCacheStorageParameters(PAL::SessionID sessionID)
@@ -1481,6 +1465,21 @@ void NetworkProcessProxy::setInAppBrowserPrivacyEnabled(PAL::SessionID sessionID
     sendWithAsyncReply(Messages::NetworkProcess::SetInAppBrowserPrivacyEnabled(sessionID, value), WTFMove(completionHandler));
 }
 
+void NetworkProcessProxy::getAppBoundDomains(PAL::SessionID sessionID, CompletionHandler<void(HashSet<WebCore::RegistrableDomain>&&)>&& completionHandler)
+{
+#if PLATFORM(IOS_FAMILY)
+    if (auto* store = websiteDataStoreFromSessionID(sessionID)) {
+        store->getAppBoundDomains([completionHandler = WTFMove(completionHandler)] (auto& appBoundDomains) mutable {
+            auto appBoundDomainsCopy = appBoundDomains;
+            completionHandler(WTFMove(appBoundDomainsCopy));
+        });
+        return;
+    }
+    completionHandler({ });
+#else
+    completionHandler({ });
+#endif
+}
 
 } // namespace WebKit
 

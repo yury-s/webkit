@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Apple Inc. All rights reserved.
+ * Copyright (C) 2019 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,47 +23,32 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MemoryMeasure_h
-#define MemoryMeasure_h
+#pragma once
 
-namespace WebKit {
+#include "JSCJSValue.h"
+#include "JSCell.h"
+#include "Options.h"
 
-/*!
- * A simple class that measures the difference in the resident memory of the
- * process between its contruction and destruction. It uses the mach API -
- * task_info - to figure this out.
- */
-class MemoryMeasure {
-public:
-    MemoryMeasure()
-        : m_logString("")
-        , m_initialMemory(taskMemory())
-    {
+namespace JSC {
+
+inline bool scribbleFreeCells()
+{
+    return ASSERT_ENABLED || Options::scribbleFreeCells();
+}
+
+#define SCRIBBLE_WORD static_cast<intptr_t>(0xbadbeef0)
+
+inline bool isScribbledValue(JSValue value)
+{
+    return JSValue::encode(value) == JSValue::encode(bitwise_cast<JSCell*>(SCRIBBLE_WORD));
+}
+
+inline void scribble(void* base, size_t size)
+{
+    for (size_t i = size / sizeof(EncodedJSValue); i--;) {
+        // Use a 16-byte aligned value to ensure that it passes the cell check.
+        static_cast<EncodedJSValue*>(base)[i] = JSValue::encode(bitwise_cast<JSCell*>(SCRIBBLE_WORD));
     }
-
-    MemoryMeasure(const char *log)
-        : m_logString(log)
-        , m_initialMemory(taskMemory())
-    {
-    }
-
-    ~MemoryMeasure();
-
-    static void enableLogging(bool enabled);
-    static bool isLoggingEnabled();
-
-private:
-    const char *m_logString;
-    long m_initialMemory;
-    static bool m_isLoggingEnabled;
-
-    /*!
-     * @return The resident memory (in bytes) consumed by the process. It uses
-     *         task_info() to get this information. If there is an error, it
-     *         returns -1.
-     */
-    long taskMemory();
-};
+}
 
 }
-#endif

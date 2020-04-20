@@ -3246,11 +3246,6 @@ void SpeculativeJIT::compile(Node* node)
         break;
     }
 
-    case NewPromise: {
-        compileNewPromise(node);
-        break;
-    }
-
     case NewGenerator: {
         compileNewGenerator(node);
         break;
@@ -3400,8 +3395,8 @@ void SpeculativeJIT::compile(Node* node)
         break;
     }
         
-    case CheckCell: {
-        compileCheckCell(node);
+    case CheckIsConstant: {
+        compileCheckIsConstant(node);
         break;
     }
 
@@ -4186,7 +4181,11 @@ void SpeculativeJIT::compile(Node* node)
     case CheckArrayOrEmpty:
         DFG_CRASH(m_jit.graph(), node, "CheckArrayOrEmpty only used in 64-bit DFG");
         break;
-        
+
+    case IsBigInt:
+        DFG_CRASH(m_jit.graph(), node, "IsBigInt is only used when USE_BIGINT32, which can only be true in 64 bit mode");
+        break;
+
     case FilterCallLinkStatus:
     case FilterGetByStatus:
     case FilterPutByIdStatus:
