@@ -1,3 +1,1103 @@
+2021-02-10  Alan Coon  <alancoon@apple.com>
+
+        Revert r272541. rdar://problem/74208306
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272345. rdar://problem/74032500
+
+    [WebAuthn] Allow one user gesture free prompt for each navigation
+    https://bugs.webkit.org/show_bug.cgi?id=220897
+    <rdar://problem/73541303>
+    
+    Reviewed by Brent Fulgham.
+    
+    Source/WebCore:
+    
+    * Modules/webauthn/AuthenticatorCoordinator.cpp:
+    (WebCore::AuthenticatorCoordinator::resetUserGestureRequirement):
+    * Modules/webauthn/AuthenticatorCoordinator.h:
+    * Modules/webauthn/AuthenticatorCoordinatorClient.h:
+    * page/Quirks.cpp:
+    * page/Quirks.cpp.h:
+    * replay/UserInputBridge.cpp:
+    (WebCore::UserInputBridge::loadRequest):
+    (WebCore::UserInputBridge::reloadFrame):
+    Adds the ability to reset the user gesture requirement flag for user initiated reloads and quirks.
+    
+    Source/WebKit:
+    
+    This is a quirk that only allows certain websites.
+    
+    Covered by existing tests.
+    
+    * UIProcess/WebAuthentication/AuthenticatorManager.cpp:
+    (WebKit::AuthenticatorManager::filterTransports const):
+    (WebKit::AuthenticatorManager::runPanel):
+    (WebKit::AuthenticatorManager::runPresenter):
+    Cancel the whole WebAuthn operation if no user gesture is indicated.
+    
+    * WebProcess/WebAuthentication/WebAuthenticatorCoordinator.cpp:
+    (WebKit::WebAuthenticatorCoordinator::makeCredential):
+    (WebKit::WebAuthenticatorCoordinator::getAssertion):
+    * WebProcess/WebAuthentication/WebAuthenticatorCoordinator.h:
+    Set a boolean to indicate a free coupon for each navigation.
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/_WKWebAuthenticationPanel.mm:
+    (TestWebKitAPI::TEST):
+    
+    LayoutTests:
+    
+    * http/wpt/webauthn/ctap-hid-failure.https-expected.txt:
+    * http/wpt/webauthn/ctap-hid-success.https-expected.txt:
+    * http/wpt/webauthn/ctap-nfc-failure.https-expected.txt:
+    * http/wpt/webauthn/idl.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-hid-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-local-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-u2f-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-hid-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-local-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-u2f-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-u2f.https-expected.txt:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272345 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-03  Jiewen Tan  <jiewen_tan@apple.com>
+
+            [WebAuthn] Allow one user gesture free prompt for each navigation
+            https://bugs.webkit.org/show_bug.cgi?id=220897
+            <rdar://problem/73541303>
+
+            Reviewed by Brent Fulgham.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/_WKWebAuthenticationPanel.mm:
+            (TestWebKitAPI::TEST):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272184. rdar://problem/74032500
+
+    [WebAuthn] Optimize _WKWebAuthenticationPanelDelegate for native API
+    https://bugs.webkit.org/show_bug.cgi?id=221125
+    <rdar://problem/71509141>
+    
+    Reviewed by Brent Fulgham.
+    
+    Source/WebKit:
+    
+    This patch mainly does the following few things:
+    1. It connects the new SPI with the existing mock testing infrastructure such that we can mock test it.
+    2. It adds a new mode in AuthenticatorManager to connect it to the new _WKWebAuthenticationPanelDelegate object.
+    3. It adss a new SPI to _WKWebAuthenticationPanelDelegate: -[panel:requestLAContextForUserVerificationWithCompletionHandler:],
+    and adds a new method within _WKWebAuthenticationAssertionResponse to accept an LAContext from the caller to unlock
+    the keychain.
+    4. It enables -[_WKWebAuthenticationPanel cancel] to use the new cancel method.
+    
+    Covered by API tests.
+    
+    * UIProcess/API/APIWebAuthenticationAssertionResponse.h:
+    Accepts a LAContext object.
+    
+    * UIProcess/API/APIWebAuthenticationPanel.cpp:
+    (API::WebAuthenticationPanel::WebAuthenticationPanel):
+    (API::WebAuthenticationPanel::handleRequest):
+    (API::WebAuthenticationPanel::cancel const):
+    (API::WebAuthenticationPanel::setMockConfiguration):
+    * UIProcess/API/APIWebAuthenticationPanel.h:
+    * UIProcess/API/APIWebAuthenticationPanelClient.h:
+    (API::WebAuthenticationPanelClient::requestLAContextForUserVerification const):
+    Adds new SPI and mocking.
+    
+    * UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponse.h:
+    * UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponse.mm:
+    (-[_WKWebAuthenticationAssertionResponse setLAContext:]):
+    Accepts a LAContext object.
+    
+    * UIProcess/API/Cocoa/_WKWebAuthenticationPanel.h:
+    * UIProcess/API/Cocoa/_WKWebAuthenticationPanel.mm:
+    (-[_WKWebAuthenticationPanel setMockConfiguration:]):
+    * UIProcess/API/Cocoa/_WKWebAuthenticationPanelForTesting.h:
+    Adds new SPI and mocking.
+    
+    * UIProcess/WebAuthentication/AuthenticatorManager.cpp:
+    (WebKit::AuthenticatorManager::handleRequest):
+    (WebKit::AuthenticatorManager::enableModernWebAuthentication):
+    (WebKit::AuthenticatorManager::enableNativeSupport):
+    (WebKit::AuthenticatorManager::authenticatorAdded):
+    (WebKit::AuthenticatorManager::requestLAContextForUserVerification):
+    (WebKit::AuthenticatorManager::runPresenter):
+    (WebKit::AuthenticatorManager::dispatchPanelClientCall const):
+    * UIProcess/WebAuthentication/AuthenticatorManager.h:
+    Adds a new mode to power the native API.
+    
+    * UIProcess/WebAuthentication/Cocoa/WebAuthenticationPanelClient.h:
+    * UIProcess/WebAuthentication/Cocoa/WebAuthenticationPanelClient.mm:
+    (WebKit::WebAuthenticationPanelClient::WebAuthenticationPanelClient):
+    (WebKit::WebAuthenticationPanelClient::requestLAContextForUserVerification const):
+    Accepts a LAContext object.
+    
+    * UIProcess/WebAuthentication/Mock/MockLocalConnection.h:
+    * UIProcess/WebAuthentication/Mock/MockLocalConnection.mm:
+    (WebKit::MockLocalConnection::verifyUser):
+    Adds new mocking functions.
+    
+    * UIProcess/WebAuthentication/WebAuthenticationRequestData.h:
+    Adds the new weak panel.
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/_WKWebAuthenticationPanel.mm:
+    (-[TestWebAuthenticationPanelDelegate panel:selectAssertionResponse:source:completionHandler:]):
+    (-[TestWebAuthenticationPanelDelegate panel:requestLAContextForUserVerificationWithCompletionHandler:]):
+    (TestWebKitAPI::WebCore::reset):
+    (TestWebKitAPI::TEST):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272184 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Jiewen Tan  <jiewen_tan@apple.com>
+
+            [WebAuthn] Optimize _WKWebAuthenticationPanelDelegate for native API
+            https://bugs.webkit.org/show_bug.cgi?id=221125
+            <rdar://problem/71509141>
+
+            Reviewed by Brent Fulgham.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/_WKWebAuthenticationPanel.mm:
+            (-[TestWebAuthenticationPanelDelegate panel:selectAssertionResponse:source:completionHandler:]):
+            (-[TestWebAuthenticationPanelDelegate panel:requestLAContextForUserVerificationWithCompletionHandler:]):
+            (TestWebKitAPI::WebCore::reset):
+            (TestWebKitAPI::TEST):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272376. rdar://problem/74032694
+
+    REGRESSION(r267763) Network process launches earlier than before
+    https://bugs.webkit.org/show_bug.cgi?id=221384
+    <rdar://problem/73507706>
+    
+    Patch by Alex Christensen <achristensen@apple.com> on 2021-02-04
+    Reviewed by Chris Dumez.
+    
+    Source/WebKit:
+    
+    Before r267763 we could have an app launch, allocate a WKWebView, and set _resourceLoadStatisticsEnabled
+    all without having a network process launch.
+    
+    When setting _resourceLoadStatisticsEnabled, we don't need to launch a network process if we haven't already
+    because when we do, WebsiteDataStore::parameters will send the correct value.  I added a test that verifies this doesn't
+    launch the network process if it hasn't already been launched.
+    
+    We also don't need to update the process assertion or the process suspension state if there is no network process.
+    
+    sendNetworkProcessXPCEndpointToWebProcess is also called when opening Safari on iOS and would be the next thing to
+    unnecessarily launch the network process during app initialization.  I manually verified that if we add an early return
+    if there is no network process yet, we do send the XPC endpoint to the web process when the network process does launch
+    through the call site in sendNetworkProcessXPCEndpointToAllWebProcesses.
+    
+    I verified on my phone that this is the minimal change needed for Safari on iOS to not launch the network process before
+    application:didFinishLaunchingWithOptions: is called as it did before r267763.
+    
+    * UIProcess/Cocoa/WebProcessPoolCocoa.mm:
+    (WebKit::WebProcessPool::updateProcessSuppressionState):
+    * UIProcess/WebProcessPool.cpp:
+    (WebKit::WebProcessPool::updateProcessAssertions):
+    * UIProcess/WebsiteData/Cocoa/WebsiteDataStoreCocoa.mm:
+    (WebKit::WebsiteDataStore::sendNetworkProcessXPCEndpointToWebProcess):
+    * UIProcess/WebsiteData/WebsiteDataStore.cpp:
+    (WebKit::WebsiteDataStore::setResourceLoadStatisticsEnabled):
+    * UIProcess/WebsiteData/WebsiteDataStore.h:
+    (WebKit::WebsiteDataStore::networkProcessIfExists):
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/NetworkProcess.mm:
+    (TEST):
+    
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272376 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-04  Alex Christensen  <achristensen@apple.com>
+
+            REGRESSION(r267763) Network process launches earlier than before
+            https://bugs.webkit.org/show_bug.cgi?id=221384
+            <rdar://problem/73507706>
+
+            Reviewed by Chris Dumez.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/NetworkProcess.mm:
+            (TEST):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272368. rdar://problem/74032667
+
+    [macOS] Selecting a date on datetime-local inputs unexpectedly adds second and millisecond fields
+    https://bugs.webkit.org/show_bug.cgi?id=221350
+    <rdar://problem/73943517>
+    
+    Reviewed by Devin Rousso.
+    
+    Source/WebCore:
+    
+    Currently, when setting the value of a datetime-local input using the
+    picker, the length of the current value of the input is used to determine
+    whether or not to return a value with second/millisecond precision.
+    
+    This is approach is incorrect, since the value could be empty, while the
+    step attribute can specify second/millisecond precision. To fix, ensure
+    the DateTimeChooserParameters knows whether the input has second and
+    millisecond fields. That information can then be used by the UIProcess
+    to return a correctly formatted value to the WebProcess.
+    
+    Test: fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker.html
+    
+    * html/BaseDateAndTimeInputType.cpp:
+    (WebCore::BaseDateAndTimeInputType::handleDOMActivateEvent):
+    (WebCore::BaseDateAndTimeInputType::didChangeValueFromControl):
+    (WebCore::BaseDateAndTimeInputType::setupDateTimeChooserParameters):
+    
+    Moved this method from HTMLInputElement to the input type, since it is
+    specific to date/time input types, and to leverage the existing
+    shouldHaveSecondField and shouldHaveMillisecondField methods when
+    building the DateTimeChooserParameters.
+    
+    * html/BaseDateAndTimeInputType.h:
+    * html/HTMLInputElement.cpp:
+    * html/HTMLInputElement.h:
+    * platform/DateTimeChooserParameters.h:
+    
+    Added hasSecondField and hasMillisecondField members, so that the UIProcess
+    knows whether or not to return a string that contains seconds/milliseconds.
+    
+    (WebCore::DateTimeChooserParameters::encode const):
+    (WebCore::DateTimeChooserParameters::decode):
+    
+    Source/WebKit:
+    
+    * UIProcess/mac/WebDateTimePickerMac.mm:
+    (-[WKDateTimePicker updatePicker:]):
+    (-[WKDateTimePicker dateFormatStringForType:]):
+    
+    Do not use the length of the value to determine whether or seconds and
+    milliseconds should be present, since the value can be empty.
+    
+    Instead, use the new information in DateTimeChooserParameters, matching
+    the visual appearance of the input.
+    
+    Tools:
+    
+    Added a method to UIScriptController to simulate selecting a date using
+    the presented date picker.
+    
+    * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+    * TestRunnerShared/UIScriptContext/UIScriptController.h:
+    (WTR::UIScriptController::chooseDateTimePickerValue):
+    * WebKitTestRunner/mac/UIScriptControllerMac.h:
+    * WebKitTestRunner/mac/UIScriptControllerMac.mm:
+    (WTR::UIScriptControllerMac::chooseDateTimePickerValue):
+    
+    LayoutTests:
+    
+    Added a test to to verify that the presence of seconds and milliseconds
+    in the value of a datetime-local input after selecting a date using the
+    picker matches the configuration.
+    
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker-expected.txt: Added.
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker.html: Added.
+    * resources/ui-helper.js:
+    (window.UIHelper.chooseDateTimePickerValue):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272368 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-04  Aditya Keerthi  <akeerthi@apple.com>
+
+            [macOS] Selecting a date on datetime-local inputs unexpectedly adds second and millisecond fields
+            https://bugs.webkit.org/show_bug.cgi?id=221350
+            <rdar://problem/73943517>
+
+            Reviewed by Devin Rousso.
+
+            Added a method to UIScriptController to simulate selecting a date using
+            the presented date picker.
+
+            * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+            * TestRunnerShared/UIScriptContext/UIScriptController.h:
+            (WTR::UIScriptController::chooseDateTimePickerValue):
+            * WebKitTestRunner/mac/UIScriptControllerMac.h:
+            * WebKitTestRunner/mac/UIScriptControllerMac.mm:
+            (WTR::UIScriptControllerMac::chooseDateTimePickerValue):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272326. rdar://problem/74105521
+
+    [iOS] delay `+[BKSMousePointerService sharedInstance]` so that it doesn't impact launch perf
+    https://bugs.webkit.org/show_bug.cgi?id=221298
+    
+    Reviewed by Geoffrey Garen.
+    
+    Source/WebKit:
+    
+    * UIProcess/ios/WKMouseDeviceObserver.h:
+    * UIProcess/ios/WKMouseDeviceObserver.mm:
+    (-[WKMouseDeviceObserver init]): Added.
+    (-[WKMouseDeviceObserver startWithCompletionHandler:]): Added.
+    (-[WKMouseDeviceObserver start]):
+    (-[WKMouseDeviceObserver stop]):
+    (-[WKMouseDeviceObserver stopWithCompletionHandler:]): Added.
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/iOSMouseSupport.mm:
+    (iOSMouseSupport.MouseInitiallyDisconnected):
+    (iOSMouseSupport.MouseInitiallyConnected):
+    (iOSMouseSupport.MouseLaterDisconnected):
+    (iOSMouseSupport.MouseLaterConnected):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272326 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-03  Devin Rousso  <drousso@apple.com>
+
+            [iOS] delay `+[BKSMousePointerService sharedInstance]` so that it doesn't impact launch perf
+            https://bugs.webkit.org/show_bug.cgi?id=221298
+
+            Reviewed by Geoffrey Garen.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/iOSMouseSupport.mm:
+            (iOSMouseSupport.MouseInitiallyDisconnected):
+            (iOSMouseSupport.MouseInitiallyConnected):
+            (iOSMouseSupport.MouseLaterDisconnected):
+            (iOSMouseSupport.MouseLaterConnected):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271790. rdar://problem/73847621
+
+    AX: iOS: VO: Web: Column Names Not Announced
+    https://bugs.webkit.org/show_bug.cgi?id=220829
+    <rdar://problem/73469037>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    We no longer use containedInTraits, but mean to override the tableAncestor methods.
+    Those need to account for the three types of tables.
+    
+    Test: accessibility/ios-simulator/table-ancestory.html
+    
+    * accessibility/ios/WebAccessibilityObjectWrapperIOS.mm:
+    (-[WebAccessibilityObjectWrapper _accessibilityTableAncestor]):
+    (-[WebAccessibilityObjectWrapper _accessibilityTraitsFromAncestors]):
+    
+    Tools:
+    
+    * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.cpp:
+    (WTR::AccessibilityUIElement::isInTable const):
+    (WTR::AccessibilityUIElement::isInLandmark const):
+    (WTR::AccessibilityUIElement::isInList const):
+    * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.h:
+    * WebKitTestRunner/InjectedBundle/Bindings/AccessibilityUIElement.idl:
+    * WebKitTestRunner/InjectedBundle/ios/AccessibilityUIElementIOS.mm:
+    (WTR::AccessibilityUIElement::isInTable const):
+    (WTR::AccessibilityUIElement::isInLandmark const):
+    (WTR::AccessibilityUIElement::isInList const):
+    
+    LayoutTests:
+    
+    * accessibility/ios-simulator/table-ancestory.html: Added.
+    * accessibility/ios-simulator/table-ancestory-expected.txt: Added.
+    * accessibility/ios-simulator/tables-lists.html: Updated.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271790 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: iOS: VO: Web: Column Names Not Announced
+            https://bugs.webkit.org/show_bug.cgi?id=220829
+            <rdar://problem/73469037>
+
+            Reviewed by Zalan Bujtas.
+
+            * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.cpp:
+            (WTR::AccessibilityUIElement::isInTable const):
+            (WTR::AccessibilityUIElement::isInLandmark const):
+            (WTR::AccessibilityUIElement::isInList const):
+            * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.h:
+            * WebKitTestRunner/InjectedBundle/Bindings/AccessibilityUIElement.idl:
+            * WebKitTestRunner/InjectedBundle/ios/AccessibilityUIElementIOS.mm:
+            (WTR::AccessibilityUIElement::isInTable const):
+            (WTR::AccessibilityUIElement::isInLandmark const):
+            (WTR::AccessibilityUIElement::isInList const):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271786. rdar://problem/73890368
+
+    [iOS WK2] theverge.com - rubber band scrolling at the top of the page causes an abrupt jump
+    https://bugs.webkit.org/show_bug.cgi?id=220886
+    <rdar://71177566>
+    
+    Reviewed by Sam Weinig.
+    Source/WebCore:
+    
+    theverge.com on iOS is a page that has long main thread stalls with forced layouts on a timer
+    that alter the page height; this caused the post-layout updateScrollbars() called from
+    FrameView::adjustViewSize() to call scrollToPosition() after adjusting the scroll position
+    to the allowed range.
+    
+    If the page laid out while rubberbanding was happening, the current scroll position would
+    be negative, then clamped to 0, then sent to the UI process as a requested scroll to 0,
+    triggering the jump to top in the UI process.
+    
+    There's existing code to prevent this from happening if we know that rubberbanding is
+    happening; this patch makes isRubberBandInProgress() work for iOS WK2. It does so
+    by having updateVisibleContentRects() push information about rubberbanding nodes onto
+    RemoteScrollingCoordinator.
+    
+    We remove an unnecessary shouldUpdateScrollLayerPositionSynchronously() check in
+    FrameView::isRubberBandInProgress() - if it's true, then the scrolling coordinator
+    won't see any rubberbanding nodes anyway.
+    
+    Test: fast/scrolling/ios/content-size-change-during-rubberband.html
+    
+    * page/FrameView.cpp:
+    (WebCore::FrameView::isRubberBandInProgress const):
+    * page/FrameView.h:
+    * platform/ScrollView.cpp:
+    (WebCore::ScrollView::updateScrollbars):
+    
+    Source/WebKit:
+    
+    theverge.com on iOS is a page that has long main thread stalls with forced layouts on a timer
+    that alter the page height; this caused the post-layout updateScrollbars() called from
+    FrameView::adjustViewSize() to call scrollToPosition() after adjusting the scroll position
+    to the allowed range.
+    
+    If the page laid out while rubberbanding was happening, the current scroll position would
+    be negative, then clamped to 0, then sent to the UI process as a requested scroll to 0,
+    triggering the jump to top in the UI process.
+    
+    There's existing code to prevent this from happening if we know that rubberbanding is
+    happening; this patch makes isRubberBandInProgress() work for iOS WK2. It does so
+    by having updateVisibleContentRects() push information about rubberbanding nodes onto
+    RemoteScrollingCoordinator.
+    
+    We remove an unnecessary shouldUpdateScrollLayerPositionSynchronously() check in
+    FrameView::isRubberBandInProgress() - if it's true, then the scrolling coordinator
+    won't see any rubberbanding nodes anyway.
+    
+    * UIProcess/RemoteLayerTree/ios/RemoteScrollingCoordinatorProxyIOS.mm:
+    * WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.h:
+    * WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.mm:
+    (WebKit::RemoteScrollingCoordinator::addNodeWithActiveRubberBanding):
+    (WebKit::RemoteScrollingCoordinator::removeNodeWithActiveRubberBanding):
+    * WebProcess/WebPage/ios/WebPageIOS.mm:
+    (WebKit::WebPage::updateVisibleContentRects):
+    
+    Tools:
+    
+    Add test infrastructure to allow UIScriptController::scrollToOffset() and
+    UIScriptController::immediateScrollToOffset() to take an options argument with
+    a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+    rubberbanding.
+    
+    * DumpRenderTree/ios/UIScriptControllerIOS.h:
+    * DumpRenderTree/ios/UIScriptControllerIOS.mm:
+    (WTR::contentOffsetBoundedIfNecessary):
+    (WTR::UIScriptControllerIOS::scrollToOffset):
+    (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+    (WTR::contentOffsetBoundedInValidRange): Deleted.
+    * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+    * TestRunnerShared/UIScriptContext/UIScriptController.h:
+    (WTR::UIScriptController::scrollToOffset):
+    (WTR::UIScriptController::immediateScrollToOffset):
+    * TestRunnerShared/UIScriptContext/UIScriptControllerShared.cpp:
+    (WTR::toScrollToOptions):
+    * WebKitTestRunner/ios/UIScriptControllerIOS.h:
+    * WebKitTestRunner/ios/UIScriptControllerIOS.mm:
+    (WTR::contentOffsetBoundedIfNecessary):
+    (WTR::UIScriptControllerIOS::scrollToOffset):
+    (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+    (WTR::contentOffsetBoundedInValidRange): Deleted.
+    
+    LayoutTests:
+    
+    Add test infrastructure to allow UIScriptController::scrollToOffset() and
+    UIScriptController::immediateScrollToOffset() to take an options argument with
+    a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+    rubberbanding.
+    
+    * fast/scrolling/ios/content-size-change-during-rubberband-expected.txt: Added.
+    * fast/scrolling/ios/content-size-change-during-rubberband.html: Added.
+    * resources/ui-helper.js:
+    (window.UIHelper.scrollTo.return.new.Promise.):
+    (window.UIHelper.scrollTo.return.new.Promise):
+    (window.UIHelper.scrollTo):
+    (window.UIHelper.immediateScrollTo):
+    (window.UIHelper.immediateUnstableScrollTo):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271786 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-24  Simon Fraser  <simon.fraser@apple.com>
+
+            [iOS WK2] theverge.com - rubber band scrolling at the top of the page causes an abrupt jump
+            https://bugs.webkit.org/show_bug.cgi?id=220886
+            <rdar://71177566>
+
+            Reviewed by Sam Weinig.
+
+            Add test infrastructure to allow UIScriptController::scrollToOffset() and
+            UIScriptController::immediateScrollToOffset() to take an options argument with
+            a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+            rubberbanding.
+
+            * DumpRenderTree/ios/UIScriptControllerIOS.h:
+            * DumpRenderTree/ios/UIScriptControllerIOS.mm:
+            (WTR::contentOffsetBoundedIfNecessary):
+            (WTR::UIScriptControllerIOS::scrollToOffset):
+            (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+            (WTR::contentOffsetBoundedInValidRange): Deleted.
+            * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+            * TestRunnerShared/UIScriptContext/UIScriptController.h:
+            (WTR::UIScriptController::scrollToOffset):
+            (WTR::UIScriptController::immediateScrollToOffset):
+            * TestRunnerShared/UIScriptContext/UIScriptControllerShared.cpp:
+            (WTR::toScrollToOptions):
+            * WebKitTestRunner/ios/UIScriptControllerIOS.h:
+            * WebKitTestRunner/ios/UIScriptControllerIOS.mm:
+            (WTR::contentOffsetBoundedIfNecessary):
+            (WTR::UIScriptControllerIOS::scrollToOffset):
+            (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+            (WTR::contentOffsetBoundedInValidRange): Deleted.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271770. rdar://problem/73890671
+
+    REGRESSION(r266148) Cancelling a navigation in decidePolicyForNavigationAction should not suspend the previous document's font loading timer
+    https://bugs.webkit.org/show_bug.cgi?id=220882
+    <rdar://problem/71634501>
+    
+    Patch by Alex Christensen <achristensen@webkit.org> on 2021-01-22
+    Reviewed by Brady Eidson.
+    
+    Source/WebCore:
+    
+    Things like the load event and didFinishNavigation wait until loading of things like fonts and iframes has completed.
+    
+    If we navigate to a document that immediately tries to navigate to a different document after starting the loads of fonts,
+    then we momentarily have two DocumentLoaders with m_frame pointing to the same main frame.
+    
+    If we cancel that second navigation using WKNavigationActionPolicyCancel, then it calls DocumentLoader::stopLoading on the second DocumentLoader.
+    This is fine.  This is the way things have worked for a very long time.
+    
+    r266148 introduced a call to the document's font loader's suspendFontLoadingTimer inside of DocumentLoader::stopLoading which is also fine.
+    What is not fine is the way we get that document.  Using m_frame->document() in this case gets us the first document, which may still be loading fonts that we do still want.
+    Using this->document() only returns non-null if this DocumentLoader is the DocumentLoader that was used to load the Frame's Document,
+    and in this case the DocumentLoader should only stop the font loading timer if that is true.
+    
+    I added an API test that reproduces the issue before but not after this fix.
+    For further verification, you can replace server.request() in my API test with a request to the URL in the radar ending in "Authentication.htm"
+    and verify it times out before the fix but not after.
+    
+    This is close to the largest amount of time spent per character changed I've ever written to change "m_frame" to "this".
+    
+    * loader/DocumentLoader.cpp:
+    (WebCore::DocumentLoader::stopLoading):
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/Navigation.mm:
+    (TEST):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271770 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Alex Christensen  <achristensen@webkit.org>
+
+            REGRESSION(r266148) Cancelling a navigation in decidePolicyForNavigationAction should not suspend the previous document's font loading timer
+            https://bugs.webkit.org/show_bug.cgi?id=220882
+            <rdar://problem/71634501>
+
+            Reviewed by Brady Eidson.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/Navigation.mm:
+            (TEST):
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271507. rdar://problem/73473467
+
+    [Cocoa] Strip DataDetectors links when copying content to the pasteboard
+    https://bugs.webkit.org/show_bug.cgi?id=220526
+    <rdar://problem/71045590>
+    
+    Reviewed by Ryosuke Niwa.
+    
+    Source/WebCore:
+    
+    Currently, when DataDetectors links are written to the pasteboard when
+    copied. This is problematic, since clicking on a DataDetector link
+    outside of a valid context results in an attempt to open an invalid
+    URL. Instead, DataDetectors links should be stripped when copied.
+    
+    To remove the link, while preserving any custom styles, the <a> element
+    created by Data Detection is replaced with a <span> element. Any
+    attributes and styles added by WebKit are removed as a part of this
+    transformation.
+    
+    Tests: editing/pasteboard/copy-paste-data-detected-links.html
+           CopyRTF.StripsDataDetectedLinks
+           PasteWebArchive.StripsDataDetectedLinks
+    
+    * editing/cocoa/DataDetection.h:
+    * editing/cocoa/DataDetection.mm:
+    (WebCore::DataDetection::isDataDetectorElement):
+    
+    Add a helper to check if an element was created through Data Detection.
+    
+    * editing/cocoa/HTMLConverter.mm:
+    (HTMLConverter::_addLinkForElement):
+    
+    Do not add NSLinkAttributeName for DataDetectors links.
+    
+    (HTMLConverter::_exitElement):
+    
+    Factor out link creation logic.
+    
+    * editing/markup.cpp:
+    (WebCore::StyledMarkupAccumulator::spanReplacementForElement):
+    
+    Centralize the logic that determines whether or not an element should
+    be replaced by a <span>. Previously, this only applied to <slot>
+    elements. Now, it applies to <slot> and DataDetectors links.
+    
+    (WebCore::StyledMarkupAccumulator::appendStartTag):
+    
+    If the element was created through DataDetection, append a <span>
+    rather than an <a>, to drop the link. The DataDetectors and href
+    attributes are also dropped from the markup string. Finally, remove
+    the text decoration style that was added by WebKit to style the
+    DataDetectors link.
+    
+    (WebCore::StyledMarkupAccumulator::appendEndTag):
+    
+    Consult shouldReplaceElementWithSpan when appending the end tag.
+    
+    Tools:
+    
+    Added API tests to verify DataDetectors links are not preserved when
+    copying/pasting WebArchives and rich text.
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/CopyRTF.mm:
+    (StripsDataDetectorsLinks):
+    * TestWebKitAPI/Tests/WebKitCocoa/PasteWebArchive.mm:
+    (StripsDataDetectorsLinks):
+    
+    LayoutTests:
+    
+    Added a test which copies content containing two data detected links
+    and verifies that the links are removed.
+    
+    * editing/pasteboard/copy-paste-data-detected-links-expected.txt: Added.
+    * editing/pasteboard/copy-paste-data-detected-links.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271507 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-14  Aditya Keerthi  <akeerthi@apple.com>
+
+            [Cocoa] Strip DataDetectors links when copying content to the pasteboard
+            https://bugs.webkit.org/show_bug.cgi?id=220526
+            <rdar://problem/71045590>
+
+            Reviewed by Ryosuke Niwa.
+
+            Added API tests to verify DataDetectors links are not preserved when
+            copying/pasting WebArchives and rich text.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/CopyRTF.mm:
+            (StripsDataDetectorsLinks):
+            * TestWebKitAPI/Tests/WebKitCocoa/PasteWebArchive.mm:
+            (StripsDataDetectorsLinks):
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271459. rdar://problem/73473665
+
+    [macOS] "Correct Spelling Automatically" menu items are inconsistent when autocorrect="off"
+    https://bugs.webkit.org/show_bug.cgi?id=220598
+    <rdar://problem/71713611>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    
+    Disable the context menu item to toggle automatic spelling correction, as well as the menu bar item to toggle
+    automatic spelling correction, in the case where the autocorrect attribute is set to "off". See below for more
+    details.
+    
+    Tests:  editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html
+            DisableAutomaticSpellingCorrection.AutocorrectAttribute
+    
+    * editing/AlternativeTextController.cpp:
+    (WebCore::AlternativeTextController::canEnableAutomaticSpellingCorrection const):
+    
+    Factor out logic for checking the `autocorrect` attribute into a separate helper function; this is used to
+    determine whether or not we should enable both the context menu item and menu item in the menu bar.
+    
+    (WebCore::AlternativeTextController::isAutomaticSpellingCorrectionEnabled):
+    * editing/AlternativeTextController.h:
+    (WebCore::AlternativeTextController::UNLESS_ENABLED):
+    * editing/Editor.cpp:
+    (WebCore::Editor::canEnableAutomaticSpellingCorrection const):
+    * editing/Editor.h:
+    * page/ContextMenuController.cpp:
+    (WebCore::ContextMenuController::checkOrEnableIfNeeded const):
+    
+    Source/WebKit:
+    
+    Plumb the new `canEnableAutomaticSpellingCorrection` flag through `EditorState` to the UI process, where we can
+    consult it when validating user interface items (namely, the "Correct Spelling Automatically" menu item, which
+    corresponds to the `-toggleAutomaticSpellingCorrection:` selector).
+    
+    * Shared/EditorState.cpp:
+    (WebKit::EditorState::PostLayoutData::encode const):
+    (WebKit::EditorState::PostLayoutData::decode):
+    (WebKit::operator<<):
+    * Shared/EditorState.h:
+    * UIProcess/Cocoa/WebViewImpl.mm:
+    (WebKit::WebViewImpl::validateUserInterfaceItem):
+    * WebProcess/WebPage/mac/WebPageMac.mm:
+    (WebKit::WebPage::getPlatformEditorState const):
+    
+    Tools:
+    
+    * TestWebKitAPI/TestWebKitAPI.xcodeproj/project.pbxproj:
+    * TestWebKitAPI/Tests/mac/DisableAutomaticSpellingCorrection.mm: Added.
+    
+    Add a new API test to verify that the `NSMenuItem` for toggling automatic spelling correction is invalid when
+    editing inside a form control with autocorrect="off".
+    
+    * WebKitTestRunner/InjectedBundle/EventSendingController.cpp:
+    (WTR::getMenuItemEnabledCallback):
+    
+    Add the readonly `enabled` JS property on context menu items. See the new layout test,
+    editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html, for more information.
+    
+    LayoutTests:
+    
+    Add a new API test to verify that the context menu item to toggle "Correct Spelling Automatically" is disabled
+    when autocorrect="off".
+    
+    * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item-expected.txt: Added.
+    * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html: Added.
+    * platform/mac-wk1/TestExpectations:
+    
+    Disable the test in DumpRenderTree, due to lack of support for context menu testing in WebKit1.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271459 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+            [macOS] "Correct Spelling Automatically" menu items are inconsistent when autocorrect="off"
+            https://bugs.webkit.org/show_bug.cgi?id=220598
+            <rdar://problem/71713611>
+
+            Reviewed by Tim Horton.
+
+            * TestWebKitAPI/TestWebKitAPI.xcodeproj/project.pbxproj:
+            * TestWebKitAPI/Tests/mac/DisableAutomaticSpellingCorrection.mm: Added.
+
+            Add a new API test to verify that the `NSMenuItem` for toggling automatic spelling correction is invalid when
+            editing inside a form control with autocorrect="off".
+
+            * WebKitTestRunner/InjectedBundle/EventSendingController.cpp:
+            (WTR::getMenuItemEnabledCallback):
+
+            Add the readonly `enabled` JS property on context menu items. See the new layout test,
+            editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html, for more information.
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271414. rdar://problem/73473727
+
+    REGRESSION (r265044): [macOS] Safari autocorrects text when typing in login field on amazon.com
+    https://bugs.webkit.org/show_bug.cgi?id=220556
+    <rdar://problem/71602937>
+    
+    Reviewed by Darin Adler.
+    
+    Source/WebCore:
+    
+    Add an internal testing hook to ask an input element whether it has disabled spellchecking (except for text
+    replacement).
+    
+    * testing/Internals.cpp:
+    (WebCore::Internals::isSpellcheckDisabledExceptTextReplacement const):
+    * testing/Internals.h:
+    * testing/Internals.idl:
+    
+    Source/WebKit:
+    
+    Restores the implementation of `WKBundleNodeHandleSetHTMLInputElementSpellcheckEnabled`, which was removed in
+    r265044, with the reasoning that the code was unused. However, Safari still uses this SPI on macOS to prevent
+    automatic spelling correction from triggering when editing form fields that are AutoFillable.
+    
+    Test: WebKit.DisableSpellcheck
+    
+    * WebProcess/InjectedBundle/API/c/WKBundleNodeHandle.cpp:
+    (WKBundleNodeHandleSetHTMLInputElementSpellcheckEnabled):
+    
+    Tools:
+    
+    Add an API test that uses WebKit C API (`WKBundleNodeHandleSetHTMLInputElementSpellcheckEnabled`) to disable or
+    enable spellchecking on input elements.
+    
+    * TestWebKitAPI/TestWebKitAPI.xcodeproj/project.pbxproj:
+    * TestWebKitAPI/Tests/WebKitCocoa/DisableSpellcheck.mm: Added.
+    * TestWebKitAPI/Tests/WebKitCocoa/DisableSpellcheckPlugIn.mm: Added.
+    (-[DisableSpellcheckPlugIn webProcessPlugIn:didCreateBrowserContextController:]):
+    (-[DisableSpellcheckPlugIn webProcessPlugInBrowserContextController:didClearWindowObjectForFrame:inScriptWorld:]):
+    (-[DisableSpellcheckPlugIn webProcessPlugInBrowserContextController:didFinishLoadForFrame:]):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271414 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+            REGRESSION (r265044): [macOS] Safari autocorrects text when typing in login field on amazon.com
+            https://bugs.webkit.org/show_bug.cgi?id=220556
+            <rdar://problem/71602937>
+
+            Reviewed by Darin Adler.
+
+            Add an API test that uses WebKit C API (`WKBundleNodeHandleSetHTMLInputElementSpellcheckEnabled`) to disable or
+            enable spellchecking on input elements.
+
+            * TestWebKitAPI/TestWebKitAPI.xcodeproj/project.pbxproj:
+            * TestWebKitAPI/Tests/WebKitCocoa/DisableSpellcheck.mm: Added.
+            * TestWebKitAPI/Tests/WebKitCocoa/DisableSpellcheckPlugIn.mm: Added.
+            (-[DisableSpellcheckPlugIn webProcessPlugIn:didCreateBrowserContextController:]):
+            (-[DisableSpellcheckPlugIn webProcessPlugInBrowserContextController:didClearWindowObjectForFrame:inScriptWorld:]):
+            (-[DisableSpellcheckPlugIn webProcessPlugInBrowserContextController:didFinishLoadForFrame:]):
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271369. rdar://problem/73473654
+
+    WebProcessPool::establishWorkerContextConnectionToNetworkProcess should make sure to remove the selected process from the cache
+    https://bugs.webkit.org/show_bug.cgi?id=220503
+    
+    Reviewed by Darin Adler.
+    
+    Source/WebKit:
+    
+    In case we reuse an existing web process, make sure to remove it from web process cache.
+    Covered by API test.
+    
+    * UIProcess/WebProcessCache.cpp:
+    (WebKit::WebProcessCache::addProcessIfPossible):
+    (WebKit::WebProcessCache::addProcess):
+    * UIProcess/WebProcessPool.cpp:
+    (WebKit::WebProcessPool::establishWorkerContextConnectionToNetworkProcess):
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/ServiceWorkerBasic.mm:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271369 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Youenn Fablet  <youenn@apple.com>
+
+            WebProcessPool::establishWorkerContextConnectionToNetworkProcess should make sure to remove the selected process from the cache
+            https://bugs.webkit.org/show_bug.cgi?id=220503
+
+            Reviewed by Darin Adler.
+
+            * TestWebKitAPI/Tests/WebKitCocoa/ServiceWorkerBasic.mm:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271799. rdar://problem/73581832
+
+    PCM: Use different well-known locations for triggering and reporting attribution
+    https://bugs.webkit.org/show_bug.cgi?id=220902
+    <rdar://problem/73550632>
+    
+    Reviewed by Brent Fulgham.
+    
+    The discussion in W3C Privacy CG concluded that we should use distinct
+    well-known URL paths for websites triggering attribution and for the
+    browser reporting attribution
+    (https://github.com/privacycg/private-click-measurement/issues/59).
+    
+    This patch changes the one location to these two:
+    /.well-known/private-click-measurement/trigger-attribution
+    /.well-known/private-click-measurement/report-attribution
+    
+    Source/WebCore:
+    
+    Existing tests updated.
+    
+    * loader/PrivateClickMeasurement.cpp:
+    (WebCore::PrivateClickMeasurement::parseAttributionRequest):
+    (WebCore::PrivateClickMeasurement::reportURL const):
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebCore/PrivateClickMeasurement.cpp:
+    (TestWebKitAPI::TEST):
+    * TestWebKitAPI/Tests/WebKitCocoa/EventAttribution.mm:
+    (TestWebKitAPI::TEST):
+    
+    LayoutTests:
+    
+    * http/tests/privateClickMeasurement/resources/redirectToConversion.php:
+    * http/tests/privateClickMeasurement/resources/redirectToConversionOnIPAddress.php:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271799 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  John Wilander  <wilander@apple.com>
+
+            PCM: Use different well-known locations for triggering and reporting attribution
+            https://bugs.webkit.org/show_bug.cgi?id=220902
+            <rdar://problem/73550632>
+
+            Reviewed by Brent Fulgham.
+
+            The discussion in W3C Privacy CG concluded that we should use distinct
+            well-known URL paths for websites triggering attribution and for the
+            browser reporting attribution
+            (https://github.com/privacycg/private-click-measurement/issues/59).
+
+            This patch changes the one location to these two:
+            /.well-known/private-click-measurement/trigger-attribution
+            /.well-known/private-click-measurement/report-attribution
+
+            * TestWebKitAPI/Tests/WebCore/PrivateClickMeasurement.cpp:
+            (TestWebKitAPI::TEST):
+            * TestWebKitAPI/Tests/WebKitCocoa/EventAttribution.mm:
+            (TestWebKitAPI::TEST):
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271380. rdar://problem/73477386
+
+    ASSERTION FAILED: !event || event.type == NSEventTypeLeftMouseDown || event.type == NSEventTypeRightMouseDown || event.type == NSEventTypeOtherMouseDown
+    https://bugs.webkit.org/show_bug.cgi?id=220520
+    <rdar://problem/73007898>
+    
+    Reviewed by Tim Horton.
+    
+    Fix the assertion by synthesizing a "mouse down" event instead of "mouse entered".
+    
+    * TestWebKitAPI/Tests/mac/AcceptsFirstMouse.mm:
+    (TestWebKitAPI::TEST):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271380 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+            ASSERTION FAILED: !event || event.type == NSEventTypeLeftMouseDown || event.type == NSEventTypeRightMouseDown || event.type == NSEventTypeOtherMouseDown
+            https://bugs.webkit.org/show_bug.cgi?id=220520
+            <rdar://problem/73007898>
+
+            Reviewed by Tim Horton.
+
+            Fix the assertion by synthesizing a "mouse down" event instead of "mouse entered".
+
+            * TestWebKitAPI/Tests/mac/AcceptsFirstMouse.mm:
+            (TestWebKitAPI::TEST):
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271479. rdar://problem/73469631
+
+    REGRESSION (r266634): Messages crashes sometimes while scrolling around and playing YouTube videos
+    https://bugs.webkit.org/show_bug.cgi?id=220602
+    <rdar://problem/70402593>
+    
+    Reviewed by Wenson Hsieh.
+    
+    Source/WebKit:
+    
+    No new tests; we are unable to API test video full-screen because of the lack of UIApp;
+    I have written a stand-alone test app that can reliably reproduce before this patch
+    and not afterwards.
+    
+    * UIProcess/Cocoa/WebPageProxyCocoa.mm:
+    (WebKit::WebPageProxy::scheduleActivityStateUpdate):
+    We can't call dispatchActivityStateChange directly underneath a post-commit callback,
+    because it has side-effects (like un-parenting the full-screen window) that may result
+    in other frameworks (e.g. UIKit) trying to install commit handlers for the same phase,
+    which is not allowed.
+    
+    To fix this, add a dispatch_async; we _only_ care that the activity state change
+    doesn't apply until after the active commit is complete.
+    
+    Tools:
+    
+    * TestWebKitAPI/PlatformWebView.h:
+    Mark PlatformWebView noncopyable, since it is effectively noncopyable
+    (at least, the macOS implementation will overrelease the view if you
+    copy it, whoops).
+    
+    * TestWebKitAPI/Tests/WebKit/DeferredViewInWindowStateChange.mm:
+    (TestWebKitAPI::TEST):
+    Add a matching dispatch_async, or this test fails.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271479 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Tim Horton  <timothy_horton@apple.com>
+
+            REGRESSION (r266634): Messages crashes sometimes while scrolling around and playing YouTube videos
+            https://bugs.webkit.org/show_bug.cgi?id=220602
+            <rdar://problem/70402593>
+
+            Reviewed by Wenson Hsieh.
+
+            * TestWebKitAPI/PlatformWebView.h:
+            Mark PlatformWebView noncopyable, since it is effectively noncopyable
+            (at least, the macOS implementation will overrelease the view if you
+            copy it, whoops).
+
+            * TestWebKitAPI/Tests/WebKit/DeferredViewInWindowStateChange.mm:
+            (TestWebKitAPI::TEST):
+            Add a matching dispatch_async, or this test fails.
+
 2021-01-09  Lauro Moura  <lmoura@igalia.com>
 
         [GStreamer] Build failure with gst-build: Missing gst/audio/audio.h

@@ -1,3 +1,3685 @@
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272829. rdar://problem/74409245
+
+    [Mac] Sound does not play on YouTube after switching back to foreground
+    https://bugs.webkit.org/show_bug.cgi?id=221858
+    <rdar://70602677>
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    Test: platform/mac/media/unmute-after-loading.html
+    
+    Remove a stray, unnecessary reset of a cached muted state which kept mute
+    state from being changed the first time after loading.
+    
+    * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+    (WebCore::MediaPlayerPrivateAVFoundationObjC::createAVPlayer):
+    * testing/Internals.cpp:
+    (WebCore::Internals::privatePlayerMuted):
+    * testing/Internals.h:
+    * testing/Internals.idl:
+    * testing/Internals.mm:
+    (WebCore::Internals::privatePlayerMuted):
+    
+    LayoutTests:
+    
+    * platform/mac/media/unmute-after-loading-expected.txt: Added.
+    * platform/mac/media/unmute-after-loading.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272829 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-12  Jer Noble  <jer.noble@apple.com>
+
+            [Mac] Sound does not play on YouTube after switching back to foreground
+            https://bugs.webkit.org/show_bug.cgi?id=221858
+            <rdar://70602677>
+
+            Reviewed by Eric Carlson.
+
+            * platform/mac/media/unmute-after-loading-expected.txt: Added.
+            * platform/mac/media/unmute-after-loading.html: Added.
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272583. rdar://problem/74409637
+
+    MediaStream-backed video elements should not compute the mediaType based on track muted states
+    https://bugs.webkit.org/show_bug.cgi?id=221601
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    In case of entering background, two things happen:
+    - video elements get paused
+    - local video capture track gets muted
+    When entering foreground:
+    - video element should resume but did not as the local video track was muted and video element was considered as an audio element.
+    - local video capture track gets unmuted but this is too late.
+    To fix this, compute hasVideo/hasAudio based on available tracks, no matter their active state.
+    
+    Test: fast/mediastream/MediaStream-video-element-enter-background.html
+    
+    * platform/graphics/avfoundation/objc/MediaPlayerPrivateMediaStreamAVFObjC.mm:
+    (WebCore::MediaPlayerPrivateMediaStreamAVFObjC::hasVideo const):
+    (WebCore::MediaPlayerPrivateMediaStreamAVFObjC::hasAudio const):
+    
+    LayoutTests:
+    
+    * fast/mediastream/MediaStream-video-element-enter-background-expected.txt: Added.
+    * fast/mediastream/MediaStream-video-element-enter-background.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272583 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-09  Youenn Fablet  <youenn@apple.com>
+
+            MediaStream-backed video elements should not compute the mediaType based on track muted states
+            https://bugs.webkit.org/show_bug.cgi?id=221601
+
+            Reviewed by Eric Carlson.
+
+            * fast/mediastream/MediaStream-video-element-enter-background-expected.txt: Added.
+            * fast/mediastream/MediaStream-video-element-enter-background.html: Added.
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272567. rdar://problem/74410033
+
+    REGRESSION (r269458): yahoo.com social / comments bar shows as transparent when scrolling page
+    https://bugs.webkit.org/show_bug.cgi?id=221582
+    Source/WebCore:
+    
+    <rdar://problem/73795359>
+    
+    Reviewed by Tim Horton.
+    
+    Fix some copypasta in r269458 that resulted in scrolling state fixed nodes failing to get
+    the right dirty bits after attach, resulting bad viewport constraint data.
+    
+    Test: scrollingcoordinator/fixed-node-reattach.html
+    
+    * page/scrolling/ScrollingStateFixedNode.cpp:
+    (WebCore::ScrollingStateFixedNode::applicableProperties const):
+    
+    LayoutTests:
+    
+    Reviewed by Tim Horton.
+    
+    * scrollingcoordinator/fixed-node-reattach-expected.html: Added.
+    * scrollingcoordinator/fixed-node-reattach.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272567 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-08  Simon Fraser  <simon.fraser@apple.com>
+
+            REGRESSION (r269458): yahoo.com social / comments bar shows as transparent when scrolling page
+            https://bugs.webkit.org/show_bug.cgi?id=221582
+
+            Reviewed by Tim Horton.
+
+            * scrollingcoordinator/fixed-node-reattach-expected.html: Added.
+            * scrollingcoordinator/fixed-node-reattach.html: Added.
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272495. rdar://problem/74409320
+
+    [macOS] Return key binding for date inputs conflicts with return to submit form
+    https://bugs.webkit.org/show_bug.cgi?id=221532
+    <rdar://problem/74039204>
+    
+    Reviewed by Wenson Hsieh.
+    
+    Source/WebCore:
+    
+    Currently, pressing the return key within a focused date input presents
+    the calendar view, rather than submitting an associated form. This is a
+    usability issue for keyboard users, and is different from the behavior
+    in Chrome. This patch matches the behavior in Chrome, and makes it so
+    that a return keypress submits an associated form.
+    
+    However, since the return key is now reserved for form submission, we
+    need a new key to present the calendar view for the date input. Chrome
+    and Firefox use the space key for this functionality, so this patch
+    matches that behavior.
+    
+    Note that r267281 updated date inputs to focus the next editable component
+    when pressing the space key. This behavior is now removed in favor of
+    presenting the calendar. Other separator keys, and arrow keys, can still be
+    used to focus the next editable component.
+    
+    Tests: fast/forms/date/date-editable-components/date-picker-show-on-space-keypress.html
+           fast/forms/date/date-editable-components/form-submit-on-return-keypress.html
+    
+    * html/BaseDateAndTimeInputType.cpp:
+    (WebCore::BaseDateAndTimeInputType::handleKeypressEvent):
+    
+    Date and time inputs are BaseClickableWithKeyInputTypes. This gives them
+    activation behavior on return and space keypresses, similar to button and
+    color inputs. However, since date/time inputs are closer to textfields,
+    than buttons, we elide activation behavior on a return keypress, allowing
+    the event to submit an associated form. Activation behavior on a space
+    keypress is supported by going through the existing code path.
+    
+    * html/shadow/DateTimeFieldElement.cpp:
+    (WebCore::DateTimeFieldElement::defaultKeyboardEventHandler):
+    
+    Remove "Space" from the list of separator keys that focus the next
+    editable component.
+    
+    LayoutTests:
+    
+    Added tests to verify that pressing the space key in a focused date
+    input presents a calendar view, and pressing the enter key in a focused
+    date input submits a form.
+    
+    Rebaselined existing tests to account for the fact that the space key
+    no longer focuses the next editable component within a date input.
+    
+    * fast/forms/date/date-editable-components/date-editable-components-keyboard-events-expected.txt:
+    * fast/forms/date/date-editable-components/date-editable-components-keyboard-events.html:
+    * fast/forms/date/date-editable-components/date-picker-show-on-space-keypress-expected.txt: Added.
+    * fast/forms/date/date-editable-components/date-picker-show-on-space-keypress.html: Added.
+    * fast/forms/date/date-editable-components/form-submit-on-return-keypress-expected.txt: Added.
+    * fast/forms/date/date-editable-components/form-submit-on-return-keypress.html: Added.
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-editable-components-keyboard-events-expected.txt:
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-editable-components-keyboard-events.html:
+    * fast/forms/month/month-editable-components/month-editable-components-keyboard-events-expected.txt:
+    * fast/forms/month/month-editable-components/month-editable-components-keyboard-events.html:
+    * fast/forms/time/time-editable-components/time-editable-components-keyboard-events-expected.txt:
+    * fast/forms/time/time-editable-components/time-editable-components-keyboard-events.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272495 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-08  Aditya Keerthi  <akeerthi@apple.com>
+
+            [macOS] Return key binding for date inputs conflicts with return to submit form
+            https://bugs.webkit.org/show_bug.cgi?id=221532
+            <rdar://problem/74039204>
+
+            Reviewed by Wenson Hsieh.
+
+            Added tests to verify that pressing the space key in a focused date
+            input presents a calendar view, and pressing the enter key in a focused
+            date input submits a form.
+
+            Rebaselined existing tests to account for the fact that the space key
+            no longer focuses the next editable component within a date input.
+
+            * fast/forms/date/date-editable-components/date-editable-components-keyboard-events-expected.txt:
+            * fast/forms/date/date-editable-components/date-editable-components-keyboard-events.html:
+            * fast/forms/date/date-editable-components/date-picker-show-on-space-keypress-expected.txt: Added.
+            * fast/forms/date/date-editable-components/date-picker-show-on-space-keypress.html: Added.
+            * fast/forms/date/date-editable-components/form-submit-on-return-keypress-expected.txt: Added.
+            * fast/forms/date/date-editable-components/form-submit-on-return-keypress.html: Added.
+            * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-editable-components-keyboard-events-expected.txt:
+            * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-editable-components-keyboard-events.html:
+            * fast/forms/month/month-editable-components/month-editable-components-keyboard-events-expected.txt:
+            * fast/forms/month/month-editable-components/month-editable-components-keyboard-events.html:
+            * fast/forms/time/time-editable-components/time-editable-components-keyboard-events-expected.txt:
+            * fast/forms/time/time-editable-components/time-editable-components-keyboard-events.html:
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272435. rdar://problem/74410448
+
+    [LFC][Integration] Hit testing broken for descendants of pointer-events:none boxes
+    https://bugs.webkit.org/show_bug.cgi?id=221460
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Descendants of pointer-events:none boxes may still be hittestable if they override the value.
+    LFC integration hit testing code didn't take this into account.
+    
+    Test: fast/events/hittest-pointer-event-none-descendants.html
+    
+    * layout/integration/LayoutIntegrationLineLayout.cpp:
+    (WebCore::LayoutIntegration::LineLayout::hitTest):
+    
+    Replaced and inline-block boxes do the visibility/pointer-events test themselves.
+    This code just needs to take care of text boxes.
+    
+    LayoutTests:
+    
+    * fast/events/hittest-pointer-event-none-descendants-expected.html: Added.
+    * fast/events/hittest-pointer-event-none-descendants.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272435 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-05  Antti Koivisto  <antti@apple.com>
+
+            [LFC][Integration] Hit testing broken for descendants of pointer-events:none boxes
+            https://bugs.webkit.org/show_bug.cgi?id=221460
+
+            Reviewed by Zalan Bujtas.
+
+            * fast/events/hittest-pointer-event-none-descendants-expected.html: Added.
+            * fast/events/hittest-pointer-event-none-descendants.html: Added.
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272390. rdar://problem/74409535
+
+    AX: expose focusable elements even if element or ancestor has aria-hidden=true
+    https://bugs.webkit.org/show_bug.cgi?id=220534
+    <rdar://problem/71865875>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    ARIA states that if an item is focused, then it should override aria-hidden status.
+    https://github.com/w3c/aria/pull/1387/files
+    
+    Test: accessibility/focusable-inside-hidden.html
+    
+    * accessibility/AXObjectCache.cpp:
+    (WebCore::isNodeAriaVisible):
+    * accessibility/AccessibilityObject.cpp:
+    (WebCore::AccessibilityObject::isAXHidden const):
+    (WebCore::AccessibilityObject::setIsIgnoredFromParentDataForChild):
+    
+    LayoutTests:
+    
+    * accessibility/focusable-inside-hidden-expected.txt: Added.
+    * accessibility/focusable-inside-hidden.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272390 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-04  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: expose focusable elements even if element or ancestor has aria-hidden=true
+            https://bugs.webkit.org/show_bug.cgi?id=220534
+            <rdar://problem/71865875>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/focusable-inside-hidden-expected.txt: Added.
+            * accessibility/focusable-inside-hidden.html: Added.
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r271746. rdar://problem/74410558
+
+    Disable Options:useAtMethod because of compatibility issue.
+    https://bugs.webkit.org/show_bug.cgi?id=220788
+    rdar://72933608
+    
+    Reviewed by Saam Barati and Yusuke Suzuki.
+    
+    Source/JavaScriptCore:
+    
+    See https://github.com/tc39/proposal-relative-indexing-method/issues/41.
+    
+    * jsc.cpp:
+    (CommandLine::parseArguments):
+    - enable Options::useAtMethod by default for the jsc shell for testing.
+    * runtime/OptionsList.h:
+    
+    LayoutTests:
+    
+    Enable Options::useAtMethod for these tests.
+    
+    * inspector/model/remote-object-get-properties.html:
+    * js/Object-getOwnPropertyNames.html:
+    * js/array-unscopables-properties.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271746 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Mark Lam  <mark.lam@apple.com>
+
+            Disable Options:useAtMethod because of compatibility issue.
+            https://bugs.webkit.org/show_bug.cgi?id=220788
+            rdar://72933608
+
+            Reviewed by Saam Barati and Yusuke Suzuki.
+
+            Enable Options::useAtMethod for these tests.
+
+            * inspector/model/remote-object-get-properties.html:
+            * js/Object-getOwnPropertyNames.html:
+            * js/array-unscopables-properties.html:
+
+2021-02-10  Alan Coon  <alancoon@apple.com>
+
+        Revert r272541. rdar://problem/74208306
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272345. rdar://problem/74032500
+
+    [WebAuthn] Allow one user gesture free prompt for each navigation
+    https://bugs.webkit.org/show_bug.cgi?id=220897
+    <rdar://problem/73541303>
+    
+    Reviewed by Brent Fulgham.
+    
+    Source/WebCore:
+    
+    * Modules/webauthn/AuthenticatorCoordinator.cpp:
+    (WebCore::AuthenticatorCoordinator::resetUserGestureRequirement):
+    * Modules/webauthn/AuthenticatorCoordinator.h:
+    * Modules/webauthn/AuthenticatorCoordinatorClient.h:
+    * page/Quirks.cpp:
+    * page/Quirks.cpp.h:
+    * replay/UserInputBridge.cpp:
+    (WebCore::UserInputBridge::loadRequest):
+    (WebCore::UserInputBridge::reloadFrame):
+    Adds the ability to reset the user gesture requirement flag for user initiated reloads and quirks.
+    
+    Source/WebKit:
+    
+    This is a quirk that only allows certain websites.
+    
+    Covered by existing tests.
+    
+    * UIProcess/WebAuthentication/AuthenticatorManager.cpp:
+    (WebKit::AuthenticatorManager::filterTransports const):
+    (WebKit::AuthenticatorManager::runPanel):
+    (WebKit::AuthenticatorManager::runPresenter):
+    Cancel the whole WebAuthn operation if no user gesture is indicated.
+    
+    * WebProcess/WebAuthentication/WebAuthenticatorCoordinator.cpp:
+    (WebKit::WebAuthenticatorCoordinator::makeCredential):
+    (WebKit::WebAuthenticatorCoordinator::getAssertion):
+    * WebProcess/WebAuthentication/WebAuthenticatorCoordinator.h:
+    Set a boolean to indicate a free coupon for each navigation.
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/_WKWebAuthenticationPanel.mm:
+    (TestWebKitAPI::TEST):
+    
+    LayoutTests:
+    
+    * http/wpt/webauthn/ctap-hid-failure.https-expected.txt:
+    * http/wpt/webauthn/ctap-hid-success.https-expected.txt:
+    * http/wpt/webauthn/ctap-nfc-failure.https-expected.txt:
+    * http/wpt/webauthn/idl.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-hid-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-local-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-u2f-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-failure.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-create-success-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-hid-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-local-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-u2f-silent.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure-u2f.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-failure.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-hid.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-local.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-nfc.https-expected.txt:
+    * http/wpt/webauthn/public-key-credential-get-success-u2f.https-expected.txt:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272345 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-03  Jiewen Tan  <jiewen_tan@apple.com>
+
+            [WebAuthn] Allow one user gesture free prompt for each navigation
+            https://bugs.webkit.org/show_bug.cgi?id=220897
+            <rdar://problem/73541303>
+
+            Reviewed by Brent Fulgham.
+
+            * http/wpt/webauthn/ctap-hid-failure.https-expected.txt:
+            * http/wpt/webauthn/ctap-hid-success.https-expected.txt:
+            * http/wpt/webauthn/ctap-nfc-failure.https-expected.txt:
+            * http/wpt/webauthn/idl.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-hid-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-hid.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-local-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-local.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-nfc.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-u2f-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure-u2f.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-failure.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-success-hid.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-success-local.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-success-nfc.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-create-success-u2f.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-hid-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-hid.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-local-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-local.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-nfc.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-u2f-silent.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure-u2f.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-failure.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-success-hid.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-success-local.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-success-nfc.https-expected.txt:
+            * http/wpt/webauthn/public-key-credential-get-success-u2f.https-expected.txt:
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272422. rdar://problem/74033021
+
+    Make sure click attribution is processed in case of redirected kept alive loads
+    https://bugs.webkit.org/show_bug.cgi?id=221453
+    <rdar://problem/70896640>
+    
+    Reviewed by John Wilander.
+    
+    Source/WebCore:
+    
+    Test: http/tests/privateClickMeasurement/attribution-conversion-through-fetch-keepalive.html
+    
+    * loader/DocumentLoader.cpp:
+    (WebCore::DocumentLoader::addSubresourceLoader):
+    Update assertion to cope with keep alive fetches which are similar to beacon/ping loads.
+    
+    Source/WebKit:
+    
+    * NetworkProcess/NetworkResourceLoader.cpp:
+    (WebKit::NetworkResourceLoader::continueWillSendRedirectedRequest):
+    Move the click attribution processing before kept alive check.
+    
+    LayoutTests:
+    
+    * http/tests/privateClickMeasurement/attribution-conversion-through-fetch-keepalive-expected.txt: Added.
+    * http/tests/privateClickMeasurement/attribution-conversion-through-fetch-keepalive.html: Added.
+    * http/tests/privateClickMeasurement/resources/redirectToConversion.php:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272422 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-05  Youenn Fablet  <youenn@apple.com>
+
+            Make sure click attribution is processed in case of redirected kept alive loads
+            https://bugs.webkit.org/show_bug.cgi?id=221453
+            <rdar://problem/70896640>
+
+            Reviewed by John Wilander.
+
+            * http/tests/privateClickMeasurement/attribution-conversion-through-fetch-keepalive-expected.txt: Added.
+            * http/tests/privateClickMeasurement/attribution-conversion-through-fetch-keepalive.html: Added.
+            * http/tests/privateClickMeasurement/resources/redirectToConversion.php:
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272368. rdar://problem/74032667
+
+    [macOS] Selecting a date on datetime-local inputs unexpectedly adds second and millisecond fields
+    https://bugs.webkit.org/show_bug.cgi?id=221350
+    <rdar://problem/73943517>
+    
+    Reviewed by Devin Rousso.
+    
+    Source/WebCore:
+    
+    Currently, when setting the value of a datetime-local input using the
+    picker, the length of the current value of the input is used to determine
+    whether or not to return a value with second/millisecond precision.
+    
+    This is approach is incorrect, since the value could be empty, while the
+    step attribute can specify second/millisecond precision. To fix, ensure
+    the DateTimeChooserParameters knows whether the input has second and
+    millisecond fields. That information can then be used by the UIProcess
+    to return a correctly formatted value to the WebProcess.
+    
+    Test: fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker.html
+    
+    * html/BaseDateAndTimeInputType.cpp:
+    (WebCore::BaseDateAndTimeInputType::handleDOMActivateEvent):
+    (WebCore::BaseDateAndTimeInputType::didChangeValueFromControl):
+    (WebCore::BaseDateAndTimeInputType::setupDateTimeChooserParameters):
+    
+    Moved this method from HTMLInputElement to the input type, since it is
+    specific to date/time input types, and to leverage the existing
+    shouldHaveSecondField and shouldHaveMillisecondField methods when
+    building the DateTimeChooserParameters.
+    
+    * html/BaseDateAndTimeInputType.h:
+    * html/HTMLInputElement.cpp:
+    * html/HTMLInputElement.h:
+    * platform/DateTimeChooserParameters.h:
+    
+    Added hasSecondField and hasMillisecondField members, so that the UIProcess
+    knows whether or not to return a string that contains seconds/milliseconds.
+    
+    (WebCore::DateTimeChooserParameters::encode const):
+    (WebCore::DateTimeChooserParameters::decode):
+    
+    Source/WebKit:
+    
+    * UIProcess/mac/WebDateTimePickerMac.mm:
+    (-[WKDateTimePicker updatePicker:]):
+    (-[WKDateTimePicker dateFormatStringForType:]):
+    
+    Do not use the length of the value to determine whether or seconds and
+    milliseconds should be present, since the value can be empty.
+    
+    Instead, use the new information in DateTimeChooserParameters, matching
+    the visual appearance of the input.
+    
+    Tools:
+    
+    Added a method to UIScriptController to simulate selecting a date using
+    the presented date picker.
+    
+    * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+    * TestRunnerShared/UIScriptContext/UIScriptController.h:
+    (WTR::UIScriptController::chooseDateTimePickerValue):
+    * WebKitTestRunner/mac/UIScriptControllerMac.h:
+    * WebKitTestRunner/mac/UIScriptControllerMac.mm:
+    (WTR::UIScriptControllerMac::chooseDateTimePickerValue):
+    
+    LayoutTests:
+    
+    Added a test to to verify that the presence of seconds and milliseconds
+    in the value of a datetime-local input after selecting a date using the
+    picker matches the configuration.
+    
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker-expected.txt: Added.
+    * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker.html: Added.
+    * resources/ui-helper.js:
+    (window.UIHelper.chooseDateTimePickerValue):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272368 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-04  Aditya Keerthi  <akeerthi@apple.com>
+
+            [macOS] Selecting a date on datetime-local inputs unexpectedly adds second and millisecond fields
+            https://bugs.webkit.org/show_bug.cgi?id=221350
+            <rdar://problem/73943517>
+
+            Reviewed by Devin Rousso.
+
+            Added a test to to verify that the presence of seconds and milliseconds
+            in the value of a datetime-local input after selecting a date using the
+            picker matches the configuration.
+
+            * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker-expected.txt: Added.
+            * fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-choose-value-from-picker.html: Added.
+            * resources/ui-helper.js:
+            (window.UIHelper.chooseDateTimePickerValue):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272201. rdar://problem/74105623
+
+    Animation of "rotate" or "scale" property does not correctly account for static "translate" property
+    https://bugs.webkit.org/show_bug.cgi?id=219894
+    <rdar://problem/72342798>
+    
+    Reviewed by Dean Jackson.
+    
+    Source/WebCore:
+    
+    The CSS transform-related properties are designed to be applied in a specific order, guaranteeing that
+    "translate" is applied prior to both "scale" and "rotate". Since Core Animation has no concept of these
+    individual transform-related CSS properties, we use additive Core Animation animations to apply the value
+    of each CSS property, using non-interpolating animations set to start at the earliest time in the Core
+    Animation timeline and lasting forever to set the value of any underlying, non-animated value.
+    
+    As such, in an example where an element would have a static "translate" property set as well as a "rotate"
+    or "scale" animation, we would yield the following animations, added in this order:
+    
+        1. non-interpolating animation beginning at 1s setting the identity transform (the "clean slate" animation)
+        2. interpolating animation beginning at a time > 1s for the "scale" or "rotate" animation
+        3. non-interpolating animation beginning at 1s setting the "translate" value
+    
+    Note that animations 2 and 3 are additive and thus added in the inverse order that we expect animations to be
+    applied. Due to a peculiarity of Core Animation (introduced in macOS 10.15), additive animations are applied
+    in an inverse order, hence the build-time flag CA_WHERE_ADDITIVE_TRANSFORMS_ARE_REVERSED.
+    
+    However, Core Animation will first sort all animations based on their begin time, only respecting the order
+    in which animations are added when their begin time is equal. This means that in practice, our animations were
+    applied in the order 1, 3, 2, and thus the "translate" property was applied after the "rotate" or "scale" animation.
+    
+    In order to address this, we now create a CAAnimationGroup for each set of animations created for a given CSS
+    property. Each of these groups shares the same begin time, 1s, to allow for "forever" non-interpolating animations
+    to be applied, but also to set a common base time for animations to be applied in the expected order.
+    
+    Tests: webanimations/relative-ordering-of-translate-and-rotate-properties-accelerated.html
+           webanimations/relative-ordering-of-translate-and-scale-properties-accelerated.html
+    
+    * platform/graphics/ca/GraphicsLayerCA.cpp:
+    (WebCore::GraphicsLayerCA::updateAnimations):
+    * platform/graphics/ca/GraphicsLayerCA.h:
+    (WebCore::GraphicsLayerCA::LayerPropertyAnimation::computedBeginTime const):
+    
+    LayoutTests:
+    
+    Add two new tests that ensure that translate is indeed applied before rotate and scale.
+    
+    * webanimations/relative-ordering-of-translate-and-rotate-properties-accelerated-expected.html: Added.
+    * webanimations/relative-ordering-of-translate-and-rotate-properties-accelerated.html: Added.
+    * webanimations/relative-ordering-of-translate-and-scale-properties-accelerated-expected.html: Added.
+    * webanimations/relative-ordering-of-translate-and-scale-properties-accelerated.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272201 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Antoine Quint  <graouts@webkit.org>
+
+            Animation of "rotate" or "scale" property does not correctly account for static "translate" property
+            https://bugs.webkit.org/show_bug.cgi?id=219894
+            <rdar://problem/72342798>
+
+            Reviewed by Dean Jackson.
+
+            Add two new tests that ensure that translate is indeed applied before rotate and scale.
+
+            * webanimations/relative-ordering-of-translate-and-rotate-properties-accelerated-expected.html: Added.
+            * webanimations/relative-ordering-of-translate-and-rotate-properties-accelerated.html: Added.
+            * webanimations/relative-ordering-of-translate-and-scale-properties-accelerated-expected.html: Added.
+            * webanimations/relative-ordering-of-translate-and-scale-properties-accelerated.html: Added.
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272166. rdar://problem/74032437
+
+    ReadableStream C++ methods should check for exception
+    https://bugs.webkit.org/show_bug.cgi?id=215376
+    <rdar://problem/66816192>
+    
+    Reviewed by Alex Christensen.
+    
+    Source/WebCore:
+    
+    Refactor code to catch and handle exceptions in case of ReadableStream methods.
+    Exceptions can happen in case of worker being abruptly terminated, which can only be tested flakily.
+    
+    In case of tee, if an exception happens, we return a WTF::nullopt.
+    
+    Test: streams/readable-stream-tee-worker.html
+    
+    * Modules/fetch/FetchBody.cpp:
+    (WebCore::FetchBody::clone):
+    * bindings/js/ReadableStream.cpp:
+    (WebCore::invokeReadableStreamFunction):
+    (WebCore::ReadableStream::pipeTo):
+    (WebCore::ReadableStream::tee):
+    (WebCore::ReadableStream::lock):
+    (WebCore::checkReadableStream):
+    * bindings/js/ReadableStream.h:
+    
+    LayoutTests:
+    
+    * streams/readable-stream-tee-worker-expected.txt: Added.
+    * streams/readable-stream-tee-worker.html: Added.
+    * streams/readable-stream-tee.js: Added.
+    (teeRepetitively):
+    (test):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272166 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Youenn Fablet  <youenn@apple.com>
+
+            ReadableStream C++ methods should check for exception
+            https://bugs.webkit.org/show_bug.cgi?id=215376
+            <rdar://problem/66816192>
+
+            Reviewed by Alex Christensen.
+
+            * streams/readable-stream-tee-worker-expected.txt: Added.
+            * streams/readable-stream-tee-worker.html: Added.
+            * streams/readable-stream-tee.js: Added.
+            (teeRepetitively):
+            (test):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271730. rdar://problem/73890237
+
+    Scroll-chaining not triggering before complete end of overscroll
+    https://bugs.webkit.org/show_bug.cgi?id=219960
+    <rdar://problem/72595521>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    
+    Scroll latching for momentum scrolls was too sticky; it would keep latching to the same
+    scroller within a 100ms of the last event that was handled, which was exacerbated by the
+    fact that ScrollController can go into "ignoreMomentumScrolls" mode which results in
+    no visible scrolling but continued consumption of momentum wheel events.
+    
+    Fix by releasing the latch as soon as we see the end of a momentum scroll,
+    so that we always re-evaluate latching at the start of the next gesture.
+    
+    Tested by fast/scrolling/latching/nested-cross-axis-latch-expiration.html
+    
+    * page/scrolling/ScrollingTreeLatchingController.cpp:
+    (WebCore::ScrollingTreeLatchingController::nodeDidHandleEvent):
+    
+    LayoutTests:
+    
+    Adjusted test for new behavior. No longer need WK1 result.
+    
+    * fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt:
+    * fast/scrolling/latching/nested-cross-axis-latch-expiration.html:
+    * platform/mac-wk1/fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt: Removed.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271730 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-21  Simon Fraser  <simon.fraser@apple.com>
+
+            Scroll-chaining not triggering before complete end of overscroll
+            https://bugs.webkit.org/show_bug.cgi?id=219960
+            <rdar://problem/72595521>
+
+            Reviewed by Tim Horton.
+
+            Adjusted test for new behavior. No longer need WK1 result.
+
+            * fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt:
+            * fast/scrolling/latching/nested-cross-axis-latch-expiration.html:
+            * platform/mac-wk1/fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt: Removed.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271701. rdar://problem/73889964
+
+    Source/WebCore:
+    REGRESSION (Async overflow): Scroll stutters/blocked with nested scrolling
+    https://bugs.webkit.org/show_bug.cgi?id=219923
+    <rdar://72390196>
+    
+    Reviewed by Sam Weinig.
+    
+    When handling wheel events in overflow:scroll areas which are only scrollable on
+    one axis, particularly when nested, we need to account for the different
+    scrollability on each axis in a couple of places.
+    
+    First, address the FIXME in ScrollingTreeScrollingNodeDelegateMac::shouldRubberBandInDirection()
+    by consulting node scrollability; this prevents attempts to rubberband on a non-scrollable
+    axis.
+    
+    Second, ScrollController should only allow stretching on a scrollable axis.
+    
+    The effects of these changes are that we no longer keep sending events to a node which
+    ends up not handling them; this resulted in latching "timing out", re-hit-testing
+    in the middle of a gesture and causing stuttery position changes on a different
+    scroller.
+    
+    Tests: fast/scrolling/latching/nested-cross-axis-latch-expiration.html
+           fast/scrolling/latching/overflow-hidden-on-one-axis.html
+    
+    * page/scrolling/mac/ScrollingTreeScrollingNodeDelegateMac.mm:
+    (WebCore::ScrollingTreeScrollingNodeDelegateMac::shouldRubberBandInDirection const):
+    * platform/cocoa/ScrollController.mm:
+    (WebCore::ScrollController::handleWheelEvent):
+    * rendering/RenderLayerScrollableArea.cpp:
+    (WebCore::RenderLayerScrollableArea::scrollTo): Add the scrollingNodeID to the logging.
+    
+    LayoutTests:
+    REGRESSION (?): Scroll stutters/blocked with nested scrolling
+    https://bugs.webkit.org/show_bug.cgi?id=219923
+    <rdar://72390196>
+    
+    Reviewed by Sam Weinig.
+    
+    * fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt: Added.
+    * fast/scrolling/latching/nested-cross-axis-latch-expiration.html: Added.
+    * fast/scrolling/latching/overflow-hidden-on-one-axis-expected.txt: Added.
+    * fast/scrolling/latching/overflow-hidden-on-one-axis.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271701 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-21  Simon Fraser  <simon.fraser@apple.com>
+
+            REGRESSION (?): Scroll stutters/blocked with nested scrolling
+            https://bugs.webkit.org/show_bug.cgi?id=219923
+            <rdar://72390196>
+
+            Reviewed by Sam Weinig.
+
+            * fast/scrolling/latching/nested-cross-axis-latch-expiration-expected.txt: Added.
+            * fast/scrolling/latching/nested-cross-axis-latch-expiration.html: Added.
+            * fast/scrolling/latching/overflow-hidden-on-one-axis-expected.txt: Added.
+            * fast/scrolling/latching/overflow-hidden-on-one-axis.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272073. rdar://problem/73847891
+
+    font-stretch is not applied to system-ui
+    https://bugs.webkit.org/show_bug.cgi?id=221103
+    <rdar://problem/73719139>
+    
+    Reviewed by Darin Adler.
+    
+    Source/WebCore:
+    
+    We just never hooked it up.
+    
+    Tests: fast/text/system-font-width-2.html
+           fast/text/system-font-width-3.html
+           fast/text/system-font-width-4.html
+           fast/text/system-font-width-5.html
+           fast/text/system-font-width-6.html
+           fast/text/system-font-width-7.html
+           fast/text/system-font-width-8.html
+           fast/text/system-font-width-9.html
+           fast/text/system-font-width.html
+    
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.cpp:
+    (WebCore::SystemFontDatabaseCoreText::createSystemUIFont):
+    (WebCore::SystemFontDatabaseCoreText::createSystemDesignFont):
+    (WebCore::SystemFontDatabaseCoreText::createTextStyleFont):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightWidthItalicsAndFallbackBehavior):
+    (WebCore::mapWeight):
+    (WebCore::mapWidth):
+    (WebCore::SystemFontDatabaseCoreText::systemFontParameters):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightItalicsAndFallbackBehavior): Deleted.
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.h:
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::operator== const):
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::hash const):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/CoreTextSPI.h:
+    
+    Source/WTF:
+    
+    * wtf/PlatformHave.h:
+    
+    LayoutTests:
+    
+    * fast/text/system-font-width-2-expected-mismatch.html: Added.
+    * fast/text/system-font-width-2.html: Added.
+    * fast/text/system-font-width-3-expected-mismatch.html: Added.
+    * fast/text/system-font-width-3.html: Added.
+    * fast/text/system-font-width-4-expected-mismatch.html: Added.
+    * fast/text/system-font-width-4.html: Added.
+    * fast/text/system-font-width-5-expected.html: Added.
+    * fast/text/system-font-width-5.html: Added.
+    * fast/text/system-font-width-6-expected-mismatch.html: Added.
+    * fast/text/system-font-width-6.html: Added.
+    * fast/text/system-font-width-7-expected-mismatch.html: Added.
+    * fast/text/system-font-width-7.html: Added.
+    * fast/text/system-font-width-8-expected-mismatch.html: Added.
+    * fast/text/system-font-width-8.html: Added.
+    * fast/text/system-font-width-9-expected-mismatch.html: Added.
+    * fast/text/system-font-width-9.html: Added.
+    * fast/text/system-font-width-expected-mismatch.html: Added.
+    * fast/text/system-font-width.html: Added.
+    * platform/ios/TestExpectations:
+    * platform/mac/TestExpectations:
+    * platform/win/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272073 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-29  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            font-stretch is not applied to system-ui
+            https://bugs.webkit.org/show_bug.cgi?id=221103
+            <rdar://problem/73719139>
+
+            Reviewed by Darin Adler.
+
+            * fast/text/system-font-width-2-expected-mismatch.html: Added.
+            * fast/text/system-font-width-2.html: Added.
+            * fast/text/system-font-width-3-expected-mismatch.html: Added.
+            * fast/text/system-font-width-3.html: Added.
+            * fast/text/system-font-width-4-expected-mismatch.html: Added.
+            * fast/text/system-font-width-4.html: Added.
+            * fast/text/system-font-width-5-expected.html: Added.
+            * fast/text/system-font-width-5.html: Added.
+            * fast/text/system-font-width-6-expected-mismatch.html: Added.
+            * fast/text/system-font-width-6.html: Added.
+            * fast/text/system-font-width-7-expected-mismatch.html: Added.
+            * fast/text/system-font-width-7.html: Added.
+            * fast/text/system-font-width-8-expected-mismatch.html: Added.
+            * fast/text/system-font-width-8.html: Added.
+            * fast/text/system-font-width-9-expected-mismatch.html: Added.
+            * fast/text/system-font-width-9.html: Added.
+            * fast/text/system-font-width-expected-mismatch.html: Added.
+            * fast/text/system-font-width.html: Added.
+            * platform/ios/TestExpectations:
+            * platform/mac/TestExpectations:
+            * platform/win/TestExpectations:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272024. rdar://problem/73847822
+
+    AX: Long narrow tables should not be made in data tables unnecessarily
+    https://bugs.webkit.org/show_bug.cgi?id=221061
+    <rdar://problem/73681149>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Some web authors use long columns/rows of cells for layout purposes. We shouldn't
+    automatically turn these into data tables based on row count only.
+    Instead let's ensure there are at least two rows/cols of content before automatically
+    turning into a data table.
+    
+    Test: accessibility/narrow-tables-ignored.html
+    
+    * accessibility/AccessibilityTable.cpp:
+    (WebCore::AccessibilityTable::isDataTable const):
+    
+    LayoutTests:
+    
+    * accessibility/narrow-tables-ignored-expected.txt: Added.
+    * accessibility/narrow-tables-ignored.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272024 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-28  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: Long narrow tables should not be made in data tables unnecessarily
+            https://bugs.webkit.org/show_bug.cgi?id=221061
+            <rdar://problem/73681149>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/narrow-tables-ignored-expected.txt: Added.
+            * accessibility/narrow-tables-ignored.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271930. rdar://problem/73886919
+
+    REGRESSION (r271584): Hovering slowly over and out of "Top 100" items on liberation.fr does not restore animated state
+    https://bugs.webkit.org/show_bug.cgi?id=220862
+    <rdar://problem/73501684>
+    
+    Reviewed by Simon Fraser.
+    
+    Source/WebCore:
+    
+    The optimization in r271584 fails to invalidate hover/active style when clearing the existing state under some circumstances.
+    
+    Test: fast/selectors/hover-invalidation-descendant-clear.html
+    
+    * dom/Document.cpp:
+    (WebCore::Document::updateHoverActiveState):
+    
+    We would do descendant invalidation when changing the hover/active state of the rootmost changing element.
+    However since the state of descendants was changed before this invalidation happened we would try to invalidate
+    them in a tree that was already in the new state.
+    
+    Fix by scoping the descendant invalidation over all changes.
+    
+    * dom/Element.cpp:
+    (WebCore::Element::setActive):
+    (WebCore::Element::setHovered):
+    
+    Switch to new 3-state enum type that allows us to skip descendant invalidation that has already been done by the caller.
+    Skope it to Style namepace.
+    
+    * dom/Element.h:
+    * html/HTMLAnchorElement.cpp:
+    (WebCore::HTMLAnchorElement::setActive):
+    * html/HTMLAnchorElement.h:
+    * html/HTMLLabelElement.cpp:
+    (WebCore::HTMLLabelElement::setActive):
+    (WebCore::HTMLLabelElement::setHovered):
+    * html/HTMLLabelElement.h:
+    * html/shadow/SpinButtonElement.cpp:
+    (WebCore::SpinButtonElement::setHovered):
+    * html/shadow/SpinButtonElement.h:
+    * style/PseudoClassChangeInvalidation.cpp:
+    (WebCore::Style::PseudoClassChangeInvalidation::computeInvalidation):
+    * style/PseudoClassChangeInvalidation.h:
+    (WebCore::Style::PseudoClassChangeInvalidation::PseudoClassChangeInvalidation):
+    * style/StyleValidity.h:
+    
+    LayoutTests:
+    
+    * fast/selectors/hover-invalidation-descendant-clear-expected.html: Added.
+    * fast/selectors/hover-invalidation-descendant-clear.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271930 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-26  Antti Koivisto  <antti@apple.com>
+
+            REGRESSION (r271584): Hovering slowly over and out of "Top 100" items on liberation.fr does not restore animated state
+            https://bugs.webkit.org/show_bug.cgi?id=220862
+            <rdar://problem/73501684>
+
+            Reviewed by Simon Fraser.
+
+            * fast/selectors/hover-invalidation-descendant-clear-expected.html: Added.
+            * fast/selectors/hover-invalidation-descendant-clear.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271810. rdar://problem/73889904
+
+    REGRESSION (Big Sur): Some tests in http/tests/security/http-0.9 flakily fail
+    https://bugs.webkit.org/show_bug.cgi?id=220188
+    <rdar://problem/72709565>
+    
+    Patch by Alex Christensen <achristensen@webkit.org> on 2021-01-25
+    Reviewed by Alexey Proskuryakov.
+    
+    rdar://69534004 caused two tests to become flaky on Big Sur.
+    That change was correct, but caused issues with our test infrastructure.
+    r271652 successfully made default-port-script-blocked.html no longer flaky, but made default-port-plugin-blocked.html a flaky timeout.
+    Now that all plugins are blocked, let's just remove this test, which is no longer needed.
+    
+    * http/tests/security/http-0.9/default-port-plugin-blocked-expected.txt: Removed.
+    * http/tests/security/http-0.9/default-port-plugin-blocked.html: Removed.
+    * http/tests/security/http-0.9/resources/nph-load-plugin-fail.pl: Removed.
+    * platform/mac-wk1/TestExpectations:
+    * platform/wk2/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271810 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Alex Christensen  <achristensen@webkit.org>
+
+            REGRESSION (Big Sur): Some tests in http/tests/security/http-0.9 flakily fail
+            https://bugs.webkit.org/show_bug.cgi?id=220188
+            <rdar://problem/72709565>
+
+            Reviewed by Alexey Proskuryakov.
+
+            rdar://69534004 caused two tests to become flaky on Big Sur.
+            That change was correct, but caused issues with our test infrastructure.
+            r271652 successfully made default-port-script-blocked.html no longer flaky, but made default-port-plugin-blocked.html a flaky timeout.
+            Now that all plugins are blocked, let's just remove this test, which is no longer needed.
+
+            * http/tests/security/http-0.9/default-port-plugin-blocked-expected.txt: Removed.
+            * http/tests/security/http-0.9/default-port-plugin-blocked.html: Removed.
+            * http/tests/security/http-0.9/resources/nph-load-plugin-fail.pl: Removed.
+            * platform/mac-wk1/TestExpectations:
+            * platform/wk2/TestExpectations:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271796. rdar://problem/73847788
+
+    AX: @alt and bounds ignored when using img[src] points to an inaccessible SVG
+    https://bugs.webkit.org/show_bug.cgi?id=160705
+    <rdar://problem/27771579>
+    
+    Reviewed by Chris Fleizach and Darin Adler.
+    
+    Source/WebCore:
+    
+    Tests: accessibility/img-with-svg-source.html
+           accessibility/ios-simulator/img-with-svg-source.html
+    
+    The problem was caused by AccessibilityRenderObject::determineAccessibilityRole
+    that was returning AccessibilityRole::SVGRoot for all images with a remote
+    SVG source, regardless whether the SVG hierarchy contained some accessibility
+    data or not. This resulted in VoiceOver reading the image like an empty
+    group on Mac, or completely ignoring the image on iOS.
+    The solution in this patch is to only return AccessibilityRole::SVGRoot
+    if the SVG has some accessibility conveyable data. Added the method
+    AccessibilitySVGRoot::hasAccessibleContent for this purpose.
+    
+    * accessibility/AccessibilityRenderObject.cpp:
+    (WebCore::AccessibilityRenderObject::determineAccessibilityRole):
+    (WebCore::AccessibilityRenderObject::remoteSVGRootElement const):
+    Comment was missplaced, moved it to the right place.
+    (WebCore::AccessibilityRenderObject::addRemoteSVGChildren):
+    * accessibility/AccessibilitySVGRoot.cpp:
+    (WebCore::AccessibilitySVGRoot::hasAccessibleContent const):
+    * accessibility/AccessibilitySVGRoot.h:
+    
+    LayoutTests:
+    
+    * accessibility/img-with-svg-source-expected.txt: Added.
+    * accessibility/img-with-svg-source.html: Added.
+    * accessibility/ios-simulator/img-with-svg-source-expected.txt: Added.
+    * accessibility/ios-simulator/img-with-svg-source.html: Added.
+    * accessibility/svg-shape-labelled-expected.txt:
+    * accessibility/svg-shape-labelled.html:
+    Removed the <img> test cases since they are covered correctly in the new
+    test img-with-svg-source.html.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271796 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Andres Gonzalez  <andresg_22@apple.com>
+
+            AX: @alt and bounds ignored when using img[src] points to an inaccessible SVG
+            https://bugs.webkit.org/show_bug.cgi?id=160705
+            <rdar://problem/27771579>
+
+            Reviewed by Chris Fleizach and Darin Adler.
+
+            * accessibility/img-with-svg-source-expected.txt: Added.
+            * accessibility/img-with-svg-source.html: Added.
+            * accessibility/ios-simulator/img-with-svg-source-expected.txt: Added.
+            * accessibility/ios-simulator/img-with-svg-source.html: Added.
+            * accessibility/svg-shape-labelled-expected.txt:
+            * accessibility/svg-shape-labelled.html:
+            Removed the <img> test cases since they are covered correctly in the new
+            test img-with-svg-source.html.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271790. rdar://problem/73847621
+
+    AX: iOS: VO: Web: Column Names Not Announced
+    https://bugs.webkit.org/show_bug.cgi?id=220829
+    <rdar://problem/73469037>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    We no longer use containedInTraits, but mean to override the tableAncestor methods.
+    Those need to account for the three types of tables.
+    
+    Test: accessibility/ios-simulator/table-ancestory.html
+    
+    * accessibility/ios/WebAccessibilityObjectWrapperIOS.mm:
+    (-[WebAccessibilityObjectWrapper _accessibilityTableAncestor]):
+    (-[WebAccessibilityObjectWrapper _accessibilityTraitsFromAncestors]):
+    
+    Tools:
+    
+    * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.cpp:
+    (WTR::AccessibilityUIElement::isInTable const):
+    (WTR::AccessibilityUIElement::isInLandmark const):
+    (WTR::AccessibilityUIElement::isInList const):
+    * WebKitTestRunner/InjectedBundle/AccessibilityUIElement.h:
+    * WebKitTestRunner/InjectedBundle/Bindings/AccessibilityUIElement.idl:
+    * WebKitTestRunner/InjectedBundle/ios/AccessibilityUIElementIOS.mm:
+    (WTR::AccessibilityUIElement::isInTable const):
+    (WTR::AccessibilityUIElement::isInLandmark const):
+    (WTR::AccessibilityUIElement::isInList const):
+    
+    LayoutTests:
+    
+    * accessibility/ios-simulator/table-ancestory.html: Added.
+    * accessibility/ios-simulator/table-ancestory-expected.txt: Added.
+    * accessibility/ios-simulator/tables-lists.html: Updated.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271790 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: iOS: VO: Web: Column Names Not Announced
+            https://bugs.webkit.org/show_bug.cgi?id=220829
+            <rdar://problem/73469037>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/ios-simulator/table-ancestory.html: Added.
+            * accessibility/ios-simulator/table-ancestory-expected.txt: Added.
+            * accessibility/ios-simulator/tables-lists.html: Updated.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271696. rdar://problem/73887913
+
+    Check for TURN username/credentials sizes in RTCPeerConnection constructor
+    https://bugs.webkit.org/show_bug.cgi?id=220789
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    Covered by updated test.
+    
+    * Modules/mediastream/RTCPeerConnection.cpp:
+    (WebCore::RTCPeerConnection::iceServersFromConfiguration):
+    
+    LayoutTests:
+    
+    * webrtc/stun-server-filtering-expected.txt:
+    * webrtc/stun-server-filtering.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271696 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-21  Youenn Fablet  <youenn@apple.com>
+
+            Check for TURN username/credentials sizes in RTCPeerConnection constructor
+            https://bugs.webkit.org/show_bug.cgi?id=220789
+
+            Reviewed by Eric Carlson.
+
+            * webrtc/stun-server-filtering-expected.txt:
+            * webrtc/stun-server-filtering.html:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271674. rdar://problem/73889860
+
+    [ Big Sur ] platform/mac/fast/text/international/bidi-fallback-font-weight.html is failing
+    https://bugs.webkit.org/show_bug.cgi?id=220756
+    <rdar://problem/73048055>
+    
+    Unreviewed test gardening.
+    
+    * platform/mac-catalina/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+    * platform/mac-catalina/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+    * platform/mac-mojave/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+    * platform/mac-mojave/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+    * platform/mac/TestExpectations:
+    * platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271674 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-20  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            [ Big Sur ] platform/mac/fast/text/international/bidi-fallback-font-weight.html is failing
+            https://bugs.webkit.org/show_bug.cgi?id=220756
+            <rdar://problem/73048055>
+
+            Unreviewed test gardening.
+
+            * platform/mac-catalina/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+            * platform/mac-catalina/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+            * platform/mac-mojave/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+            * platform/mac-mojave/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt: Copied from LayoutTests/platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt.
+            * platform/mac/TestExpectations:
+            * platform/mac/fast/text/international/bidi-fallback-font-weight-expected.txt:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271651. rdar://problem/73889797
+
+    REGRESSION (Big Sur): position:absolute elements inside nested overflow:scroll don't track scrolling
+    https://bugs.webkit.org/show_bug.cgi?id=220761
+    <rdar://problem/69075263>
+    
+    Reviewed by Antti Koivisto.
+    Source/WebCore:
+    
+    When a position:absolute element is inside nested overflow scroll, and its containing block is the outer
+    scroller, then we failed to make a positioning scrolling tree node for it, so it would fail
+    to track during async scrolling.
+    
+    The bug was that RenderLayerCompositor::layerScrollBehahaviorRelativeToCompositedAncestor() failed
+    to deal with nested scrollers. The correct question to ask when determining if we need a "Moves" node
+    is "is there an overflow scroll layer between this layer and its composited ancestor". Previously,
+    we would just find the enclosing scroller (with the same scrolling scope) and assume we didn't need
+    a node.
+    
+    We can also simplify the "Stationary" code path to just ask about scrolling scopes.
+    
+    Tests: scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-2.html
+           scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking.html
+           scrollingcoordinator/ios/absolute-in-nested-overflow-scroll.html
+           scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll.html
+    
+    * rendering/RenderLayerCompositor.cpp:
+    (WebCore::RenderLayerCompositor::layerScrollBehahaviorRelativeToCompositedAncestor):
+    (WebCore::isScrolledByOverflowScrollLayer): Deleted.
+    (WebCore::enclosingCompositedScrollingLayer): Deleted.
+    
+    LayoutTests:
+    
+    Add a scrolling tree dump test, and three iOS interactive tests, since testing scrolling-tree-only
+    behaviors is easier on iOS than macOS. absolute-in-nested-overflow-scroll.html is the basic test.
+    The two "stacking" variants have an opacity layer below and above the inner scroller to test some
+    more layer configurations.
+    
+    * platform/ios-wk2/scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll-expected.txt: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-expected.html: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-2-expected.html: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-2.html: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-expected.html: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking.html: Added.
+    * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll.html: Added.
+    * scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll-expected.txt: Added.
+    * scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271651 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-19  Simon Fraser  <simon.fraser@apple.com>
+
+            REGRESSION (Big Sur): position:absolute elements inside nested overflow:scroll don't track scrolling
+            https://bugs.webkit.org/show_bug.cgi?id=220761
+            <rdar://problem/69075263>
+
+            Reviewed by Antti Koivisto.
+
+            Add a scrolling tree dump test, and three iOS interactive tests, since testing scrolling-tree-only
+            behaviors is easier on iOS than macOS. absolute-in-nested-overflow-scroll.html is the basic test.
+            The two "stacking" variants have an opacity layer below and above the inner scroller to test some
+            more layer configurations.
+
+            * platform/ios-wk2/scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll-expected.txt: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-expected.html: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-2-expected.html: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-2.html: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking-expected.html: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll-intermediate-stacking.html: Added.
+            * scrollingcoordinator/ios/absolute-in-nested-overflow-scroll.html: Added.
+            * scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll-expected.txt: Added.
+            * scrollingcoordinator/scrolling-tree/absolute-in-nested-overflow-scroll.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272030. rdar://problem/73890478
+
+    REGRESSION(r271119) Check for nullness of preamble.caller
+    https://bugs.webkit.org/show_bug.cgi?id=220610
+    
+    Reviewed by Yusuke Suzuki.
+    
+    r271119 changed some kinds of functions to return null when trying to
+    access its caller property.
+    
+    This made the preamble helper from indexeddb tests to fail when used
+    in places like arrow functions, like in
+    storage/indexeddb/result-request-cycle.html.
+    
+    This commit makes preamble default to an empty name if the caller is
+    null.
+    
+    * http/tests/IndexedDB/resources/shared.js:
+    (preamble):
+    * imported/blink/storage/indexeddb/resources/shared.js:
+    (preamble):
+    * storage/indexeddb/resources/shared.js:
+    (preamble):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272030 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-28  Lauro Moura  <lmoura@igalia.com>
+
+            REGRESSION(r271119) Check for nullness of preamble.caller
+            https://bugs.webkit.org/show_bug.cgi?id=220610
+
+            Reviewed by Yusuke Suzuki.
+
+            r271119 changed some kinds of functions to return null when trying to
+            access its caller property.
+
+            This made the preamble helper from indexeddb tests to fail when used
+            in places like arrow functions, like in
+            storage/indexeddb/result-request-cycle.html.
+
+            This commit makes preamble default to an empty name if the caller is
+            null.
+
+            * http/tests/IndexedDB/resources/shared.js:
+            (preamble):
+            * imported/blink/storage/indexeddb/resources/shared.js:
+            (preamble):
+            * storage/indexeddb/resources/shared.js:
+            (preamble):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272004. rdar://problem/73890647
+
+    REGRESSION(r268615): images flicker on apple.com/ios/ios-14
+    https://bugs.webkit.org/show_bug.cgi?id=221054
+    <rdar://problem/72880447>
+    
+    Reviewed by Dean Jackson.
+    
+    Source/WebCore:
+    
+    When we added support for accelerated animations of individual transform properties in r268615 (bug 217842),
+    we made it so that base values of each transform-related property had a non-interpolating animation in the
+    Core Animation animations list that would combine with interpolating animations for that property as additive
+    animations. Prior to any of those animations, we'd reset the combined transform with an identity transform
+    as another non-interpolating animation.
+    
+    However, we neglected to consider the case where one of the interpolating animations would not start right
+    away if a positive delay was set. In the case of this apple.com page, the target element would be composited
+    due to a "will-change: transform" style, and a non-animated "transform" was set as well as an animation for
+    the "transform" property with a delay.
+    
+    Since we had a "transform" animation, we'd create a Core Animation animations lists as follows:
+    
+        1. non-interpolating, non-additive animation set to the identity matrix
+        2. interpolating, additive animation with the keyframes set in the CSS animation, with a begin time
+           set to the current time plus the specified delay
+    
+    The result of this was that during the animation delay, the static "transform" property was overridden
+    by animation #1 until animation #2 would kick in.
+    
+    We now make it so that for each transform-related property, we create a non-interpoloating, additive animation
+    to represent the static value for that property for the duration of any potential delay until the first
+    interpolating animation for this property starts.
+    
+    In this example, the Core Animation animations list is now as follows:
+    
+        1. non-interpolating, non-additive animation set to the identity matrix
+        2. non-interpolating, additive animation set to the static transform value
+        3. interpolating, additive animation with the keyframes set in the CSS animation, with a begin time
+           set to the current time plus the specified delay
+    
+    We implement this with a new lambda function within GraphicsLayerCA::updateAnimations() called
+    addAnimationsForProperty() which adds a non-interpolating animation in two cases:
+    
+        1. if there is no animation for this property at all, making it last forever
+        2. if all animations have a delay, making it last until the first animation starts
+    
+    Tests: webanimations/multiple-transform-properties-and-multiple-transform-properties-animation-with-delay-on-forced-layer.html
+           webanimations/rotate-property-and-rotate-animation-with-delay-on-forced-layer.html
+           webanimations/scale-property-and-scale-animation-with-delay-on-forced-layer.html
+           webanimations/transform-property-and-transform-animation-with-delay-on-forced-layer.html
+           webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer.html
+    
+    * platform/graphics/ca/GraphicsLayerCA.cpp:
+    (WebCore::GraphicsLayerCA::updateAnimations):
+    
+    LayoutTests:
+    
+    Add a series of tests ensuring that starting an animation for transform-related properties does not clobber the static
+    value for this property. We only run those tests on WK2 because running those in WK1 is flaky as there doesn't seem
+    to be a solid test utility to determine that Core Animation animations have been committed, even with long delays
+    that would make tests run slow.
+    
+    * TestExpectations:
+    * platform/ios-wk2/TestExpectations:
+    * platform/mac-wk2/TestExpectations:
+    * webanimations/multiple-transform-properties-and-multiple-transform-properties-animation-with-delay-on-forced-layer-expected.html: Added.
+    * webanimations/multiple-transform-properties-and-multiple-transform-properties-animation-with-delay-on-forced-layer.html: Added.
+    * webanimations/resources/wait-until-animations-are-committed.js: Added.
+    * webanimations/rotate-property-and-rotate-animation-with-delay-on-forced-layer-expected.html: Added.
+    * webanimations/rotate-property-and-rotate-animation-with-delay-on-forced-layer.html: Added.
+    * webanimations/scale-property-and-scale-animation-with-delay-on-forced-layer-expected.html: Added.
+    * webanimations/scale-property-and-scale-animation-with-delay-on-forced-layer.html: Added.
+    * webanimations/transform-property-and-transform-animation-with-delay-on-forced-layer-expected.html: Added.
+    * webanimations/transform-property-and-transform-animation-with-delay-on-forced-layer.html: Added.
+    * webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer-expected.html: Added.
+    * webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272004 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-27  Antoine Quint  <graouts@webkit.org>
+
+            REGRESSION(r268615): images flicker on apple.com/ios/ios-14
+            https://bugs.webkit.org/show_bug.cgi?id=221054
+            <rdar://problem/72880447>
+
+            Reviewed by Dean Jackson.
+
+            Add a series of tests ensuring that starting an animation for transform-related properties does not clobber the static
+            value for this property. We only run those tests on WK2 because running those in WK1 is flaky as there doesn't seem
+            to be a solid test utility to determine that Core Animation animations have been committed, even with long delays
+            that would make tests run slow.
+
+            * TestExpectations:
+            * platform/ios-wk2/TestExpectations:
+            * platform/mac-wk2/TestExpectations:
+            * webanimations/multiple-transform-properties-and-multiple-transform-properties-animation-with-delay-on-forced-layer-expected.html: Added.
+            * webanimations/multiple-transform-properties-and-multiple-transform-properties-animation-with-delay-on-forced-layer.html: Added.
+            * webanimations/resources/wait-until-animations-are-committed.js: Added.
+            * webanimations/rotate-property-and-rotate-animation-with-delay-on-forced-layer-expected.html: Added.
+            * webanimations/rotate-property-and-rotate-animation-with-delay-on-forced-layer.html: Added.
+            * webanimations/scale-property-and-scale-animation-with-delay-on-forced-layer-expected.html: Added.
+            * webanimations/scale-property-and-scale-animation-with-delay-on-forced-layer.html: Added.
+            * webanimations/transform-property-and-transform-animation-with-delay-on-forced-layer-expected.html: Added.
+            * webanimations/transform-property-and-transform-animation-with-delay-on-forced-layer.html: Added.
+            * webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer-expected.html: Added.
+            * webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271861. rdar://problem/73890854
+
+    [iOS] Obscured elements should not be focusable using the accessory bar
+    https://bugs.webkit.org/show_bug.cgi?id=220929
+    <rdar://problem/73239409>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    * rendering/HitTestResult.h:
+    
+    Export function so it can be called from WebKit layer.
+    
+    Source/WebKit:
+    Currently, assistable elements hidden behind unassistable elements can
+    be focused using the next/previous buttons on the accessory bar. This
+    behavior is undesirable since users cannot see the focused element, but
+    are still presented UI to enter information into the element.
+    
+    While the current behavior has been longstanding, its undesirability was
+    exposed after r269059, which made it possible to use the accessory bar
+    to focus elements across focusable scopes. As a result, it became possible
+    to focus a hidden input field on appleid.apple.com using the accessory bar.
+    Note that the hidden field is inside a subframe, which was previously
+    excluded from accessory bar next/previous operations. However, the same
+    bug would still exist even if the field was not inside a subframe, which
+    means that r269059 is not the root cause of the issue, but simply exposed
+    a larger underlying problem.
+    
+    To prevent obscured elements from being focusable using the accessory bar,
+    we now use hit testing to determine whether or not an element is obscured,
+    before considering the element "assistable".
+    
+    Test: fast/forms/ios/accessory-bar-navigation-obscured-input.html
+    
+    * WebProcess/WebPage/ios/WebPageIOS.mm:
+    (WebKit::isObscuredElement):
+    
+    An element is considered obscured if a hit test at its center position
+    relative to the main document targets a different element.
+    
+    (WebKit::nextAssistableElement):
+    
+    Obscured elements should not be assistable.
+    
+    LayoutTests:
+    * fast/forms/ios/accessory-bar-navigation-obscured-input-expected.txt: Added.
+    * fast/forms/ios/accessory-bar-navigation-obscured-input.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271861 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Aditya Keerthi  <akeerthi@apple.com>
+
+            [iOS] Obscured elements should not be focusable using the accessory bar
+            https://bugs.webkit.org/show_bug.cgi?id=220929
+            <rdar://problem/73239409>
+
+            Reviewed by Tim Horton.
+
+            * fast/forms/ios/accessory-bar-navigation-obscured-input-expected.txt: Added.
+            * fast/forms/ios/accessory-bar-navigation-obscured-input.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271786. rdar://problem/73890368
+
+    [iOS WK2] theverge.com - rubber band scrolling at the top of the page causes an abrupt jump
+    https://bugs.webkit.org/show_bug.cgi?id=220886
+    <rdar://71177566>
+    
+    Reviewed by Sam Weinig.
+    Source/WebCore:
+    
+    theverge.com on iOS is a page that has long main thread stalls with forced layouts on a timer
+    that alter the page height; this caused the post-layout updateScrollbars() called from
+    FrameView::adjustViewSize() to call scrollToPosition() after adjusting the scroll position
+    to the allowed range.
+    
+    If the page laid out while rubberbanding was happening, the current scroll position would
+    be negative, then clamped to 0, then sent to the UI process as a requested scroll to 0,
+    triggering the jump to top in the UI process.
+    
+    There's existing code to prevent this from happening if we know that rubberbanding is
+    happening; this patch makes isRubberBandInProgress() work for iOS WK2. It does so
+    by having updateVisibleContentRects() push information about rubberbanding nodes onto
+    RemoteScrollingCoordinator.
+    
+    We remove an unnecessary shouldUpdateScrollLayerPositionSynchronously() check in
+    FrameView::isRubberBandInProgress() - if it's true, then the scrolling coordinator
+    won't see any rubberbanding nodes anyway.
+    
+    Test: fast/scrolling/ios/content-size-change-during-rubberband.html
+    
+    * page/FrameView.cpp:
+    (WebCore::FrameView::isRubberBandInProgress const):
+    * page/FrameView.h:
+    * platform/ScrollView.cpp:
+    (WebCore::ScrollView::updateScrollbars):
+    
+    Source/WebKit:
+    
+    theverge.com on iOS is a page that has long main thread stalls with forced layouts on a timer
+    that alter the page height; this caused the post-layout updateScrollbars() called from
+    FrameView::adjustViewSize() to call scrollToPosition() after adjusting the scroll position
+    to the allowed range.
+    
+    If the page laid out while rubberbanding was happening, the current scroll position would
+    be negative, then clamped to 0, then sent to the UI process as a requested scroll to 0,
+    triggering the jump to top in the UI process.
+    
+    There's existing code to prevent this from happening if we know that rubberbanding is
+    happening; this patch makes isRubberBandInProgress() work for iOS WK2. It does so
+    by having updateVisibleContentRects() push information about rubberbanding nodes onto
+    RemoteScrollingCoordinator.
+    
+    We remove an unnecessary shouldUpdateScrollLayerPositionSynchronously() check in
+    FrameView::isRubberBandInProgress() - if it's true, then the scrolling coordinator
+    won't see any rubberbanding nodes anyway.
+    
+    * UIProcess/RemoteLayerTree/ios/RemoteScrollingCoordinatorProxyIOS.mm:
+    * WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.h:
+    * WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.mm:
+    (WebKit::RemoteScrollingCoordinator::addNodeWithActiveRubberBanding):
+    (WebKit::RemoteScrollingCoordinator::removeNodeWithActiveRubberBanding):
+    * WebProcess/WebPage/ios/WebPageIOS.mm:
+    (WebKit::WebPage::updateVisibleContentRects):
+    
+    Tools:
+    
+    Add test infrastructure to allow UIScriptController::scrollToOffset() and
+    UIScriptController::immediateScrollToOffset() to take an options argument with
+    a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+    rubberbanding.
+    
+    * DumpRenderTree/ios/UIScriptControllerIOS.h:
+    * DumpRenderTree/ios/UIScriptControllerIOS.mm:
+    (WTR::contentOffsetBoundedIfNecessary):
+    (WTR::UIScriptControllerIOS::scrollToOffset):
+    (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+    (WTR::contentOffsetBoundedInValidRange): Deleted.
+    * TestRunnerShared/UIScriptContext/Bindings/UIScriptController.idl:
+    * TestRunnerShared/UIScriptContext/UIScriptController.h:
+    (WTR::UIScriptController::scrollToOffset):
+    (WTR::UIScriptController::immediateScrollToOffset):
+    * TestRunnerShared/UIScriptContext/UIScriptControllerShared.cpp:
+    (WTR::toScrollToOptions):
+    * WebKitTestRunner/ios/UIScriptControllerIOS.h:
+    * WebKitTestRunner/ios/UIScriptControllerIOS.mm:
+    (WTR::contentOffsetBoundedIfNecessary):
+    (WTR::UIScriptControllerIOS::scrollToOffset):
+    (WTR::UIScriptControllerIOS::immediateScrollToOffset):
+    (WTR::contentOffsetBoundedInValidRange): Deleted.
+    
+    LayoutTests:
+    
+    Add test infrastructure to allow UIScriptController::scrollToOffset() and
+    UIScriptController::immediateScrollToOffset() to take an options argument with
+    a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+    rubberbanding.
+    
+    * fast/scrolling/ios/content-size-change-during-rubberband-expected.txt: Added.
+    * fast/scrolling/ios/content-size-change-during-rubberband.html: Added.
+    * resources/ui-helper.js:
+    (window.UIHelper.scrollTo.return.new.Promise.):
+    (window.UIHelper.scrollTo.return.new.Promise):
+    (window.UIHelper.scrollTo):
+    (window.UIHelper.immediateScrollTo):
+    (window.UIHelper.immediateUnstableScrollTo):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271786 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-24  Simon Fraser  <simon.fraser@apple.com>
+
+            [iOS WK2] theverge.com - rubber band scrolling at the top of the page causes an abrupt jump
+            https://bugs.webkit.org/show_bug.cgi?id=220886
+            <rdar://71177566>
+
+            Reviewed by Sam Weinig.
+
+            Add test infrastructure to allow UIScriptController::scrollToOffset() and
+            UIScriptController::immediateScrollToOffset() to take an options argument with
+            a 'unconstrained' property, which allows scrolling to unstable offset to simulate
+            rubberbanding.
+
+            * fast/scrolling/ios/content-size-change-during-rubberband-expected.txt: Added.
+            * fast/scrolling/ios/content-size-change-during-rubberband.html: Added.
+            * resources/ui-helper.js:
+            (window.UIHelper.scrollTo.return.new.Promise.):
+            (window.UIHelper.scrollTo.return.new.Promise):
+            (window.UIHelper.scrollTo):
+            (window.UIHelper.immediateScrollTo):
+            (window.UIHelper.immediateUnstableScrollTo):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271760. rdar://problem/73890156
+
+    AX: AT-synthesized key events for common user actions (increment/decrement) are detectably different in many ways, potentially causing both web app breakage and AT identification
+    https://bugs.webkit.org/show_bug.cgi?id=220675
+    <rdar://problem/73263977>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Test: accessibility/keyevents-for-actions-mimic-real-key-events.html
+    
+    When accessibility posts keyboard events in response to ax actions, they should mimic
+    real key events so as to be indistinguishable.
+    
+    https://github.com/WICG/aom/blob/gh-pages/explainer.md#deprecated-keyboardevent-object-properties-optional
+    
+    * accessibility/AccessibilityNodeObject.cpp:
+    (WebCore::dispatchSimulatedKeyboardUpDownEvent):
+    (WebCore::InitializeLegacyKeyInitProperties):
+    (WebCore::AccessibilityNodeObject::performDismissAction):
+    (WebCore::AccessibilityNodeObject::postKeyboardKeysForValueChange):
+    * dom/KeyboardEvent.cpp:
+    (WebCore::KeyboardEvent::KeyboardEvent):
+    (WebCore::KeyboardEvent::create):
+    * dom/KeyboardEvent.h:
+    * dom/UIEvent.cpp:
+    (WebCore::UIEvent::UIEvent):
+    * dom/UIEvent.h:
+    (WebCore::UIEvent::create):
+    * dom/UIEventWithKeyState.h:
+    (WebCore::UIEventWithKeyState::UIEventWithKeyState):
+    
+    LayoutTests:
+    
+    * accessibility/keyevents-for-actions-mimic-real-key-events-expected.txt: Added.
+    * accessibility/keyevents-for-actions-mimic-real-key-events.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271760 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: AT-synthesized key events for common user actions (increment/decrement) are detectably different in many ways, potentially causing both web app breakage and AT identification
+            https://bugs.webkit.org/show_bug.cgi?id=220675
+            <rdar://problem/73263977>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/keyevents-for-actions-mimic-real-key-events-expected.txt: Added.
+            * accessibility/keyevents-for-actions-mimic-real-key-events.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271751. rdar://problem/73890346
+
+    Crash under FFTFrame::fftSetupForSize()
+    https://bugs.webkit.org/show_bug.cgi?id=220866
+    <rdar://73199504>
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    The crash was caused by FFTFrame::fftSetupForSize() but being called concurrently
+    from "HRTF database loader" threads. This patch makes FFTFrame::fftSetupForSize()
+    thread safe to address the issue.
+    
+    Test: webaudio/Panner/PannerNode-crash.html
+    
+    * platform/audio/mac/FFTFrameMac.cpp:
+    (WebCore::fftSetups):
+    (WebCore::FFTFrame::fftSetupForSize):
+    
+    LayoutTests:
+    
+    Add layout test coverage.
+    
+    * webaudio/Panner/PannerNode-crash-expected.txt: Added.
+    * webaudio/Panner/PannerNode-crash.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271751 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Chris Dumez  <cdumez@apple.com>
+
+            Crash under FFTFrame::fftSetupForSize()
+            https://bugs.webkit.org/show_bug.cgi?id=220866
+            <rdar://73199504>
+
+            Reviewed by Eric Carlson.
+
+            Add layout test coverage.
+
+            * webaudio/Panner/PannerNode-crash-expected.txt: Added.
+            * webaudio/Panner/PannerNode-crash.html: Added.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271644. rdar://problem/73890311
+
+    [css-multicol] OOM with 1px height columns
+    https://bugs.webkit.org/show_bug.cgi?id=220490
+    
+    Reviewed by Ryosuke Niwa.
+    
+    Source/WebCore:
+    
+    Test: fast/multicol/newmulticol/zero-height-columns-oom-crash.html
+    
+    Multicol sometimes computes <= 0 heights for the columns. For all those cases the code was adjusting them to 1px
+    values apparently to avoid creating an "infinite" amount of columns. However that adjustment was precisely causing
+    OOM situations in those cases where there was a relatively large amount of free space. In those cases the code was
+    creating dozens of thousands of 1px height columns (with all their associated structures) until we run out of memory.
+    
+    Using zero heights in those cases seem sane because it's already being properly handled in the current code.
+    
+    * rendering/RenderMultiColumnSet.cpp:
+    (WebCore::RenderMultiColumnSet::heightAdjustedForSetOffset const): cap negative heights to 0.
+    
+    LayoutTests:
+    
+    * fast/multicol/newmulticol/zero-height-columns-oom-crash-expected.txt: Added.
+    * fast/multicol/newmulticol/zero-height-columns-oom-crash.html: Added.
+    * imported/blink/fast/pagination/first-letter-inherit-all-crash-expected.txt: Updated expectations.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271644 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-18  Sergio Villar Senin  <svillar@igalia.com>
+
+            [css-multicol] OOM with 1px height columns
+            https://bugs.webkit.org/show_bug.cgi?id=220490
+
+            Reviewed by Ryosuke Niwa.
+
+            * fast/multicol/newmulticol/zero-height-columns-oom-crash-expected.txt: Added.
+            * fast/multicol/newmulticol/zero-height-columns-oom-crash.html: Added.
+            * imported/blink/fast/pagination/first-letter-inherit-all-crash-expected.txt: Updated expectations.
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271635. rdar://problem/73890109
+
+    Elements in a table are incorrectly selected in JavaScript.
+    https://bugs.webkit.org/show_bug.cgi?id=220607
+    
+    Reviewed by Wenson Hsieh.
+    
+    Source/WebCore:
+    
+    After the fix for https://bugs.webkit.org/show_bug.cgi?id=130844 in https://trac.webkit.org/changeset/260207/webkit a regression was found for
+    table cell selections through JavaScript. The previous fix was for an issue in the difference between how PositionIterator and Position calculated
+    if it was canonical (::isCandidate) in the cases where the renderer was a BR. Instead of only converging isCandidate for BR, this function in PositionIterator
+    was completely subsumed by just calling the implementation for Position. While there are many similarities, there are important differences, especially in the
+    table code, therefore PositionIterator::isCandidate is being reinstated, but with the convergence in the BR case only.
+    Also, moved the check added in http://webkit.org/b/211864 so it will cover cases that were missed due to this code being wrong while that fix was added.
+    
+    Test: editing/selection/editable-table-cell-selection.html
+    
+    * dom/PositionIterator.cpp:
+    (WebCore::PositionIterator::isCandidate const):
+    * editing/InsertParagraphSeparatorCommand.cpp:
+    (WebCore::InsertParagraphSeparatorCommand::doApply):
+    
+    LayoutTests:
+    
+    * editing/execCommand/null_calc_primitive_value_for_css_property.html:
+    Added ending tag that was missing and does not affect the issue the test was verifying.
+    * editing/inserting/insert-list-in-table-cell-07-expected.txt:
+    Restored expected text file to original output.
+    * editing/selection/editable-table-cell-selection-expected.txt: Added.
+    * editing/selection/editable-table-cell-selection.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271635 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-19  Megan Gardner  <megan_gardner@apple.com>
+
+            Elements in a table are incorrectly selected in JavaScript.
+            https://bugs.webkit.org/show_bug.cgi?id=220607
+
+            Reviewed by Wenson Hsieh.
+
+            * editing/execCommand/null_calc_primitive_value_for_css_property.html:
+            Added ending tag that was missing and does not affect the issue the test was verifying.
+            * editing/inserting/insert-list-in-table-cell-07-expected.txt:
+            Restored expected text file to original output.
+            * editing/selection/editable-table-cell-selection-expected.txt: Added.
+            * editing/selection/editable-table-cell-selection.html: Added.
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271933. rdar://problem/73838863
+
+    REGRESSION (r268947) Some table elements become blank when scroll-bar is toggled
+    https://bugs.webkit.org/show_bug.cgi?id=221016
+    <rdar://72881404>
+    
+    Reviewed by Zalan Bujtas.
+    Source/WebCore:
+    
+    FloatingObject aliased the state of layer->isSelfPainting() in its m_shouldPaint,
+    so when compositing code changed isSelfPaintingLayer() for a layer that is also
+    a float post-layout, FloatingObject was left in a state where it didn't paint.
+    
+    Fix by dissociating FloatingObject's shouldPaint from the state of the layer.
+    Rename shouldPaint() to paintsFloat() for clarity (multiple FloatingObjects in
+    different block flows can represent the same float, and only one paints the float).
+    
+    Test: compositing/scrolling/async-overflow-scrolling/self-painting-layer-float.html
+    
+    * rendering/FloatingObjects.cpp:
+    (WebCore::FloatingObject::FloatingObject):
+    (WebCore::FloatingObject::create):
+    (WebCore::FloatingObject::cloneForNewParent const):
+    (WebCore::FloatingObject::shouldPaint const):
+    (WebCore::operator<<):
+    * rendering/FloatingObjects.h:
+    (WebCore::FloatingObject::paintsFloat const):
+    (WebCore::FloatingObject::setPaintsFloat):
+    (WebCore::FloatingObject::shouldPaint const): Deleted.
+    (WebCore::FloatingObject::setShouldPaint): Deleted.
+    * rendering/RenderBlockFlow.cpp:
+    (WebCore::RenderBlockFlow::repaintOverhangingFloats):
+    (WebCore::RenderBlockFlow::paintFloats):
+    (WebCore::RenderBlockFlow::insertFloatingObject):
+    (WebCore::RenderBlockFlow::addOverhangingFloats):
+    (WebCore::RenderBlockFlow::hitTestFloats):
+    (WebCore::RenderBlockFlow::adjustForBorderFit const):
+    
+    LayoutTests:
+    
+    * compositing/scrolling/async-overflow-scrolling/self-painting-layer-float-expected.html: Added.
+    * compositing/scrolling/async-overflow-scrolling/self-painting-layer-float.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271933 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-26  Simon Fraser  <simon.fraser@apple.com>
+
+            REGRESSION (r268947) Some table elements become blank when scroll-bar is toggled
+            https://bugs.webkit.org/show_bug.cgi?id=221016
+            <rdar://72881404>
+
+            Reviewed by Zalan Bujtas.
+
+            * compositing/scrolling/async-overflow-scrolling/self-painting-layer-float-expected.html: Added.
+            * compositing/scrolling/async-overflow-scrolling/self-painting-layer-float.html: Added.
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272059. rdar://problem/73838832
+
+    REGRESSION(r262893): feComponentTransfer is not rendered correctly on Retina display
+    https://bugs.webkit.org/show_bug.cgi?id=220576
+    
+    Reviewed by Simon Fraser.
+    
+    Source/WebCore:
+    
+    convertImageDataToColorSpace() creates a temporary ImageBuffer with the
+    size of m_premultipliedImageResult. This ImageBuffer has to be scaled
+    with the filterScale(). But the size of m_premultipliedImageResult is
+    scaled with the filterScale(). This means, convertImageDataToColorSpace()
+    applies the filterScale() twice to the temporary ImageBuffer.
+    
+    The fix is to create the temporary ImageBuffer with the unscaled size of
+    the input ImageData and scale it with the filterScale().
+    
+    Test: fast/hidpi/filters-component-transfer.html
+    
+    * platform/graphics/filters/FilterEffect.cpp:
+    (WebCore::FilterEffect::convertImageDataToColorSpace):
+    (WebCore::FilterEffect::copyPremultipliedResult):
+    
+    LayoutTests:
+    
+    * fast/hidpi/filters-component-transfer-expected.html: Added.
+    * fast/hidpi/filters-component-transfer.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272059 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-29  Said Abou-Hallawa  <said@apple.com>
+
+            REGRESSION(r262893): feComponentTransfer is not rendered correctly on Retina display
+            https://bugs.webkit.org/show_bug.cgi?id=220576
+
+            Reviewed by Simon Fraser.
+
+            * fast/hidpi/filters-component-transfer-expected.html: Added.
+            * fast/hidpi/filters-component-transfer.html: Added.
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272054. rdar://problem/73838900
+
+    [css-flexbox] REGRESSION(r266695): content inside a `<button>` inside a flex container has a height of `0` without a declared `min-height`
+    https://bugs.webkit.org/show_bug.cgi?id=220946
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Test: css3/flexbox/percentage-descendants-of-skipped-flex-item.html
+    
+    r252620 added an optimization which saves layouts for flexbox containers' descendants with percentage heights.
+    That optimization relies on a hash map of percentage height descendants that is filled in with calls to
+    addPercentHeightDescendant().
+    
+    FlexibleBoxImpl's like RenderButton might wrap their children in anonymous blocks. Those anonymous blocks are
+    skipped for percentage height calculations in RenderBox::computePercentageLogicalHeight() and thus
+    addPercentHeightDescendant() is never called for them. This means that hasPercentageHeightDescendants() would
+    always wrongly return false for a child of a <button> with a percentage height.
+    
+    * rendering/RenderFlexibleBox.cpp:
+    (WebCore::RenderFlexibleBox::childHasPercentHeightDescendants const): Renamed from hasPercentHeightDescendants in
+    order not to clash with RenderBlock method. It now also checks whether flex items skipped from percentage
+    height calculations are the containing blocks of any percentage height descendant of the flex container
+    (WebCore::RenderFlexibleBox::layoutAndPlaceChildren):
+    (WebCore::RenderFlexibleBox::hasPercentHeightDescendants const): Deleted.
+    * rendering/RenderFlexibleBox.h:
+    
+    LayoutTests:
+    
+    * css3/flexbox/percentage-descendants-of-skipped-flex-item-expected.html: Added.
+    * css3/flexbox/percentage-descendants-of-skipped-flex-item.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272054 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-28  Sergio Villar Senin  <svillar@igalia.com>
+
+            [css-flexbox] REGRESSION(r266695): content inside a `<button>` inside a flex container has a height of `0` without a declared `min-height`
+            https://bugs.webkit.org/show_bug.cgi?id=220946
+
+            Reviewed by Zalan Bujtas.
+
+            * css3/flexbox/percentage-descendants-of-skipped-flex-item-expected.html: Added.
+            * css3/flexbox/percentage-descendants-of-skipped-flex-item.html: Added.
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272043. rdar://problem/73838798
+
+    [ Big Sur ] media/media-source/media-source-webm-init-inside-segment.html is failing
+    https://bugs.webkit.org/show_bug.cgi?id=220552
+    <rdar://problem/73048070>
+    
+    Patch by Jean-Yves Avenard <jya@apple.com> on 2021-01-28
+    Reviewed by Jer Noble.
+    
+    Source/WebCore:
+    
+    No new tests - fixes an existing test.
+    
+    * platform/graphics/cocoa/SourceBufferParserWebM.cpp:
+    (WebCore::SourceBufferParserWebM::supportedAudioCodecs): Don't make the webm supported codec
+    conditional.
+    This change makes the webm audio support consistent with video support. supportedAudioCodecs
+    is used by the libwebm parser to determine which codec IDs are to be rejected outright.
+    If a codec id that isn't supported is encountered a parsing error will be thrown, which
+    ultimately causes a HTML audio or video error.
+    
+    If webkit is compiled without opus or vorbis support, in this particular case we do not want
+    an error to be produced but instead ignore the track.
+    
+    LayoutTests:
+    
+    * platform/mac/TestExpectations: unskip test
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272043 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-28  Jean-Yves Avenard  <jya@apple.com>
+
+            [ Big Sur ] media/media-source/media-source-webm-init-inside-segment.html is failing
+            https://bugs.webkit.org/show_bug.cgi?id=220552
+            <rdar://problem/73048070>
+
+            Reviewed by Jer Noble.
+
+            * platform/mac/TestExpectations: unskip test
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271939. rdar://problem/73838846
+
+    [Mac] MediaSampleCursor::stepInOrderedMap can hang when stepping to the end of a track that hasn't been fully parsed
+    https://bugs.webkit.org/show_bug.cgi?id=220555
+    <rdar://problem/72910000>
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    Test: http/tests/media/video-canplaythrough-webm.html
+    
+    * platform/graphics/FloatSize.h: Exported toJSONObject.
+    
+    Source/WebKit:
+    
+    When a container has multiple tracks, CoreMedia determines the overall duration by creating
+    a cursor at a presentation time of +infinity then asking for its timing info, the expectation
+    being that the cursor will clamp itself to the track duration and report that in
+    MediaSampleCursor::getSampleTiming.
+    
+    Previously, this could result in a hang for tracks that had not yet finished parsing, as
+    MediaSampleCursor was designed to wait for samples outside the playable range. With this
+    change, MediaSampleCursor no longer waits for samples outside the playable range but
+    rather reports clamped timing info without waiting for a sample. If CoreMedia asks for
+    information that requires a sample (e.g., sample location), MediaSampleCursor will respond
+    with `kMTPluginSampleCursorError_LocationNotAvailable`. So that CoreMedia can determine
+    the range of playable samples, this patch implements MediaSampleCursor::getPlayableHorizon.
+    
+    To simplify this implementation, MediaSampleCursor now assumes that decode time equals
+    presentation time (for video tracks) or is invalid (for audio tracks). While here, also
+    added media logging that helped debug this issue.
+    
+    Test: http/tests/media/video-canplaythrough-webm.html
+    
+    * Shared/mac/MediaFormatReader/MediaSampleByteRange.cpp:
+    (WebKit::MediaSampleByteRange::MediaSampleByteRange): Asserted our assmpution about the
+    relationship between presentation time and decode time.
+    * Shared/mac/MediaFormatReader/MediaSampleCursor.cpp:
+    (WebKit::assumedDecodeTime): Added to compute decode time from presentation time and a
+    nominal sample.
+    (WebKit::upperBound): Changed to compute the decode key based on assumed decode time.
+    (WebKit::stepIterator): Removed the MediaTime specialization.
+    (WebKit::stepTime): Added to step a MediaTime rather than an iterator.
+    (WebKit::MediaSampleCursor::MediaSampleCursor): Initialized logging.
+    (WebKit::MediaSampleCursor::locateIterator const): Changed to find an iterator based on
+    presentation time and assumed decode time.
+    (WebKit::MediaSampleCursor::locateMediaSample const): Ditto.
+    (WebKit::MediaSampleCursor::locateTiming const): Added to locate timing info even if no
+    sample is available.
+    (WebKit::MediaSampleCursor::stepInOrderedMap): Changed to call getSampleMap, and removed
+    the MediaTime specialization.
+    (WebKit::MediaSampleCursor::stepInPresentationTime): Added to replace the MediaTime
+    specialization of stepInOrderedMap.
+    (WebKit::MediaSampleCursor::getSampleMap const): Added to call
+    MediaTrackReader::waitForSample and return as soon as at least one sample is available.
+    Returns kMTPluginSampleCursorError_NoSamples if the track finishes parsing with no
+    samples.
+    (WebKit::MediaSampleCursor::getMediaSample const): Changed to call getSampleMap.
+    (WebKit::MediaSampleCursor::getTiming const): Added to get timing info.
+    (WebKit::MediaSampleCursor::copyProperty): Added logging.
+    (WebKit::MediaSampleCursor::stepInDecodeOrderAndReportStepsTaken): Changed to call the new
+    version of stepInOrderedMap.
+    (WebKit::MediaSampleCursor::stepInPresentationOrderAndReportStepsTaken): Ditto.
+    (WebKit::MediaSampleCursor::stepByDecodeTime): Changed to call stepInPresentationTime.
+    (WebKit::MediaSampleCursor::stepByPresentationTime): Ditto.
+    (WebKit::MediaSampleCursor::compareInDecodeOrder const): Changed to call getTiming.
+    (WebKit::MediaSampleCursor::getSampleTiming const): Ditto.
+    (WebKit::MediaSampleCursor::getPlayableHorizon const): Implemented by taking the
+    difference between the last sample's end time and the cursor's presentation time.
+    (WebKit::MediaSampleCursor::logChannel const): Added.
+    (WebKit::makeIterator): Deleted.
+    (WebKit::makeTime): Deleted.
+    (WebKit::MediaSampleCursor::createAtDecodedSample): Deleted.
+    * Shared/mac/MediaFormatReader/MediaSampleCursor.h:
+    (WebKit::MediaSampleCursor::logger const): Configured logging.
+    (WebKit::MediaSampleCursor::logClassName const): Ditto.
+    (WebKit::MediaSampleCursor::logIdentifier const): Ditto.
+    * Shared/mac/MediaFormatReader/MediaTrackReader.cpp:
+    (WebKit::MediaTrackReader::mediaTypeString const): Ditto.
+    (WebKit::MediaTrackReader::nextSampleCursorLogIdentifier const): Ditto.
+    * Shared/mac/MediaFormatReader/MediaTrackReader.h:
+    
+    LayoutTests:
+    
+    * http/conf/mime.types: Added an entry for video/webm.
+    * http/tests/media/resources/long-test-vp9-vorbis.webm: Added.
+    * http/tests/media/video-canplaythrough-webm-expected.txt: Added.
+    * http/tests/media/video-canplaythrough-webm.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271939 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-27  Andy Estes  <aestes@apple.com>
+
+            [Mac] MediaSampleCursor::stepInOrderedMap can hang when stepping to the end of a track that hasn't been fully parsed
+            https://bugs.webkit.org/show_bug.cgi?id=220555
+            <rdar://problem/72910000>
+
+            Reviewed by Eric Carlson.
+
+            * http/conf/mime.types: Added an entry for video/webm.
+            * http/tests/media/resources/long-test-vp9-vorbis.webm: Added.
+            * http/tests/media/video-canplaythrough-webm-expected.txt: Added.
+            * http/tests/media/video-canplaythrough-webm.html: Added.
+
+2021-02-01  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271736. rdar://problem/73838912
+
+    REGRESSION (r271472): [ Mac WK2 ] intersection-observer/target-deleted.html is timing out
+    https://bugs.webkit.org/show_bug.cgi?id=220637
+    <rdar://problem/73220571>
+    
+    Reviewed by Simon Fraser.
+    
+    * intersection-observer/target-deleted.html:
+    For some reason, on some configurations, this test recently stopped seeing its
+    intersection observer get garbage collected when it expects. The regression
+    point is likely irrelevant, though multiple bots agree.
+    
+    Doing a full rendering update by using rAF instead of just a setInterval
+    seems to be enough to get the object to actually be collected promptly.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271736 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-21  Tim Horton  <timothy_horton@apple.com>
+
+            REGRESSION (r271472): [ Mac WK2 ] intersection-observer/target-deleted.html is timing out
+            https://bugs.webkit.org/show_bug.cgi?id=220637
+            <rdar://problem/73220571>
+
+            Reviewed by Simon Fraser.
+
+            * intersection-observer/target-deleted.html:
+            For some reason, on some configurations, this test recently stopped seeing its
+            intersection observer get garbage collected when it expects. The regression
+            point is likely irrelevant, though multiple bots agree.
+
+            Doing a full rendering update by using rAF instead of just a setInterval
+            seems to be enough to get the object to actually be collected promptly.
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271507. rdar://problem/73473467
+
+    [Cocoa] Strip DataDetectors links when copying content to the pasteboard
+    https://bugs.webkit.org/show_bug.cgi?id=220526
+    <rdar://problem/71045590>
+    
+    Reviewed by Ryosuke Niwa.
+    
+    Source/WebCore:
+    
+    Currently, when DataDetectors links are written to the pasteboard when
+    copied. This is problematic, since clicking on a DataDetector link
+    outside of a valid context results in an attempt to open an invalid
+    URL. Instead, DataDetectors links should be stripped when copied.
+    
+    To remove the link, while preserving any custom styles, the <a> element
+    created by Data Detection is replaced with a <span> element. Any
+    attributes and styles added by WebKit are removed as a part of this
+    transformation.
+    
+    Tests: editing/pasteboard/copy-paste-data-detected-links.html
+           CopyRTF.StripsDataDetectedLinks
+           PasteWebArchive.StripsDataDetectedLinks
+    
+    * editing/cocoa/DataDetection.h:
+    * editing/cocoa/DataDetection.mm:
+    (WebCore::DataDetection::isDataDetectorElement):
+    
+    Add a helper to check if an element was created through Data Detection.
+    
+    * editing/cocoa/HTMLConverter.mm:
+    (HTMLConverter::_addLinkForElement):
+    
+    Do not add NSLinkAttributeName for DataDetectors links.
+    
+    (HTMLConverter::_exitElement):
+    
+    Factor out link creation logic.
+    
+    * editing/markup.cpp:
+    (WebCore::StyledMarkupAccumulator::spanReplacementForElement):
+    
+    Centralize the logic that determines whether or not an element should
+    be replaced by a <span>. Previously, this only applied to <slot>
+    elements. Now, it applies to <slot> and DataDetectors links.
+    
+    (WebCore::StyledMarkupAccumulator::appendStartTag):
+    
+    If the element was created through DataDetection, append a <span>
+    rather than an <a>, to drop the link. The DataDetectors and href
+    attributes are also dropped from the markup string. Finally, remove
+    the text decoration style that was added by WebKit to style the
+    DataDetectors link.
+    
+    (WebCore::StyledMarkupAccumulator::appendEndTag):
+    
+    Consult shouldReplaceElementWithSpan when appending the end tag.
+    
+    Tools:
+    
+    Added API tests to verify DataDetectors links are not preserved when
+    copying/pasting WebArchives and rich text.
+    
+    * TestWebKitAPI/Tests/WebKitCocoa/CopyRTF.mm:
+    (StripsDataDetectorsLinks):
+    * TestWebKitAPI/Tests/WebKitCocoa/PasteWebArchive.mm:
+    (StripsDataDetectorsLinks):
+    
+    LayoutTests:
+    
+    Added a test which copies content containing two data detected links
+    and verifies that the links are removed.
+    
+    * editing/pasteboard/copy-paste-data-detected-links-expected.txt: Added.
+    * editing/pasteboard/copy-paste-data-detected-links.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271507 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-14  Aditya Keerthi  <akeerthi@apple.com>
+
+            [Cocoa] Strip DataDetectors links when copying content to the pasteboard
+            https://bugs.webkit.org/show_bug.cgi?id=220526
+            <rdar://problem/71045590>
+
+            Reviewed by Ryosuke Niwa.
+
+            Added a test which copies content containing two data detected links
+            and verifies that the links are removed.
+
+            * editing/pasteboard/copy-paste-data-detected-links-expected.txt: Added.
+            * editing/pasteboard/copy-paste-data-detected-links.html: Added.
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271459. rdar://problem/73473665
+
+    [macOS] "Correct Spelling Automatically" menu items are inconsistent when autocorrect="off"
+    https://bugs.webkit.org/show_bug.cgi?id=220598
+    <rdar://problem/71713611>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    
+    Disable the context menu item to toggle automatic spelling correction, as well as the menu bar item to toggle
+    automatic spelling correction, in the case where the autocorrect attribute is set to "off". See below for more
+    details.
+    
+    Tests:  editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html
+            DisableAutomaticSpellingCorrection.AutocorrectAttribute
+    
+    * editing/AlternativeTextController.cpp:
+    (WebCore::AlternativeTextController::canEnableAutomaticSpellingCorrection const):
+    
+    Factor out logic for checking the `autocorrect` attribute into a separate helper function; this is used to
+    determine whether or not we should enable both the context menu item and menu item in the menu bar.
+    
+    (WebCore::AlternativeTextController::isAutomaticSpellingCorrectionEnabled):
+    * editing/AlternativeTextController.h:
+    (WebCore::AlternativeTextController::UNLESS_ENABLED):
+    * editing/Editor.cpp:
+    (WebCore::Editor::canEnableAutomaticSpellingCorrection const):
+    * editing/Editor.h:
+    * page/ContextMenuController.cpp:
+    (WebCore::ContextMenuController::checkOrEnableIfNeeded const):
+    
+    Source/WebKit:
+    
+    Plumb the new `canEnableAutomaticSpellingCorrection` flag through `EditorState` to the UI process, where we can
+    consult it when validating user interface items (namely, the "Correct Spelling Automatically" menu item, which
+    corresponds to the `-toggleAutomaticSpellingCorrection:` selector).
+    
+    * Shared/EditorState.cpp:
+    (WebKit::EditorState::PostLayoutData::encode const):
+    (WebKit::EditorState::PostLayoutData::decode):
+    (WebKit::operator<<):
+    * Shared/EditorState.h:
+    * UIProcess/Cocoa/WebViewImpl.mm:
+    (WebKit::WebViewImpl::validateUserInterfaceItem):
+    * WebProcess/WebPage/mac/WebPageMac.mm:
+    (WebKit::WebPage::getPlatformEditorState const):
+    
+    Tools:
+    
+    * TestWebKitAPI/TestWebKitAPI.xcodeproj/project.pbxproj:
+    * TestWebKitAPI/Tests/mac/DisableAutomaticSpellingCorrection.mm: Added.
+    
+    Add a new API test to verify that the `NSMenuItem` for toggling automatic spelling correction is invalid when
+    editing inside a form control with autocorrect="off".
+    
+    * WebKitTestRunner/InjectedBundle/EventSendingController.cpp:
+    (WTR::getMenuItemEnabledCallback):
+    
+    Add the readonly `enabled` JS property on context menu items. See the new layout test,
+    editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html, for more information.
+    
+    LayoutTests:
+    
+    Add a new API test to verify that the context menu item to toggle "Correct Spelling Automatically" is disabled
+    when autocorrect="off".
+    
+    * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item-expected.txt: Added.
+    * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html: Added.
+    * platform/mac-wk1/TestExpectations:
+    
+    Disable the test in DumpRenderTree, due to lack of support for context menu testing in WebKit1.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271459 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+            [macOS] "Correct Spelling Automatically" menu items are inconsistent when autocorrect="off"
+            https://bugs.webkit.org/show_bug.cgi?id=220598
+            <rdar://problem/71713611>
+
+            Reviewed by Tim Horton.
+
+            Add a new API test to verify that the context menu item to toggle "Correct Spelling Automatically" is disabled
+            when autocorrect="off".
+
+            * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item-expected.txt: Added.
+            * editing/mac/spelling/disable-automatic-spelling-correction-context-menu-item.html: Added.
+            * platform/mac-wk1/TestExpectations:
+
+            Disable the test in DumpRenderTree, due to lack of support for context menu testing in WebKit1.
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271388. rdar://problem/73473676
+
+    Safari 14 on 2x display renders NYS DMV page as blurry
+    https://bugs.webkit.org/show_bug.cgi?id=220528
+    <rdar://problem/71440246>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    
+    Certain combinations of nested perspective and transform cause Core Animation to
+    rasterize at unit scale, which makes layers blurry on Retina displays.
+    
+    Enable code that was already used on iOS to set layer rasterization scale.
+    
+    Test: compositing/contents-scale/hidpi-tests/rasterization-scale.html
+    
+    * platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm:
+    (WebCore::PlatformCALayerCocoa::setContentsScale):
+    
+    LayoutTests:
+    
+    * compositing/contents-scale/hidpi-tests/rasterization-scale-expected.html: Added.
+    * compositing/contents-scale/hidpi-tests/rasterization-scale.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271388 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Simon Fraser  <simon.fraser@apple.com>
+
+            Safari 14 on 2x display renders NYS DMV page as blurry
+            https://bugs.webkit.org/show_bug.cgi?id=220528
+            <rdar://problem/71440246>
+
+            Reviewed by Tim Horton.
+
+            * compositing/contents-scale/hidpi-tests/rasterization-scale-expected.html: Added.
+            * compositing/contents-scale/hidpi-tests/rasterization-scale.html: Added.
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271379. rdar://problem/73473604
+
+    Keep newly created IDBObjectStores in deleted map when IDBTransaction is aborted
+    https://bugs.webkit.org/show_bug.cgi?id=220483
+    <rdar://problem/71934293>
+    
+    Patch by Sihui Liu <sihui_liu@appe.com> on 2021-01-11
+    Reviewed by Darin Adler.
+    
+    Source/WebCore:
+    
+    When an upgrade transaction is aborted, we move objects from m_deletedObjectStores to m_referencedObjectStores
+    to revert the deletion operation. When updating m_referencedObjectStores, we did not check whether key already
+    exists (this can happen when an object store gets deleted and a new object store with the same name is
+    created; see updated layout test). Therefore, some object store in m_referencedObjectStores would be replaced
+    and destroyed (since m_referencedObjectStores holds unique pointers) when the object store is referenced by JS
+    object.
+    
+    Test: storage/indexeddb/modern/abort-objectstore-info.html
+    
+    * Modules/indexeddb/IDBTransaction.cpp:
+    (WebCore::IDBTransaction::internalAbort):
+    
+    LayoutTests:
+    
+    * storage/indexeddb/modern/abort-objectstore-info-expected.txt:
+    * storage/indexeddb/modern/abort-objectstore-info-private-expected.txt:
+    * storage/indexeddb/modern/resources/abort-objectstore-info.js:
+    (prepareDatabase):
+    (secondUpgradeNeeded):
+    (checkState):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271379 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Sihui Liu  <sihui_liu@appe.com>
+
+            Keep newly created IDBObjectStores in deleted map when IDBTransaction is aborted
+            https://bugs.webkit.org/show_bug.cgi?id=220483
+            <rdar://problem/71934293>
+
+            Reviewed by Darin Adler.
+
+            * storage/indexeddb/modern/abort-objectstore-info-expected.txt:
+            * storage/indexeddb/modern/abort-objectstore-info-private-expected.txt:
+            * storage/indexeddb/modern/resources/abort-objectstore-info.js:
+            (prepareDatabase):
+            (secondUpgradeNeeded):
+            (checkState):
+
+2021-01-29  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271368. rdar://problem/73473690
+
+    Keep newly created IDBIndex objects in deleted map when IDBTransaction is aborted
+    https://bugs.webkit.org/show_bug.cgi?id=220489
+    <rdar://problem/70498831>
+    
+    Patch by Sihui Liu <sihui_liu@appe.com> on 2021-01-11
+    Reviewed by Youenn Fablet.
+    
+    Source/WebCore:
+    
+    When an upgrade transaction is aborted, we move objects from m_deletedIndexes to m_referencedIndexes to revert
+    the index deletion operation. When updating m_referencedIndexes, we did not check whether key already exists.
+    Therefore, some indexes in m_referencedIndexes would be replaced and destroyed (since m_referencedIndexes holds
+    unique pointers) when the index is still referenced by JS.
+    
+    Tests: storage/indexeddb/modern/abort-index-info-private.html
+           storage/indexeddb/modern/abort-index-info.html
+    
+    * Modules/indexeddb/IDBObjectStore.cpp:
+    (WebCore::IDBObjectStore::rollbackForVersionChangeAbort):
+    
+    LayoutTests:
+    
+    * storage/indexeddb/modern/abort-index-info-expected.txt: Added.
+    * storage/indexeddb/modern/abort-index-info-private-expected.txt: Added.
+    * storage/indexeddb/modern/abort-index-info-private.html: Added.
+    * storage/indexeddb/modern/abort-index-info.html: Added.
+    * storage/indexeddb/modern/resources/abort-index-info.js: Added.
+    (prepareDatabase):
+    (versionChangeSuccessCallback.secondRequest.onerror):
+    (versionChangeSuccessCallback):
+    (secondUpgradeNeeded):
+    (checkState):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271368 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Sihui Liu  <sihui_liu@appe.com>
+
+            Keep newly created IDBIndex objects in deleted map when IDBTransaction is aborted
+            https://bugs.webkit.org/show_bug.cgi?id=220489
+            <rdar://problem/70498831>
+
+            Reviewed by Youenn Fablet.
+
+            * storage/indexeddb/modern/abort-index-info-expected.txt: Added.
+            * storage/indexeddb/modern/abort-index-info-private-expected.txt: Added.
+            * storage/indexeddb/modern/abort-index-info-private.html: Added.
+            * storage/indexeddb/modern/abort-index-info.html: Added.
+            * storage/indexeddb/modern/resources/abort-index-info.js: Added.
+            (prepareDatabase):
+            (versionChangeSuccessCallback.secondRequest.onerror):
+            (versionChangeSuccessCallback):
+            (secondUpgradeNeeded):
+            (checkState):
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271531. rdar://problem/73586664
+
+    Playback fails at marketwatch.com
+    https://bugs.webkit.org/show_bug.cgi?id=220646
+    <rdar://72950166>
+    
+    Reviewed by Xabier Rodriguez-Calvar.
+    
+    Source/WebCore:
+    
+    Test: media/media-play-promise-reject-play-notallowed-audio.html
+    
+    When audio playback is blocked by settings, the HTMLMediaElement must load its source
+    media's metadata in order to determine whether the media should be allowed to play without a
+    user gesture. If a play promise is pending, the expectation is that those promises will
+    reject with a NotAllowedError to indicate that a user gesture is needed. However, by calling
+    pauseInternal() to block (possibly) existing playback, this causes those promises to be
+    rejected with an AbortError, as if the pause() method had been called. Call
+    scheduleRejectPendingPlayPromises() with NotAllowedError to ensure the correct error is used
+    to reject.
+    
+    Drive-by fix: no reason to dispatch and call rejectPendingPlayPromises() or
+    resolvePendingPlayPromises() if there are no promises to reject or resolve, and not calling
+    these methods makes the logs less noisy.
+    
+    * html/HTMLMediaElement.cpp:
+    (WebCore::HTMLMediaElement::scheduleResolvePendingPlayPromises):
+    (WebCore::HTMLMediaElement::scheduleRejectPendingPlayPromises):
+    (WebCore::HTMLMediaElement::setVolume):
+    (WebCore::HTMLMediaElement::mediaPlayerDidAddAudioTrack):
+    (WebCore::HTMLMediaElement::mediaPlayerCharacteristicChanged):
+    (WebCore::HTMLMediaElement::updateShouldPlay):
+    
+    LayoutTests:
+    
+    * media/media-play-promise-reject-play-notallowed-audio-expected.txt: Added.
+    * media/media-play-promise-reject-play-notallowed-audio.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271531 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Jer Noble  <jer.noble@apple.com>
+
+            Playback fails at marketwatch.com
+            https://bugs.webkit.org/show_bug.cgi?id=220646
+            <rdar://72950166>
+
+            Reviewed by Xabier Rodriguez-Calvar.
+
+            * media/media-play-promise-reject-play-notallowed-audio-expected.txt: Added.
+            * media/media-play-promise-reject-play-notallowed-audio.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271799. rdar://problem/73581832
+
+    PCM: Use different well-known locations for triggering and reporting attribution
+    https://bugs.webkit.org/show_bug.cgi?id=220902
+    <rdar://problem/73550632>
+    
+    Reviewed by Brent Fulgham.
+    
+    The discussion in W3C Privacy CG concluded that we should use distinct
+    well-known URL paths for websites triggering attribution and for the
+    browser reporting attribution
+    (https://github.com/privacycg/private-click-measurement/issues/59).
+    
+    This patch changes the one location to these two:
+    /.well-known/private-click-measurement/trigger-attribution
+    /.well-known/private-click-measurement/report-attribution
+    
+    Source/WebCore:
+    
+    Existing tests updated.
+    
+    * loader/PrivateClickMeasurement.cpp:
+    (WebCore::PrivateClickMeasurement::parseAttributionRequest):
+    (WebCore::PrivateClickMeasurement::reportURL const):
+    
+    Tools:
+    
+    * TestWebKitAPI/Tests/WebCore/PrivateClickMeasurement.cpp:
+    (TestWebKitAPI::TEST):
+    * TestWebKitAPI/Tests/WebKitCocoa/EventAttribution.mm:
+    (TestWebKitAPI::TEST):
+    
+    LayoutTests:
+    
+    * http/tests/privateClickMeasurement/resources/redirectToConversion.php:
+    * http/tests/privateClickMeasurement/resources/redirectToConversionOnIPAddress.php:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271799 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  John Wilander  <wilander@apple.com>
+
+            PCM: Use different well-known locations for triggering and reporting attribution
+            https://bugs.webkit.org/show_bug.cgi?id=220902
+            <rdar://problem/73550632>
+
+            Reviewed by Brent Fulgham.
+
+            The discussion in W3C Privacy CG concluded that we should use distinct
+            well-known URL paths for websites triggering attribution and for the
+            browser reporting attribution
+            (https://github.com/privacycg/private-click-measurement/issues/59).
+
+            This patch changes the one location to these two:
+            /.well-known/private-click-measurement/trigger-attribution
+            /.well-known/private-click-measurement/report-attribution
+
+            * http/tests/privateClickMeasurement/resources/redirectToConversion.php:
+            * http/tests/privateClickMeasurement/resources/redirectToConversionOnIPAddress.php:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271618. rdar://problem/73477509
+
+    REGRESSION(r266695) Range control with custom track width sized incorrectly
+    https://bugs.webkit.org/show_bug.cgi?id=220608
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Test: fast/forms/range/input-range-sizing-fixed-size.html
+    
+    In r266695 we modified the way min-{width|height}: auto was computed for flexbox elements. That broke the sizing
+    of input range controls that were working under the assumption that min-{width|height} was 0. We have to force it
+    in the UA CSS in order to keep the same behaviour.
+    
+    * css/html.css:
+    (input[type="range"]::-webkit-slider-container, input[type="range"]::-webkit-media-slider-container): force
+    min-width: 0.
+    
+    LayoutTests:
+    
+    New test case to verify that input range controls are sized correctly with specified widths.
+    
+    * fast/forms/range/input-range-sizing-fixed-size-expected.html: Added.
+    * fast/forms/range/input-range-sizing-fixed-size.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271618 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-19  Sergio Villar Senin  <svillar@igalia.com>
+
+            REGRESSION(r266695) Range control with custom track width sized incorrectly
+            https://bugs.webkit.org/show_bug.cgi?id=220608
+
+            Reviewed by Zalan Bujtas.
+
+            New test case to verify that input range controls are sized correctly with specified widths.
+
+            * fast/forms/range/input-range-sizing-fixed-size-expected.html: Added.
+            * fast/forms/range/input-range-sizing-fixed-size.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271587. rdar://problem/73477379
+
+    Fix for LayoutTests/accessibility/canvas-fallback-content.html in isolated tree mode.
+    https://bugs.webkit.org/show_bug.cgi?id=220644
+    
+    Reviewed by Chris Fleizach.
+    
+    Source/WebCore:
+    
+    Tests:
+    accessibility/canvas-fallback-content.html
+    accessibility/canvas-fallback-content-2.html
+    
+    - Updates the accessibility isolated tree when the ARIA role attribute
+    changes for a DOM element.
+    - Modified tests to use Promises and retrieve accessible elements by IDs
+    so that they work in both isolated tree mode on and off.
+    
+    * accessibility/AXLogger.cpp:
+    (WebCore::operator<<): Added new value to the AXNotification enum.
+    * accessibility/AXObjectCache.cpp:
+    (WebCore::AXObjectCache::handleAriaRoleChanged):
+    Updates the isolated tree when an ARIA role attribute changes.
+    (WebCore::AXObjectCache::updateIsolatedTree):
+    Handles the AXAriaRoleChanged notification.
+    * accessibility/AXObjectCache.h:
+    
+    LayoutTests:
+    
+    * accessibility/canvas-fallback-content-2-expected.txt:
+    Removed the checks for the document.activeElement since the goal here is
+    not to test this method.
+    
+    * accessibility/canvas-fallback-content-2.html:
+    Retrieved the accessibility Objects by ID directly from the accessibilityController.
+    This simplifies the code since it is not necessary to set focus to the
+    object via the document, to then retrieve the focused accessibility element.
+    This works for isolated tree mode on and off.
+    
+    * accessibility/canvas-fallback-content.html:
+    Kept the focus manipulations but used Promises to make it work in both
+    isolated mode on and off.
+    
+    * platform/win/accessibility/canvas-fallback-content-expected.txt: Deleted.
+    * platform/win/TestExpectations: Skip since this test was already failing in win.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271587 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-18  Andres Gonzalez  <andresg_22@apple.com>
+
+            Fix for LayoutTests/accessibility/canvas-fallback-content.html in isolated tree mode.
+            https://bugs.webkit.org/show_bug.cgi?id=220644
+
+            Reviewed by Chris Fleizach.
+
+            * accessibility/canvas-fallback-content-2-expected.txt:
+            Removed the checks for the document.activeElement since the goal here is
+            not to test this method.
+
+            * accessibility/canvas-fallback-content-2.html:
+            Retrieved the accessibility Objects by ID directly from the accessibilityController.
+            This simplifies the code since it is not necessary to set focus to the
+            object via the document, to then retrieve the focused accessibility element.
+            This works for isolated tree mode on and off.
+
+            * accessibility/canvas-fallback-content.html:
+            Kept the focus manipulations but used Promises to make it work in both
+            isolated mode on and off.
+
+            * platform/win/accessibility/canvas-fallback-content-expected.txt: Deleted.
+            * platform/win/TestExpectations: Skip since this test was already failing in win.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271536. rdar://problem/73477501
+
+    AX: increment/decrement synthetic arrow events don't work in ARIA slider examples
+    https://bugs.webkit.org/show_bug.cgi?id=220626
+    <rdar://problem/73228924>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    keyCode is still expected to be filled in with standard codes for arrow keys.
+    
+    Updated test: accessibility/keyevents-posted-for-increment-actions.html
+    
+    * accessibility/AccessibilityNodeObject.cpp:
+    (WebCore::AccessibilityNodeObject::postKeyboardKeysForValueChange):
+    
+    LayoutTests:
+    
+    * accessibility/keyevents-posted-for-increment-actions-expected.txt:
+    * accessibility/keyevents-posted-for-increment-actions.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271536 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: increment/decrement synthetic arrow events don't work in ARIA slider examples
+            https://bugs.webkit.org/show_bug.cgi?id=220626
+            <rdar://problem/73228924>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/keyevents-posted-for-increment-actions-expected.txt:
+            * accessibility/keyevents-posted-for-increment-actions.html:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271516. rdar://problem/73477422
+
+    [LFC][Integration] REGRESSION (r270123) facebook.com birthday dropdown do not work when creating new account
+    https://bugs.webkit.org/show_bug.cgi?id=220638
+    <rdar://problem/73175259>
+    
+    Reviewed by Simon Fraser.
+    
+    Source/WebCore:
+    
+    This patch fixes incorrect hittest results when the hittest target
+    1. participates in the modern line layout and
+    2. prior to the hittesting its style changes in a way that it does not trigger layout.
+    e.g.
+    <div><div id=inner style="display: inline-block; visibility: hidden"><div></div>
+    <script>inner.style.visibility = "visible"</script>
+    
+    Any subsequent hittest will miss the inner <div> as the loop in LineLayout::hitTest() early returns due to stale style information.
+    The reason why we end up with stale style is because we only update the layout box's style when the style diff >= StyleDifference::Layout () in RenderBox::styleDidChange.
+    
+    Test: fast/inline-block/hittest-fails-on-inline-block-with-visibility-change.html
+    
+    * rendering/RenderBox.cpp:
+    (WebCore::RenderBox::styleDidChange):
+    
+    LayoutTests:
+    
+    * fast/inline-block/hittest-fails-on-inline-block-with-visibility-change-expected.txt: Added.
+    * fast/inline-block/hittest-fails-on-inline-block-with-visibility-change.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271516 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Zalan Bujtas  <zalan@apple.com>
+
+            [LFC][Integration] REGRESSION (r270123) facebook.com birthday dropdown do not work when creating new account
+            https://bugs.webkit.org/show_bug.cgi?id=220638
+            <rdar://problem/73175259>
+
+            Reviewed by Simon Fraser.
+
+            * fast/inline-block/hittest-fails-on-inline-block-with-visibility-change-expected.txt: Added.
+            * fast/inline-block/hittest-fails-on-inline-block-with-visibility-change.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271471. rdar://problem/73477068
+
+    Source/WebCore:
+    [HANG] 496ms to 1360ms in WebCore::AVAudioSessionCaptureDeviceManager::refreshAudioCaptureDevices()
+    https://bugs.webkit.org/show_bug.cgi?id=220471
+    
+    Reviewed by Youenn Fablet.
+    
+    Refactor RealtimeMediaSourceCenter::getMediaStreamDevices() to take a completion handler, rather than
+    synchronously return a Vector of CaptureDevices. This also requires all CaptureDeviceManager subclasses
+    to support taking a completion handler themselves. By default, all CaptureDeviceManagers will support
+    the CompletionHandler path by just synchronously calling the completion handler with the existing
+    synchronous method. But for AVAudioSessionCaptureDeviceManager, override that default implementation by
+    activating the AVAudioSession on a background thread, and querying that session's inputs on a background
+    thread as well.
+    
+    * platform/mediastream/CaptureDeviceManager.h:
+    * platform/mediastream/RealtimeMediaSourceCenter.cpp:
+    (WebCore::RealtimeMediaSourceCenter::getMediaStreamDevices):
+    * platform/mediastream/RealtimeMediaSourceCenter.h:
+    * platform/mediastream/RealtimeMediaSourceFactory.h:
+    (WebCore::AudioCaptureFactory::getSpeakerDevices const):
+    * platform/mediastream/ios/AVAudioSessionCaptureDeviceManager.h:
+    * platform/mediastream/ios/AVAudioSessionCaptureDeviceManager.mm:
+    (WebCore::AVAudioSessionCaptureDeviceManager::audioSessionDeviceWithUID):
+    (WebCore::AVAudioSessionCaptureDeviceManager::scheduleUpdateCaptureDevices):
+    (WebCore::AVAudioSessionCaptureDeviceManager::refreshAudioCaptureDevices):
+    (WebCore::AVAudioSessionCaptureDeviceManager::getCaptureDevices):
+    (WebCore::AVAudioSessionCaptureDeviceManager::activateAudioSession):
+    (WebCore::AVAudioSessionCaptureDeviceManager::retrieveAudioSessionCaptureDevices const):
+    (WebCore::AVAudioSessionCaptureDeviceManager::setAudioCaptureDevices):
+    (WebCore::AVAudioSessionCaptureDeviceManager::audioSessionCaptureDevices): Deleted.
+    
+    Source/WebKit:
+    [HANG] 496ms to 1360ms in WebCore::AVAudioSessionCaptureDeviceManager::refreshAudioCaptureDevices()
+    https://bugs.webkit.org/show_bug.cgi?id=220471
+    
+    Reviewed by Youenn Fablet.
+    
+    Use the completion-handler version of RealtimeMediaSourceCenter::getMediaStreamDevices().
+    
+    * UIProcess/UserMediaPermissionRequestManagerProxy.cpp:
+    (WebKit::UserMediaPermissionRequestManagerProxy::computeFilteredDeviceList):
+    (WebKit::UserMediaPermissionRequestManagerProxy::enumerateMediaDevicesForFrame):
+    * UIProcess/UserMediaPermissionRequestManagerProxy.h:
+    * UIProcess/UserMediaProcessManager.cpp:
+    (WebKit::UserMediaProcessManager::updateCaptureDevices):
+    (WebKit::UserMediaProcessManager::beginMonitoringCaptureDevices):
+    * UIProcess/UserMediaProcessManager.h:
+    
+    LayoutTests:
+    [Cocoa] Support key rotation with HLS-backed encrypted media streams
+    https://bugs.webkit.org/show_bug.cgi?id=220493
+    <rdar://68227709>
+    
+    Reviewed by Youenn Fablet.
+    
+    Fix a broken layout test; the test enumerates devices, then uses the deviceIds returned to generate
+    constraints for a call to getUserMedia(). However, it assumes all devices will either be of kind
+    'audioinput' or 'videoinput'. If an 'audiooutput' device is returned (as the MockRealtimeMediaSourceCenter
+    does), then the test turns that into a video capture constraint, which fails.
+    
+    * fast/mediastream/get-user-media-device-id.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271471 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Jer Noble  <jer.noble@apple.com>
+
+            [Cocoa] Support key rotation with HLS-backed encrypted media streams
+            https://bugs.webkit.org/show_bug.cgi?id=220493
+            <rdar://68227709>
+
+            Reviewed by Youenn Fablet.
+
+            Fix a broken layout test; the test enumerates devices, then uses the deviceIds returned to generate
+            constraints for a call to getUserMedia(). However, it assumes all devices will either be of kind
+            'audioinput' or 'videoinput'. If an 'audiooutput' device is returned (as the MockRealtimeMediaSourceCenter
+            does), then the test turns that into a video capture constraint, which fails.
+
+            * fast/mediastream/get-user-media-device-id.html:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271453. rdar://problem/73477471
+
+    Fix for LayoutTests/accessibility/mac/details-summary.html in isolated tree mode.
+    https://bugs.webkit.org/show_bug.cgi?id=220597
+    
+    Reviewed by Chris Fleizach.
+    
+    - Use Promises to wait for the expanded state change.
+    - Added a comment to clarify why it is necessary to fetch a new
+    accessible object by ID every time after setting the AXExpanded
+    attribute for <details> elements.
+    
+    * accessibility/mac/details-summary-expected.txt:
+    The order in which the notifications come through changed.
+    * accessibility/mac/details-summary.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271453 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Andres Gonzalez  <andresg_22@apple.com>
+
+            Fix for LayoutTests/accessibility/mac/details-summary.html in isolated tree mode.
+            https://bugs.webkit.org/show_bug.cgi?id=220597
+
+            Reviewed by Chris Fleizach.
+
+            - Use Promises to wait for the expanded state change.
+            - Added a comment to clarify why it is necessary to fetch a new
+            accessible object by ID every time after setting the AXExpanded
+            attribute for <details> elements.
+
+            * accessibility/mac/details-summary-expected.txt:
+            The order in which the notifications come through changed.
+            * accessibility/mac/details-summary.html:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271436. rdar://problem/73477448
+
+    REGRESSION(r268666) Incorrect vertical position inside grid items with padding
+    https://bugs.webkit.org/show_bug.cgi?id=220524
+    
+    Reviewed by Manuel Rego Casasnovas.
+    
+    Source/WebCore:
+    
+    In r268666 we sanitized and renamed the old overrideLogicalXXX sizes so that they store what they say.
+    There was a mistake in one of those renames, in availableLogicalHeightForPercentageComputation() we were
+    returning the border box size for the case of grid items. That's clearly wrong as we should return the
+    content box size. That's why adding a padding to a grid item was causing their children to wrongly
+    evaluate the available logical height.
+    
+    This fixes a WPT that was marked as failure.
+    
+    * rendering/RenderBlock.cpp:
+    (WebCore::RenderBlock::availableLogicalHeightForPercentageComputation const): Return the
+    overridingContentLogicalHeight instead of the overridingLogicalHeight.
+    
+    LayoutTests:
+    
+    * TestExpectations: remove web-platform-tests/css/css-grid/grid-items/percentage-size-subitems-001.html
+    from the list of image failures.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271436 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Sergio Villar Senin  <svillar@igalia.com>
+
+            REGRESSION(r268666) Incorrect vertical position inside grid items with padding
+            https://bugs.webkit.org/show_bug.cgi?id=220524
+
+            Reviewed by Manuel Rego Casasnovas.
+
+            * TestExpectations: remove web-platform-tests/css/css-grid/grid-items/percentage-size-subitems-001.html
+            from the list of image failures.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271435. rdar://problem/73477090
+
+    REGRESSION (r267571): black line appears upon navigating back from apple.com shopping bag
+    https://bugs.webkit.org/show_bug.cgi?id=220550
+    <rdar://problem/72459816>
+    
+    Reviewed by Antti Koivisto.
+    
+    LayoutTests/imported/w3c:
+    
+    Mark two additional PASS results for ::marker tests.
+    
+    * web-platform-tests/css/css-pseudo/parsing/marker-supported-properties-in-animation-expected.txt:
+    
+    Source/WebCore:
+    
+    Test: webanimations/no-transition-on-after-pseudo-element-upon-creation.html
+    
+    In r267571, we refactored the code to use Styleable instead of Element in pseudo-element resolution code. While there
+    should have been no behavior change, there was a change in Style::TreeResolver::createAnimatedElementUpdate() that
+    mistakenly introduced one.
+    
+    In order to get the "before" style to be used to consider CSS Transitions, we used to simply call Element::renderOrDisplayContentsStyle()
+    on the element provided to createAnimatedElementUpdate(), which would be either an Element or a PseudoElement in the
+    case of ::before and ::after. When we switched to using Styleable, we made a change where we'd call renderOrDisplayContentsStyle()
+    on the Styleable's element, if it didn't a pseudo-element, or try to get the matching PseudoElement in the case of
+    ::before and ::after. However, if we got a nullptr RenderStyle in the PseudoElement case, we'd fall back to using the
+    style from the host element.
+    
+    This yielded this regression on apple.com where a transition is started on an ::after pseudo-element which has an
+    "opacity: 0" style and a "transition" style set for "opacity". The host element is created first, and later the
+    ::after pseudo-element added. While it should not consider starting a transition in this case since upon creation
+    there is no existing style to work with, it did start a transition since it would use the host element's style
+    and see "opacity: 1" to start a transition.
+    
+    In this patch, we address the FIXME we'd left behind in TreeResolver::createAnimatedElementUpdate() and make
+    Element::renderOrDisplayContentsStyle() take in a PseudoId, defaulting to PseudoId::None. In case we have a
+    pseudo-element, we first try to call renderOrDisplayContentsStyle() on the matching PseudoElement if it exists,
+    or we return the existing computed style for this pseudo-element.
+    
+    If there is no existing computed style, we return nullptr, which means that in the apple.com scenario, no transition
+    is started because we correctly don't have a "before" style to work within upon creation of the ::after pseudo-element.
+    
+    * dom/Element.cpp:
+    (WebCore::beforeOrAfterPseudoElement):
+    (WebCore::Element::renderOrDisplayContentsStyle const):
+    * dom/Element.h:
+    * style/StyleTreeResolver.cpp:
+    (WebCore::Style::TreeResolver::createAnimatedElementUpdate):
+    
+    LayoutTests:
+    
+    Add a test that checks that adding a pseudo-element for an existing host element does not use
+    the host element's style to consider starting a transition.
+    
+    * webanimations/no-transition-on-after-pseudo-element-upon-creation-expected.html: Added.
+    * webanimations/no-transition-on-after-pseudo-element-upon-creation.html: Added.
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271435 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Antoine Quint  <graouts@webkit.org>
+
+            REGRESSION (r267571): black line appears upon navigating back from apple.com shopping bag
+            https://bugs.webkit.org/show_bug.cgi?id=220550
+            <rdar://problem/72459816>
+
+            Reviewed by Antti Koivisto.
+
+            Add a test that checks that adding a pseudo-element for an existing host element does not use
+            the host element's style to consider starting a transition.
+
+            * webanimations/no-transition-on-after-pseudo-element-upon-creation-expected.html: Added.
+            * webanimations/no-transition-on-after-pseudo-element-upon-creation.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271416. rdar://problem/73478416
+
+    AX: Implement aria-braillelabel and aria-brailleroledescription
+    https://bugs.webkit.org/show_bug.cgi?id=220516
+    <rdar://problem/73004715>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    Add support for new ARIA attributes.
+    
+    Test: accessibility/mac/braille-label-role.html
+    
+    * accessibility/AccessibilityObject.h:
+    * accessibility/AccessibilityObjectInterface.h:
+    * accessibility/ios/WebAccessibilityObjectWrapperIOS.mm:
+    (-[WebAccessibilityObjectWrapper accessibilityBrailleLabel]):
+    (-[WebAccessibilityObjectWrapper accessibilityBrailleRoleDescription]):
+    * accessibility/isolatedtree/AXIsolatedObject.cpp:
+    (WebCore::AXIsolatedObject::initializeAttributeData):
+    * accessibility/isolatedtree/AXIsolatedObject.h:
+    * accessibility/isolatedtree/AXIsolatedTree.h:
+    * accessibility/mac/WebAccessibilityObjectWrapperMac.mm:
+    (-[WebAccessibilityObjectWrapper accessibilityAttributeValue:]):
+    * html/HTMLAttributeNames.in:
+    
+    LayoutTests:
+    
+    * accessibility/braille-label-role-expected.txt: Added.
+    * accessibility/braille-label-role.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271416 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Chris Fleizach  <cfleizach@apple.com>
+
+            AX: Implement aria-braillelabel and aria-brailleroledescription
+            https://bugs.webkit.org/show_bug.cgi?id=220516
+            <rdar://problem/73004715>
+
+            Reviewed by Zalan Bujtas.
+
+            * accessibility/braille-label-role-expected.txt: Added.
+            * accessibility/braille-label-role.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271407. rdar://problem/73477392
+
+    REGRESSION (r271341): media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline.html is timing out
+    https://bugs.webkit.org/show_bug.cgi?id=220530
+    
+    Reviewed by Eric Carlson.
+    
+    Similar to r271377, this patch fixes a layout test failure/timeout by enabling "MockVideoPresentationMode"
+    and sending a request to enter/exit fullscreen after the current mode change is completed.
+    
+    * media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline-expected.txt:
+    * media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline.html:
+    * platform/mac/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271407 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Peng Liu  <peng.liu6@apple.com>
+
+            REGRESSION (r271341): media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline.html is timing out
+            https://bugs.webkit.org/show_bug.cgi?id=220530
+
+            Reviewed by Eric Carlson.
+
+            Similar to r271377, this patch fixes a layout test failure/timeout by enabling "MockVideoPresentationMode"
+            and sending a request to enter/exit fullscreen after the current mode change is completed.
+
+            * media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline-expected.txt:
+            * media/modern-media-controls/media-controller/media-controller-inline-to-fullscreen-to-inline.html:
+            * platform/mac/TestExpectations:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271543. rdar://problem/73469576
+
+    [iOS] Emoji keyboard covers text field on twitter.com/messages
+    https://bugs.webkit.org/show_bug.cgi?id=220664
+    <rdar://problem/68400471>
+    
+    Reviewed by Devin Rousso.
+    
+    Source/WebKit:
+    
+    After iOS 14, the emoji software keyboard layout now includes a search field that can be used to filter for
+    specific emojis. This slightly increases the overall height of the software keyboard when the emoji keyplane is
+    active; in turn, this means that if the selection or caret is positioned right above the top of the software
+    keyboard when the normal (alphabetic) keyplane is active, switching to the emoji keyplane will cause the
+    keyboard to overlap the selection, making it difficult to see inserted text.
+    
+    To address this, add a mechanism to detect when a change in the bounds of the software keyboard causes a visible
+    selection or caret rect to become overlapped, and react by scrolling to keep the selection visible. This has the
+    effect of fixing this bug by scrolling to reveal the text field after switching to the emoji keyboard, but it
+    also has the effect of scrolling to keep the selection visible after detaching a connected hardware keyboard,
+    in the case where it would've otherwise been overlapped by the (much taller) software keyboard that appears.
+    
+    Test: editing/selection/ios/scroll-to-reveal-selection-when-showing-software-keyboard.html
+    
+    * UIProcess/API/ios/WKWebViewIOS.h:
+    * UIProcess/API/ios/WKWebViewIOS.mm:
+    (-[WKWebView _selectionRectIsFullyVisibleAndNonEmpty]):
+    
+    Add an internal helper to check whether the selection bounds are fully visible.
+    
+    (-[WKWebView _scrollToRevealSelectionIfNeeded]):
+    (-[WKWebView _zoomToFocusRect:selectionRect:fontSize:minimumScale:maximumScale:allowScaling:forceScroll:]):
+    (-[WKWebView _keyboardChangedWithInfo:adjustScrollView:]):
+    
+    In the case where changing input view bounds causes a previously visible selection to become overlapped, call
+    `-_scrollToRevealSelectionIfNeeded` to make the selection visible again.
+    
+    (-[WKWebView _zoomToFocusRect:selectionRect:insideFixed:fontSize:minimumScale:maximumScale:allowScaling:forceScroll:]): Deleted.
+    * UIProcess/WebPageProxy.h:
+    * UIProcess/ios/WKContentView.h:
+    * UIProcess/ios/WKContentView.mm:
+    (-[WKContentView _zoomToFocusRect:selectionRect:fontSize:minimumScale:maximumScale:allowScaling:forceScroll:]):
+    (-[WKContentView _zoomToFocusRect:selectionRect:insideFixed:fontSize:minimumScale:maximumScale:allowScaling:forceScroll:]): Deleted.
+    
+    Drive-by fix: remove the unused `insideFixed:` parameter from this adjacent method.
+    
+    * UIProcess/ios/WKContentViewInteraction.mm:
+    (-[WKContentView rectToRevealWhenZoomingToFocusedElement]):
+    (-[WKContentView _zoomToRevealFocusedElement]):
+    (rectToRevealWhenZoomingToFocusedElement): Deleted.
+    
+    Pull this into the `-rectToRevealWhenZoomingToFocusedElement` internal helper method instead, and use the new
+    `selectionBoundingRectInRootViewCoordinates` method below.
+    
+    * UIProcess/ios/WebPageProxyIOS.mm:
+    (WebKit::WebPageProxy::selectionBoundingRectInRootViewCoordinates const):
+    
+    Pull out code to compute the selection bounding rect (for both ranged and caret selections) into a method on
+    `WebPageProxy`, so that it can be used in `WKContentView` and `WKWebView`.
+    
+    LayoutTests:
+    
+    Add a test to verify that after disconnecting a hardware keyboard and showing the software keyboard, we scroll
+    up to reveal the caret in a focused text field.
+    
+    * editing/selection/ios/scroll-to-reveal-selection-when-showing-software-keyboard-expected.txt: Added.
+    * editing/selection/ios/scroll-to-reveal-selection-when-showing-software-keyboard.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271543 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Wenson Hsieh  <wenson_hsieh@apple.com>
+
+            [iOS] Emoji keyboard covers text field on twitter.com/messages
+            https://bugs.webkit.org/show_bug.cgi?id=220664
+            <rdar://problem/68400471>
+
+            Reviewed by Devin Rousso.
+
+            Add a test to verify that after disconnecting a hardware keyboard and showing the software keyboard, we scroll
+            up to reveal the caret in a focused text field.
+
+            * editing/selection/ios/scroll-to-reveal-selection-when-showing-software-keyboard-expected.txt: Added.
+            * editing/selection/ios/scroll-to-reveal-selection-when-showing-software-keyboard.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271524. rdar://problem/73473371
+
+    Reversed transform animation not applied alongside other transform animations
+    https://bugs.webkit.org/show_bug.cgi?id=218655
+    <rdar://problem/71116284>
+    
+    Reviewed by Simon Fraser.
+    
+    Source/WebCore:
+    
+    Tests: webanimations/combining-transform-animations-with-different-acceleration-capabilities-2.html
+           webanimations/combining-transform-animations-with-different-acceleration-capabilities-3.html
+           webanimations/combining-transform-animations-with-different-acceleration-capabilities.html
+    
+    While, in theory, animations for a transform-related CSS property (translate, rotate, scale and transform)
+    can be accelerated, there are various reasons why it might not, in fact, run accelerated.
+    
+    One example is that the timing function is not something we can translate in terms Core Animation can
+    understand, such as the steps() timing function. In this case, the KeyframeEffect itself is aware of
+    the limitation and the method KeyframeEffect::canBeAccelerated() returns false.
+    
+    Another example is that the playback rate of the animation is not 1, which we currently don't support for
+    Core Animation animations (see bug 211839). In this case, GraphicsLayerCA is where the impossibility to
+    run an animation accelerated is determined.
+    
+    While we support running transform-related animations with or without acceleration, one thing we cannot
+    support is, for the same element, running some transform-related animations with acceleration, and some
+    without.
+    
+    Thus, regardless of where we determine that a transform-related animation cannot be accelerated, we need
+    to send this information up to the KeyframeEffectStack in which this animation's effect belongs to make
+    sure that any other transform-related animation that may already be running accelerated no longer does
+    and continues running without acceleration.
+    
+    There are two locations where we determine that a transform-related animation cannot be accelerated:
+    
+        1. in DocumentTimeline::applyPendingAcceleratedAnimations() under which we start, update or stop
+           accelerated animations that have been invalidated since the last page rendering,
+        2. in KeyframeEffect::updateAcceleratedActions() which is called for each page rendering, including
+           animations that cannot be accelerated.
+    
+    In the first case, we catch situations where an animation that could have been accelerated but failed
+    to be started due to the internal logic of GraphicsLayerCA. We use the new KeyframeEffect method
+    applyPendingAcceleratedActions() return value to determine this, and for each effect where the result
+    indicates that a transform-related animation could not be accelerated, we add the KeyframeEffectStack
+    to which it belongs and, once we're done with updating all effects, call the new
+    stopAcceleratingTransformRelatedProperties() method on the keyframe effect stack.
+    
+    In the second case, we catch situations where an animation is known to not be able to run accelerated
+    even without involving GraphicsLayerCA. We check whether the animation targets a transform-related
+    property and if it is active, and if so call stopAcceleratingTransformRelatedProperties()
+    on the keyframe effect stack there as well.
+    
+    When KeyframeEffectStack::stopAcceleratingTransformRelatedProperties() is called, we go
+    through all the registered effects and call stopAcceleratingTransformRelatedProperties(). This new
+    KeyframeEffect method will either add a pending accelerated action to stop the accelerated animation,
+    or if we're currently apply accelerated actions (ie. during DocumentTimeline::applyPendingAcceleratedAnimations()),
+    we stop the accelerated animation right away.
+    
+    In both cases we know not to try running this animation again with acceleration by setting m_runningAccelerated
+    to RunningAccelerated::No.
+    
+    * animation/DocumentTimeline.cpp:
+    (WebCore::DocumentTimeline::applyPendingAcceleratedAnimations):
+    * animation/KeyframeEffect.cpp:
+    (WebCore::KeyframeEffect::isTargetingTransformRelatedProperty const):
+    (WebCore::KeyframeEffect::isRunningAcceleratedTransformRelatedAnimation const):
+    (WebCore::KeyframeEffect::updateAcceleratedActions):
+    (WebCore::KeyframeEffect::applyPendingAcceleratedActions):
+    (WebCore::KeyframeEffect::stopAcceleratingTransformRelatedProperties):
+    * animation/KeyframeEffect.h:
+    * animation/KeyframeEffectStack.cpp:
+    (WebCore::KeyframeEffectStack::stopAcceleratingTransformRelatedProperties):
+    * animation/KeyframeEffectStack.h:
+    * animation/WebAnimation.cpp:
+    (WebCore::WebAnimation::applyPendingAcceleratedActions): Deleted.
+    * animation/WebAnimation.h:
+    * animation/WebAnimationTypes.h:
+    
+    LayoutTests:
+    
+    Add new tests that start a transform-related animation that runs accelerated, then add another
+    transform-related animation that either initially or eventually is not accelerated. In all cases,
+    we check that once the second animation is no longer accelerated that the first animation is also
+    no longer accelerated.
+    
+    * platform/win/TestExpectations:
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities-2-expected.txt: Added.
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities-2.html: Added.
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities-3-expected.txt: Added.
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities-3.html: Added.
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities-expected.txt: Added.
+    * webanimations/combining-transform-animations-with-different-acceleration-capabilities.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271524 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Antoine Quint  <graouts@webkit.org>
+
+            Reversed transform animation not applied alongside other transform animations
+            https://bugs.webkit.org/show_bug.cgi?id=218655
+            <rdar://problem/71116284>
+
+            Reviewed by Simon Fraser.
+
+            Add new tests that start a transform-related animation that runs accelerated, then add another
+            transform-related animation that either initially or eventually is not accelerated. In all cases,
+            we check that once the second animation is no longer accelerated that the first animation is also
+            no longer accelerated.
+
+            * platform/win/TestExpectations:
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities-2-expected.txt: Added.
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities-2.html: Added.
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities-3-expected.txt: Added.
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities-3.html: Added.
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities-expected.txt: Added.
+            * webanimations/combining-transform-animations-with-different-acceleration-capabilities.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271446. rdar://problem/73469344
+
+    REGRESSION (r257839): Broken focus when 'display' changes in an attribute selector
+    https://bugs.webkit.org/show_bug.cgi?id=217240
+    <rdar://problem/69891684>
+    
+    Reviewed by Wenson Hsieh.
+    
+    Source/WebCore:
+    
+    Focus optimization that avoids full style resolution when setting focus in unrendered subtrees
+    misbehaves when the style is invalidated via an attribute change.
+    
+    Test case by Ali Juma.
+    
+    Test: fast/dom/focus-style-resolution-attribute-change.html
+    
+    * dom/Element.cpp:
+    (WebCore::Element::invalidateStyle):
+    * dom/Node.cpp:
+    (WebCore::Node::invalidateStyle):
+    
+    We need to set the computed style invalidity bit on all style invalidation code paths.
+    
+    * html/InputType.cpp:
+    (WebCore::InputType::setValue):
+    
+    Don't invalidate style when nothing changes.
+    
+    LayoutTests:
+    
+    * fast/dom/focus-style-resolution-attribute-change-expected.html: Added.
+    * fast/dom/focus-style-resolution-attribute-change.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271446 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-13  Antti Koivisto  <antti@apple.com>
+
+            REGRESSION (r257839): Broken focus when 'display' changes in an attribute selector
+            https://bugs.webkit.org/show_bug.cgi?id=217240
+            <rdar://problem/69891684>
+
+            Reviewed by Wenson Hsieh.
+
+            * fast/dom/focus-style-resolution-attribute-change-expected.html: Added.
+            * fast/dom/focus-style-resolution-attribute-change.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271425. rdar://problem/73469655
+
+    Multi-codepoint CJK grapheme clusters are not oriented correctly in vertical writing mode
+    https://bugs.webkit.org/show_bug.cgi?id=220536
+    <rdar://problem/70633887>
+    
+    Reviewed by Zalan Bujtas.
+    
+    Source/WebCore:
+    
+    We have two codeblocks in this section that are meant to be used
+    for non-CJK text, but the compound "if" statement was causing us to hit
+    one of them even for CJK text.
+    
+    Test: fast/text/cjk-multi-codepoint-cluster-vertical.html
+    
+    * platform/graphics/coretext/FontCascadeCoreText.cpp:
+    (WebCore::FontCascade::fontForCombiningCharacterSequence const):
+    
+    LayoutTests:
+    
+    * fast/text/cjk-multi-codepoint-cluster-vertical-expected.html: Added.
+    * fast/text/cjk-multi-codepoint-cluster-vertical.html: Added.
+    * platform/win/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271425 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            Multi-codepoint CJK grapheme clusters are not oriented correctly in vertical writing mode
+            https://bugs.webkit.org/show_bug.cgi?id=220536
+            <rdar://problem/70633887>
+
+            Reviewed by Zalan Bujtas.
+
+            * fast/text/cjk-multi-codepoint-cluster-vertical-expected.html: Added.
+            * fast/text/cjk-multi-codepoint-cluster-vertical.html: Added.
+            * platform/win/TestExpectations:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271419. rdar://problem/73469613
+
+    Make fast/text/international/complex-character-based-fallback.html more robust by migrating it to be a reftest instead of a DRT test
+    https://bugs.webkit.org/show_bug.cgi?id=220488
+    <rdar://problem/70556068>
+    
+    Reviewed by Darin Adler.
+    
+    Reference tests are more robust than render-tree dump tests.
+    
+    * fast/text/international/complex-character-based-fallback-expected.html: Added.
+    * fast/text/international/complex-character-based-fallback.html:
+    * platform/gtk/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+    * platform/gtk/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    * platform/ios/TestExpectations:
+    * platform/ios/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+    * platform/ios/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    * platform/mac/TestExpectations:
+    * platform/mac/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+    * platform/mac/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    * platform/win/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+    * platform/win/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    * platform/wincairo/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    * platform/wpe/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271419 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            Make fast/text/international/complex-character-based-fallback.html more robust by migrating it to be a reftest instead of a DRT test
+            https://bugs.webkit.org/show_bug.cgi?id=220488
+            <rdar://problem/70556068>
+
+            Reviewed by Darin Adler.
+
+            Reference tests are more robust than render-tree dump tests.
+
+            * fast/text/international/complex-character-based-fallback-expected.html: Added.
+            * fast/text/international/complex-character-based-fallback.html:
+            * platform/gtk/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+            * platform/gtk/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+            * platform/ios/TestExpectations:
+            * platform/ios/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+            * platform/ios/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+            * platform/mac/TestExpectations:
+            * platform/mac/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+            * platform/mac/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+            * platform/win/fast/text/international/complex-character-based-fallback-expected.png: Removed.
+            * platform/win/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+            * platform/wincairo/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+            * platform/wpe/fast/text/international/complex-character-based-fallback-expected.txt: Removed.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271386. rdar://problem/73426229
+
+    Double tap to select does not work if the page clears selections on tap, like grammarly.com does
+    https://bugs.webkit.org/show_bug.cgi?id=220454
+    Source/WebKit:
+    
+    rdar://67757411
+    
+    Reviewed by Wenson Hsieh.
+    
+    Double tap to select content did not work on grammerly.com on iPad because this is a desktop website run on a touch-based device,
+    and there was a script running that would clear the selection on a mouseDown event. When we would send synthetic click events to the page
+    we would first update the selection and then on completion of the tap, we would dispatch a mouseDown and mouseUp event on iOS. On Mac, we
+    update the selection between the mouseDown and the mouseUp, so in order to bring us more in line with mac/mouse behaviors, we are now saving
+    the information needed to update the selection when we believe we are in the middle of a potential tap, and then setting the selection between
+    these two events. This makes for a more expected change of events, and does not let grammerly.com clear a valid selection based off of synthetic
+    clicks.
+    
+    Test: fast/events/touch/ios/double-tap-on-editable-content-for-selection-with-clear-on-touch.html
+    
+    * WebProcess/WebPage/WebPage.h:
+    * WebProcess/WebPage/ios/WebPageIOS.mm:
+    (WebKit::WebPage::completeSyntheticClick):
+    (WebKit::WebPage::setSelectionRange):
+    (WebKit::WebPage::selectTextWithGranularityAtPoint):
+    
+    LayoutTests:
+    
+    Reviewed by Wenson Hsieh.
+    
+    * fast/events/touch/ios/double-tap-on-editable-content-for-selection-with-clear-on-touch-expected.txt: Added.
+    * fast/events/touch/ios/double-tap-on-editable-content-for-selection-with-clear-on-touch.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271386 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Megan Gardner  <megan_gardner@apple.com>
+
+            Double tap to select does not work if the page clears selections on tap, like grammarly.com does
+            https://bugs.webkit.org/show_bug.cgi?id=220454
+
+            Reviewed by Wenson Hsieh.
+
+            * fast/events/touch/ios/double-tap-on-editable-content-for-selection-with-clear-on-touch-expected.txt: Added.
+            * fast/events/touch/ios/double-tap-on-editable-content-for-selection-with-clear-on-touch.html: Added.
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271367. rdar://problem/73469641
+
+    REGRESSION (r258321): CSS rules using :first-of-type are applied to any/all siblings in a group under certain circumstances
+    https://bugs.webkit.org/show_bug.cgi?id=218256
+    <rdar://problem/70749584>
+    
+    Reviewed by Simon Fraser.
+    
+    Source/WebCore:
+    
+    More accurate invalidation for :hover resulted in smaller style updates that revealed a bug in the way we
+    mark style non-shareable. We reset style relation bits when resolving the parent but may fail to set them again if we
+    don't re-resolve all children.
+    
+    Test case by Eben Packwood.
+    
+    Test: fast/css/positional-selector-style-sharing.html
+    
+    * style/StyleRelations.cpp:
+    (WebCore::Style::commitRelationsToRenderStyle):
+    
+    Just mark all styles affected by relations non-shareable. This is achieved via various bit tests but there
+    is no reason not to set the simplest no-sharing bit. Since this forces real style resolution the parent
+    bits will also get properly reset.
+    
+    LayoutTests:
+    
+    * fast/css/positional-selector-style-sharing-expected.html: Added.
+    * fast/css/positional-selector-style-sharing.html: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271367 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-11  Antti Koivisto  <antti@apple.com>
+
+            REGRESSION (r258321): CSS rules using :first-of-type are applied to any/all siblings in a group under certain circumstances
+            https://bugs.webkit.org/show_bug.cgi?id=218256
+            <rdar://problem/70749584>
+
+            Reviewed by Simon Fraser.
+
+            * fast/css/positional-selector-style-sharing-expected.html: Added.
+            * fast/css/positional-selector-style-sharing.html: Added.
+
 2021-01-10  Antti Koivisto  <antti@apple.com>
 
         [LFC][Integration] Factor marked text style collection code out of InlineTextBox

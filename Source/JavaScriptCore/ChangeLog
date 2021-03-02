@@ -1,3 +1,1334 @@
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272685. rdar://problem/74410538
+
+    We should not static_assert on an ENABLE() macro.
+    https://bugs.webkit.org/show_bug.cgi?id=221714
+    rdar://74197896
+    
+    Reviewed by Yusuke Suzuki.
+    
+    This is because the ENABLE() macro reduces to a macro expression
+    `(defined ENABLE_##WTF_FEATURE && ENABLE_##WTF_FEATURE)` which is not a C++
+    expression that a static_assert can evaluate.
+    
+    * llint/LLIntData.cpp:
+    * llint/LLIntData.h:
+    (JSC::LLInt::getCodePtr):
+    (JSC::LLInt::getWide16CodePtr):
+    (JSC::LLInt::getWide32CodePtr):
+    
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272685 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-10  Mark Lam  <mark.lam@apple.com>
+
+            We should not static_assert on an ENABLE() macro.
+            https://bugs.webkit.org/show_bug.cgi?id=221714
+            rdar://74197896
+
+            Reviewed by Yusuke Suzuki.
+
+            This is because the ENABLE() macro reduces to a macro expression
+            `(defined ENABLE_##WTF_FEATURE && ENABLE_##WTF_FEATURE)` which is not a C++
+            expression that a static_assert can evaluate.
+
+            * llint/LLIntData.cpp:
+            * llint/LLIntData.h:
+            (JSC::LLInt::getCodePtr):
+            (JSC::LLInt::getWide16CodePtr):
+            (JSC::LLInt::getWide32CodePtr):
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272663. rdar://problem/74409155
+
+    Don't crash when reparsing an arrow function and the parsing invariant is broken
+    https://bugs.webkit.org/show_bug.cgi?id=221632
+    <rdar://71874091>
+    
+    Reviewed by Tadeu Zagallo and Mark Lam.
+    
+    We have code where we assert that when reparsing an arrow function,
+    we see the '=>' token after parsing the parameters. Since we already
+    parsed the arrow function before, this assertion makes sense. But somehow,
+    this is leading to crashes on real websites. We don't know why this invariant
+    is being broken. I'm changing this to a debug assert, and we're tracking
+    the full fix in:
+    https://bugs.webkit.org/show_bug.cgi?id=221633
+    
+    * parser/Parser.cpp:
+    (JSC::Parser<LexerType>::parseInner):
+    
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272663 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-10  Saam Barati  <sbarati@apple.com>
+
+            Don't crash when reparsing an arrow function and the parsing invariant is broken
+            https://bugs.webkit.org/show_bug.cgi?id=221632
+            <rdar://71874091>
+
+            Reviewed by Tadeu Zagallo and Mark Lam.
+
+            We have code where we assert that when reparsing an arrow function,
+            we see the '=>' token after parsing the parameters. Since we already
+            parsed the arrow function before, this assertion makes sense. But somehow,
+            this is leading to crashes on real websites. We don't know why this invariant
+            is being broken. I'm changing this to a debug assert, and we're tracking
+            the full fix in:
+            https://bugs.webkit.org/show_bug.cgi?id=221633
+
+            * parser/Parser.cpp:
+            (JSC::Parser<LexerType>::parseInner):
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272430. rdar://problem/74409193
+
+    Unreviewed, follow-up change after r272428
+    https://bugs.webkit.org/show_bug.cgi?id=221454
+    
+    isPropertyNameExcluded can invoke GC etc. Structure::forEachProperty can miss PropertyTable and Structure
+    reference when it is highly optimized, so that it can crash if GC happens in the middle of Structure::forEachProperty.
+    
+    1. Insert ensureStillAliveHere in Structure::forEachProperty to ensure liveness of PropertyTable
+    2. We should not perform side-effectful operation including GC in Structure::forEachProperty. So we moved isPropertyNameExcluded.
+    
+    * runtime/StructureInlines.h:
+    (JSC::Structure::forEachProperty):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272430 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-05  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            Unreviewed, follow-up change after r272428
+            https://bugs.webkit.org/show_bug.cgi?id=221454
+
+            isPropertyNameExcluded can invoke GC etc. Structure::forEachProperty can miss PropertyTable and Structure
+            reference when it is highly optimized, so that it can crash if GC happens in the middle of Structure::forEachProperty.
+
+            1. Insert ensureStillAliveHere in Structure::forEachProperty to ensure liveness of PropertyTable
+            2. We should not perform side-effectful operation including GC in Structure::forEachProperty. So we moved isPropertyNameExcluded.
+
+            * runtime/StructureInlines.h:
+            (JSC::Structure::forEachProperty):
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272428. rdar://problem/74409193
+
+    [JSC] globalFuncCopyDataProperties should not perform GC-sensitive operation in the middle of Structure::forEachProperty
+    https://bugs.webkit.org/show_bug.cgi?id=221454
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/copy-data-properties-fast-path.js: Added.
+    (foo):
+    
+    Source/JavaScriptCore:
+    
+    isPropertyNameExcluded can invoke GC etc. And running Structure::forEachProperty
+    is fragile state against any side-effect including GC.
+    We should not perform GC-sensitive operation during Structure::forEachProperty.
+    
+    * runtime/JSGlobalObjectFunctions.cpp:
+    (JSC::JSC_DEFINE_HOST_FUNCTION):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272428 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-05  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] globalFuncCopyDataProperties should not perform GC-sensitive operation in the middle of Structure::forEachProperty
+            https://bugs.webkit.org/show_bug.cgi?id=221454
+
+            Reviewed by Mark Lam.
+
+            isPropertyNameExcluded can invoke GC etc. And running Structure::forEachProperty
+            is fragile state against any side-effect including GC.
+            We should not perform GC-sensitive operation during Structure::forEachProperty.
+
+            * runtime/JSGlobalObjectFunctions.cpp:
+            (JSC::JSC_DEFINE_HOST_FUNCTION):
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272406. rdar://problem/74410311
+
+    [JSC] JSImmutableButterfly's toString cache should not happen for generic join
+    https://bugs.webkit.org/show_bug.cgi?id=221444
+    <rdar://problem/73972862>
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/immutable-butterfly-to-string-cache-should-not-happen-for-generic-join.js: Added.
+    (foo):
+    
+    Source/JavaScriptCore:
+    
+    We should not cache Array#toString results with JSImmutableButterfly if
+    its join operation becomes generic join: including objects in array, since
+    this can invoke object.toString(), and it isn't side-effect free.
+    
+    * runtime/ArrayPrototype.cpp:
+    (JSC::fastJoin):
+    (JSC::JSC_DEFINE_HOST_FUNCTION):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272406 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-05  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] JSImmutableButterfly's toString cache should not happen for generic join
+            https://bugs.webkit.org/show_bug.cgi?id=221444
+            <rdar://problem/73972862>
+
+            Reviewed by Mark Lam.
+
+            We should not cache Array#toString results with JSImmutableButterfly if
+            its join operation becomes generic join: including objects in array, since
+            this can invoke object.toString(), and it isn't side-effect free.
+
+            * runtime/ArrayPrototype.cpp:
+            (JSC::fastJoin):
+            (JSC::JSC_DEFINE_HOST_FUNCTION):
+
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r271746. rdar://problem/74410558
+
+    Disable Options:useAtMethod because of compatibility issue.
+    https://bugs.webkit.org/show_bug.cgi?id=220788
+    rdar://72933608
+    
+    Reviewed by Saam Barati and Yusuke Suzuki.
+    
+    Source/JavaScriptCore:
+    
+    See https://github.com/tc39/proposal-relative-indexing-method/issues/41.
+    
+    * jsc.cpp:
+    (CommandLine::parseArguments):
+    - enable Options::useAtMethod by default for the jsc shell for testing.
+    * runtime/OptionsList.h:
+    
+    LayoutTests:
+    
+    Enable Options::useAtMethod for these tests.
+    
+    * inspector/model/remote-object-get-properties.html:
+    * js/Object-getOwnPropertyNames.html:
+    * js/array-unscopables-properties.html:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271746 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Mark Lam  <mark.lam@apple.com>
+
+            Disable Options:useAtMethod because of compatibility issue.
+            https://bugs.webkit.org/show_bug.cgi?id=220788
+            rdar://72933608
+
+            Reviewed by Saam Barati and Yusuke Suzuki.
+
+            See https://github.com/tc39/proposal-relative-indexing-method/issues/41.
+
+            * jsc.cpp:
+            (CommandLine::parseArguments):
+            - enable Options::useAtMethod by default for the jsc shell for testing.
+            * runtime/OptionsList.h:
+
+2021-02-10  Alan Coon  <alancoon@apple.com>
+
+        Revert r272538. rdar://problem/74183111
+
+2021-02-10  Alan Coon  <alancoon@apple.com>
+
+        Revert r272539. rdar://problem/74183111
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271570. rdar://problem/74105714
+
+    [JSC] GenericArguments<Type>::defineOwnProperty's assumption about error is not correct
+    https://bugs.webkit.org/show_bug.cgi?id=220693
+    <rdar://problem/72929171>
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/freeze-invokes-out-of-memory.js: Added.
+    (shouldThrow):
+    
+    Source/JavaScriptCore:
+    
+    Any function taking JSGlobalObject* can cause out-of-memory error potentially. And we have a way to invoke it.
+    But GenericArguments<Type>::defineOwnProperty didn't assume OutOfMemory error. This patch fixes it.
+    
+    * runtime/GenericArgumentsInlines.h:
+    (JSC::GenericArguments<Type>::defineOwnProperty):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271570 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-17  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] GenericArguments<Type>::defineOwnProperty's assumption about error is not correct
+            https://bugs.webkit.org/show_bug.cgi?id=220693
+            <rdar://problem/72929171>
+
+            Reviewed by Mark Lam.
+
+            Any function taking JSGlobalObject* can cause out-of-memory error potentially. And we have a way to invoke it.
+            But GenericArguments<Type>::defineOwnProperty didn't assume OutOfMemory error. This patch fixes it.
+
+            * runtime/GenericArgumentsInlines.h:
+            (JSC::GenericArguments<Type>::defineOwnProperty):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r270664. rdar://problem/74105714
+
+    Align [[DefineOwnProperty]] method of mapped arguments object with the spec
+    https://bugs.webkit.org/show_bug.cgi?id=219750
+    
+    Reviewed by Yusuke Suzuki.
+    
+    JSTests:
+    
+    * test262/expectations.yaml: Mark 5 test cases as passing.
+    
+    Source/JavaScriptCore:
+    
+    This patch reimplements [[DefineOwnProperty]] method to resemble the spec [1] as
+    closely as possible, aligning JSC with V8 and SpiderMonkey on remaining test262 cases.
+    
+    Unlike the spec [2], JSC doesn't materialize mapped indices with initial values,
+    so putDirectIndex() is performed on the first call to handle incomplete descriptors.
+    
+    Even though there is a possibility to avoid JSObject storage puts for a handful of
+    super rare descriptors, it's not worth the increased complexity.
+    
+    [1]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-defineownproperty-p-desc
+    [2]: https://tc39.es/ecma262/#sec-createmappedargumentsobject (step 15.b)
+    
+    * runtime/GenericArgumentsInlines.h:
+    (JSC::GenericArguments<Type>::defineOwnProperty):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@270664 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2020-12-10  Alexey Shvayka  <shvaikalesh@gmail.com>
+
+            Align [[DefineOwnProperty]] method of mapped arguments object with the spec
+            https://bugs.webkit.org/show_bug.cgi?id=219750
+
+            Reviewed by Yusuke Suzuki.
+
+            This patch reimplements [[DefineOwnProperty]] method to resemble the spec [1] as
+            closely as possible, aligning JSC with V8 and SpiderMonkey on remaining test262 cases.
+
+            Unlike the spec [2], JSC doesn't materialize mapped indices with initial values,
+            so putDirectIndex() is performed on the first call to handle incomplete descriptors.
+
+            Even though there is a possibility to avoid JSObject storage puts for a handful of
+            super rare descriptors, it's not worth the increased complexity.
+
+            [1]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-defineownproperty-p-desc
+            [2]: https://tc39.es/ecma262/#sec-createmappedargumentsobject (step 15.b)
+
+            * runtime/GenericArgumentsInlines.h:
+            (JSC::GenericArguments<Type>::defineOwnProperty):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271767. rdar://problem/74105427
+
+    Obj-C API should do correct type checks when using a 32-bit address space
+    https://bugs.webkit.org/show_bug.cgi?id=220880
+    <rdar://72370334>
+    
+    Reviewed by Tadeu Zagallo.
+    
+    * API/JSValue.mm:
+    (-[JSValue isNull]):
+    (-[JSValue isBoolean]):
+    (-[JSValue isNumber]):
+    (-[JSValue isString]):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271767 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-22  Keith Miller  <keith_miller@apple.com>
+
+            Obj-C API should do correct type checks when using a 32-bit address space
+            https://bugs.webkit.org/show_bug.cgi?id=220880
+            <rdar://72370334>
+
+            Reviewed by Tadeu Zagallo.
+
+            * API/JSValue.mm:
+            (-[JSValue isNull]):
+            (-[JSValue isBoolean]):
+            (-[JSValue isNumber]):
+            (-[JSValue isString]):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r270665. rdar://problem/74105427
+
+    Removing unnecessary locking from JSValue API functions
+    https://bugs.webkit.org/show_bug.cgi?id=219723
+    
+    Reviewed by Filip Pizlo.
+    
+    PerformanceTests:
+    
+    Print an error message when benchmarks fail to run and add option to change
+    the configuration used to build the benchmarks.
+    
+    * APIBench/api-bench:
+    
+    Source/JavaScriptCore:
+    
+    Remove the unnecessary locking from the JSValueIs* and JSValueMake* API functions
+    that only work on primitives. Also remove the unnecessary method dispatching and
+    call from the -[JSValue is*] methods.
+    
+    This improves the APIBench score by another ~8% since these are such common operations.
+    Here are the results: (Baseline includes https://bugs.webkit.org/show_bug.cgi?id=219663)
+    
+    CURRENT_API:        Baseline   Change
+    ----------------------------------------
+    RichardsMostlyC:      74ms      60ms
+    RichardsMostlyObjC:  304ms     300ms
+    RichardsMostlySwift: 305ms     293ms
+    RichardsSomeC:        97ms      77ms
+    RichardsSomeObjC:    158ms     159ms
+    RichardsSomeSwift:   202ms     198ms
+    
+    UPCOMING_API:       Baseline   Change
+    ----------------------------------------
+    RichardsMostlyC:      23ms      19ms
+    RichardsMostlyObjC:  282ms     282ms
+    RichardsMostlySwift: 280ms     282ms
+    RichardsSomeC:        95ms      76ms
+    RichardsSomeObjC:    157ms     156ms
+    RichardsSomeSwift:   202ms     197ms
+    ----------------------------------------
+    Score:             33.6404   36.4006
+    
+    * API/APICast.h:
+    (toRef):
+    * API/JSValue.mm:
+    (-[JSValue isUndefined]):
+    (-[JSValue isNull]):
+    (-[JSValue isBoolean]):
+    (-[JSValue isNumber]):
+    (-[JSValue isString]):
+    (-[JSValue isObject]):
+    (-[JSValue isSymbol]):
+    * API/JSValueRef.cpp:
+    (JSValueGetType):
+    (JSValueIsUndefined):
+    (JSValueIsNull):
+    (JSValueIsBoolean):
+    (JSValueIsNumber):
+    (JSValueIsString):
+    (JSValueIsObject):
+    (JSValueIsSymbol):
+    (JSValueMakeUndefined):
+    (JSValueMakeNull):
+    (JSValueMakeBoolean):
+    (JSValueMakeNumber):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@270665 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2020-12-10  Tadeu Zagallo  <tzagallo@apple.com>
+
+            Removing unnecessary locking from JSValue API functions
+            https://bugs.webkit.org/show_bug.cgi?id=219723
+
+            Reviewed by Filip Pizlo.
+
+            Remove the unnecessary locking from the JSValueIs* and JSValueMake* API functions
+            that only work on primitives. Also remove the unnecessary method dispatching and
+            call from the -[JSValue is*] methods.
+
+            This improves the APIBench score by another ~8% since these are such common operations.
+            Here are the results: (Baseline includes https://bugs.webkit.org/show_bug.cgi?id=219663)
+
+            CURRENT_API:        Baseline   Change
+            ----------------------------------------
+            RichardsMostlyC:      74ms      60ms
+            RichardsMostlyObjC:  304ms     300ms
+            RichardsMostlySwift: 305ms     293ms
+            RichardsSomeC:        97ms      77ms
+            RichardsSomeObjC:    158ms     159ms
+            RichardsSomeSwift:   202ms     198ms
+
+            UPCOMING_API:       Baseline   Change
+            ----------------------------------------
+            RichardsMostlyC:      23ms      19ms
+            RichardsMostlyObjC:  282ms     282ms
+            RichardsMostlySwift: 280ms     282ms
+            RichardsSomeC:        95ms      76ms
+            RichardsSomeObjC:    157ms     156ms
+            RichardsSomeSwift:   202ms     197ms
+            ----------------------------------------
+            Score:             33.6404   36.4006
+
+            * API/APICast.h:
+            (toRef):
+            * API/JSValue.mm:
+            (-[JSValue isUndefined]):
+            (-[JSValue isNull]):
+            (-[JSValue isBoolean]):
+            (-[JSValue isNumber]):
+            (-[JSValue isString]):
+            (-[JSValue isObject]):
+            (-[JSValue isSymbol]):
+            * API/JSValueRef.cpp:
+            (JSValueGetType):
+            (JSValueIsUndefined):
+            (JSValueIsNull):
+            (JSValueIsBoolean):
+            (JSValueIsNumber):
+            (JSValueIsString):
+            (JSValueIsObject):
+            (JSValueIsSymbol):
+            (JSValueMakeUndefined):
+            (JSValueMakeNull):
+            (JSValueMakeBoolean):
+            (JSValueMakeNumber):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272349. rdar://problem/74104450
+
+    [JSC] Insert PhantomLocal just before SetLocal for |this| to ensure liveness
+    https://bugs.webkit.org/show_bug.cgi?id=221353
+    <rdar://problem/70373862>
+    
+    Reviewed by Saam Barati.
+    
+    Let's consider the following case before SSA conversion.
+    
+        BB#0:
+            SetArgumentDefinitely(this)
+            ...
+        @a: SomethingFun()
+            MoveHint(@a, this)
+            SetLocal(@a, this)
+            Jump #1
+    
+        BB#1:
+            ...
+            ExitOK (this point)
+            ...
+        @b: SomethingFun()
+            MoveHint(@b, this)
+            SetLocal(@b, this)
+            ...
+    
+        BB#2: (Catch entry point)
+            ...
+        @c: SetArgumentDefinitely(this)
+            ...
+            Jump #1
+    
+    We have two entry points. And BB#0 sets @a to |this| while BB#2 does not update |this|, so it is using @c.
+    We have several patterns we can store |this|: arrow functions' |this| loading, derived constructors' |this| update. So we can see
+    SetLocal(@x, this) at arbitrary code points in CodeBlocks having them.
+    
+    The problem is that DFG strongly assumed that |this| is initialized in the root basic block only once. So usually, we do not insert Flush/PhantomLocal for |this|.
+    But this is problematic when we can store |this| at arbitrary basic blocks since we do not properly insert Flush/PhantomLocal(this) in BB#1's just before Store.
+    
+    Not inserting that in the above case makes |this| dead in BB#1's head liveness. Then we do not properly insert Phi(BB#0, BB#2) for |this|.
+    This is OK for non |this| locals since literally that local is not used at all in BB#1. But |this| is special since it is always live in bytecode.
+    So, OSR availability will be broken in the above graph: at ExitOK place, |this| must be live in bytecode. But |this| is pointing ConflictingFlush since
+    BB#0 says @a and BB#2 says @c while we do not have Phi.
+    
+    The problem is that we do not keep liveness of |this| properly in BB#1. When setting a new |this|, we insert PhantomLocal to keep liveness so that appropriate Phi
+    will be inserted when two predecessors have different DFG nodes for |this|, and this graph can appear in arrow functions, derived constructors, and code with catch.
+    
+    * dfg/DFGByteCodeParser.cpp:
+    (JSC::DFG::ByteCodeParser::setArgument):
+    * dfg/DFGVariableAccessDataDump.cpp:
+    (JSC::DFG::VariableAccessDataDump::dump const):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272349 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-03  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] Insert PhantomLocal just before SetLocal for |this| to ensure liveness
+            https://bugs.webkit.org/show_bug.cgi?id=221353
+            <rdar://problem/70373862>
+
+            Reviewed by Saam Barati.
+
+            Let's consider the following case before SSA conversion.
+
+                BB#0:
+                    SetArgumentDefinitely(this)
+                    ...
+                @a: SomethingFun()
+                    MoveHint(@a, this)
+                    SetLocal(@a, this)
+                    Jump #1
+
+                BB#1:
+                    ...
+                    ExitOK (this point)
+                    ...
+                @b: SomethingFun()
+                    MoveHint(@b, this)
+                    SetLocal(@b, this)
+                    ...
+
+                BB#2: (Catch entry point)
+                    ...
+                @c: SetArgumentDefinitely(this)
+                    ...
+                    Jump #1
+
+            We have two entry points. And BB#0 sets @a to |this| while BB#2 does not update |this|, so it is using @c.
+            We have several patterns we can store |this|: arrow functions' |this| loading, derived constructors' |this| update. So we can see
+            SetLocal(@x, this) at arbitrary code points in CodeBlocks having them.
+
+            The problem is that DFG strongly assumed that |this| is initialized in the root basic block only once. So usually, we do not insert Flush/PhantomLocal for |this|.
+            But this is problematic when we can store |this| at arbitrary basic blocks since we do not properly insert Flush/PhantomLocal(this) in BB#1's just before Store.
+
+            Not inserting that in the above case makes |this| dead in BB#1's head liveness. Then we do not properly insert Phi(BB#0, BB#2) for |this|.
+            This is OK for non |this| locals since literally that local is not used at all in BB#1. But |this| is special since it is always live in bytecode.
+            So, OSR availability will be broken in the above graph: at ExitOK place, |this| must be live in bytecode. But |this| is pointing ConflictingFlush since
+            BB#0 says @a and BB#2 says @c while we do not have Phi.
+
+            The problem is that we do not keep liveness of |this| properly in BB#1. When setting a new |this|, we insert PhantomLocal to keep liveness so that appropriate Phi
+            will be inserted when two predecessors have different DFG nodes for |this|, and this graph can appear in arrow functions, derived constructors, and code with catch.
+
+            * dfg/DFGByteCodeParser.cpp:
+            (JSC::DFG::ByteCodeParser::setArgument):
+            * dfg/DFGVariableAccessDataDump.cpp:
+            (JSC::DFG::VariableAccessDataDump::dump const):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272330. rdar://problem/74032526
+
+    [AppleWin 32bit][LLInt] LLIntData.h(104) : warning C4172: returning address of local variable or temporary: id
+    https://bugs.webkit.org/show_bug.cgi?id=220714
+    
+    Reviewed by Mark Lam.
+    
+    This patch fixes LLInt build when ENABLE(COMPUTED_GOTO_OPCODES) is false.
+    
+    * llint/LLIntData.h:
+    (JSC::LLInt::getOpcode):
+    (JSC::LLInt::getOpcodeWide16):
+    (JSC::LLInt::getOpcodeWide32):
+    (JSC::LLInt::getOpcodeAddress):
+    (JSC::LLInt::getOpcodeWide16Address):
+    (JSC::LLInt::getOpcodeWide32Address):
+    (JSC::LLInt::getCodePtr):
+    (JSC::LLInt::getWide16CodePtr):
+    (JSC::LLInt::getWide32CodePtr):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272330 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-03  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [AppleWin 32bit][LLInt] LLIntData.h(104) : warning C4172: returning address of local variable or temporary: id
+            https://bugs.webkit.org/show_bug.cgi?id=220714
+
+            Reviewed by Mark Lam.
+
+            This patch fixes LLInt build when ENABLE(COMPUTED_GOTO_OPCODES) is false.
+
+            * llint/LLIntData.h:
+            (JSC::LLInt::getOpcode):
+            (JSC::LLInt::getOpcodeWide16):
+            (JSC::LLInt::getOpcodeWide32):
+            (JSC::LLInt::getOpcodeAddress):
+            (JSC::LLInt::getOpcodeWide16Address):
+            (JSC::LLInt::getOpcodeWide32Address):
+            (JSC::LLInt::getCodePtr):
+            (JSC::LLInt::getWide16CodePtr):
+            (JSC::LLInt::getWide32CodePtr):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272191. rdar://problem/74032517
+
+    Sign m_offset in AssemblerLabel
+    https://bugs.webkit.org/show_bug.cgi?id=221237
+    
+    Reviewed by Mark Lam.
+    
+    * assembler/ARM64Assembler.h:
+    (JSC::ARM64Assembler::labelForWatchpoint):
+    (JSC::ARM64Assembler::label):
+    (JSC::ARM64Assembler::getRelocatedAddress):
+    (JSC::ARM64Assembler::getDifferenceBetweenLabels):
+    (JSC::ARM64Assembler::getCallReturnOffset):
+    (JSC::ARM64Assembler::linkJump):
+    (JSC::ARM64Assembler::addressOf):
+    * assembler/ARMv7Assembler.h:
+    (JSC::ARMv7Assembler::labelForWatchpoint):
+    (JSC::ARMv7Assembler::label):
+    (JSC::ARMv7Assembler::getRelocatedAddress):
+    (JSC::ARMv7Assembler::getDifferenceBetweenLabels):
+    (JSC::ARMv7Assembler::getCallReturnOffset):
+    (JSC::ARMv7Assembler::linkJump):
+    (JSC::ARMv7Assembler::linkCall):
+    (JSC::ARMv7Assembler::linkPointer):
+    * assembler/AbstractMacroAssembler.h:
+    (JSC::AbstractMacroAssembler::Jump::link const):
+    (JSC::AbstractMacroAssembler::Jump::linkTo const):
+    * assembler/AssemblerBuffer.h:
+    (JSC::AssemblerLabel::AssemblerLabel):
+    (JSC::AssemblerLabel::operator=):
+    (JSC::AssemblerLabel::isSet const):
+    (JSC::AssemblerLabel::labelAtOffset const):
+    (JSC::AssemblerLabel::operator== const):
+    (JSC::AssemblerLabel::offset const):
+    (JSC::AssemblerLabel::setOffset):
+    * assembler/LinkBuffer.h:
+    (JSC::LinkBuffer::offsetOf):
+    (JSC::LinkBuffer::applyOffset):
+    * assembler/MIPSAssembler.h:
+    (JSC::MIPSAssembler::labelForWatchpoint):
+    (JSC::MIPSAssembler::label):
+    (JSC::MIPSAssembler::getRelocatedAddress):
+    (JSC::MIPSAssembler::getDifferenceBetweenLabels):
+    (JSC::MIPSAssembler::getCallReturnOffset):
+    (JSC::MIPSAssembler::linkJump):
+    (JSC::MIPSAssembler::linkCall):
+    (JSC::MIPSAssembler::linkPointer):
+    * assembler/X86Assembler.h:
+    (JSC::X86Assembler::labelForWatchpoint):
+    (JSC::X86Assembler::label):
+    (JSC::X86Assembler::linkJump):
+    (JSC::X86Assembler::linkCall):
+    (JSC::X86Assembler::linkPointer):
+    (JSC::X86Assembler::getCallReturnOffset):
+    (JSC::X86Assembler::getRelocatedAddress):
+    (JSC::X86Assembler::getDifferenceBetweenLabels):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272191 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Saam Barati  <sbarati@apple.com>
+
+            Sign m_offset in AssemblerLabel
+            https://bugs.webkit.org/show_bug.cgi?id=221237
+
+            Reviewed by Mark Lam.
+
+            * assembler/ARM64Assembler.h:
+            (JSC::ARM64Assembler::labelForWatchpoint):
+            (JSC::ARM64Assembler::label):
+            (JSC::ARM64Assembler::getRelocatedAddress):
+            (JSC::ARM64Assembler::getDifferenceBetweenLabels):
+            (JSC::ARM64Assembler::getCallReturnOffset):
+            (JSC::ARM64Assembler::linkJump):
+            (JSC::ARM64Assembler::addressOf):
+            * assembler/ARMv7Assembler.h:
+            (JSC::ARMv7Assembler::labelForWatchpoint):
+            (JSC::ARMv7Assembler::label):
+            (JSC::ARMv7Assembler::getRelocatedAddress):
+            (JSC::ARMv7Assembler::getDifferenceBetweenLabels):
+            (JSC::ARMv7Assembler::getCallReturnOffset):
+            (JSC::ARMv7Assembler::linkJump):
+            (JSC::ARMv7Assembler::linkCall):
+            (JSC::ARMv7Assembler::linkPointer):
+            * assembler/AbstractMacroAssembler.h:
+            (JSC::AbstractMacroAssembler::Jump::link const):
+            (JSC::AbstractMacroAssembler::Jump::linkTo const):
+            * assembler/AssemblerBuffer.h:
+            (JSC::AssemblerLabel::AssemblerLabel):
+            (JSC::AssemblerLabel::operator=):
+            (JSC::AssemblerLabel::isSet const):
+            (JSC::AssemblerLabel::labelAtOffset const):
+            (JSC::AssemblerLabel::operator== const):
+            (JSC::AssemblerLabel::offset const):
+            (JSC::AssemblerLabel::setOffset):
+            * assembler/LinkBuffer.h:
+            (JSC::LinkBuffer::offsetOf):
+            (JSC::LinkBuffer::applyOffset):
+            * assembler/MIPSAssembler.h:
+            (JSC::MIPSAssembler::labelForWatchpoint):
+            (JSC::MIPSAssembler::label):
+            (JSC::MIPSAssembler::getRelocatedAddress):
+            (JSC::MIPSAssembler::getDifferenceBetweenLabels):
+            (JSC::MIPSAssembler::getCallReturnOffset):
+            (JSC::MIPSAssembler::linkJump):
+            (JSC::MIPSAssembler::linkCall):
+            (JSC::MIPSAssembler::linkPointer):
+            * assembler/X86Assembler.h:
+            (JSC::X86Assembler::labelForWatchpoint):
+            (JSC::X86Assembler::label):
+            (JSC::X86Assembler::linkJump):
+            (JSC::X86Assembler::linkCall):
+            (JSC::X86Assembler::linkPointer):
+            (JSC::X86Assembler::getCallReturnOffset):
+            (JSC::X86Assembler::getRelocatedAddress):
+            (JSC::X86Assembler::getDifferenceBetweenLabels):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271731. rdar://problem/74105559
+
+    [JSC] JSPromise should not propagate TerminatedExecutionError
+    https://bugs.webkit.org/show_bug.cgi?id=220820
+    <rdar://problem/72929399>
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/terminated-execution-error-in-promise.js: Added.
+    (let.x.get toString):
+    (import.x.then):
+    
+    Source/JavaScriptCore:
+    
+    TerminatedExecutionError is uncatcheable exception to finish JS execution as soon as possible.
+    We should not propagate TerminatedExecutionError in JSPromise's rejection.
+    In this patch, we do not reject promise if exception is TerminatedExecutionError.
+    
+    * API/JSAPIGlobalObject.mm:
+    (JSC::JSAPIGlobalObject::moduleLoaderImportModule):
+    (JSC::JSAPIGlobalObject::moduleLoaderFetch):
+    * API/JSContext.mm:
+    (-[JSContext evaluateJSScript:]):
+    * jsc.cpp:
+    (GlobalObject::moduleLoaderImportModule):
+    (GlobalObject::moduleLoaderFetch):
+    (runWithOptions):
+    * runtime/Completion.cpp:
+    (JSC::rejectPromise):
+    (JSC::loadAndEvaluateModule):
+    (JSC::loadModule):
+    * runtime/JSGlobalObjectFunctions.cpp:
+    (JSC::JSC_DEFINE_HOST_FUNCTION):
+    * runtime/JSModuleLoader.cpp:
+    (JSC::reject):
+    (JSC::JSModuleLoader::importModule):
+    (JSC::JSModuleLoader::resolve):
+    (JSC::JSModuleLoader::fetch):
+    (JSC::JSC_DEFINE_HOST_FUNCTION):
+    * wasm/js/JSWebAssembly.cpp:
+    (JSC::reject):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271731 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-21  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] JSPromise should not propagate TerminatedExecutionError
+            https://bugs.webkit.org/show_bug.cgi?id=220820
+            <rdar://problem/72929399>
+
+            Reviewed by Mark Lam.
+
+            TerminatedExecutionError is uncatcheable exception to finish JS execution as soon as possible.
+            We should not propagate TerminatedExecutionError in JSPromise's rejection.
+            In this patch, we do not reject promise if exception is TerminatedExecutionError.
+
+            * API/JSAPIGlobalObject.mm:
+            (JSC::JSAPIGlobalObject::moduleLoaderImportModule):
+            (JSC::JSAPIGlobalObject::moduleLoaderFetch):
+            * API/JSContext.mm:
+            (-[JSContext evaluateJSScript:]):
+            * jsc.cpp:
+            (GlobalObject::moduleLoaderImportModule):
+            (GlobalObject::moduleLoaderFetch):
+            (runWithOptions):
+            * runtime/Completion.cpp:
+            (JSC::rejectPromise):
+            (JSC::loadAndEvaluateModule):
+            (JSC::loadModule):
+            * runtime/JSGlobalObjectFunctions.cpp:
+            (JSC::JSC_DEFINE_HOST_FUNCTION):
+            * runtime/JSModuleLoader.cpp:
+            (JSC::reject):
+            (JSC::JSModuleLoader::importModule):
+            (JSC::JSModuleLoader::resolve):
+            (JSC::JSModuleLoader::fetch):
+            (JSC::JSC_DEFINE_HOST_FUNCTION):
+            * wasm/js/JSWebAssembly.cpp:
+            (JSC::reject):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271624. rdar://problem/74105183
+
+    Unreviewed, fix GCC warnings
+    https://bugs.webkit.org/show_bug.cgi?id=220718
+    
+    * dfg/DFGOperations.cpp:
+    (JSC::DFG::tierUpCommon):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271624 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-19  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            Unreviewed, fix GCC warnings
+            https://bugs.webkit.org/show_bug.cgi?id=220718
+
+            * dfg/DFGOperations.cpp:
+            (JSC::DFG::tierUpCommon):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271596. rdar://problem/74105183
+
+    [JSC] FTL::prepareOSREntry can clear OSR entry CodeBlock if it is already invalidated
+    https://bugs.webkit.org/show_bug.cgi?id=220718
+    <rdar://problem/70527068>
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/ftl-osr-failure-clear-twice.js: Added.
+    (foo):
+    
+    Source/JavaScriptCore:
+    
+    FTL::prepareOSREntry can clear OSR entry CodeBlock if it is already invalidated. However, the caller is not assuming that,
+    and it calls clearOSREntryBlockAndResetThresholds again. And clearOSREntryBlockAndResetThresholds's assertion hit.
+    This patch correctly handles the invalidated case.
+    
+    * dfg/DFGOperations.cpp:
+    (JSC::DFG::tierUpCommon):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271596 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-18  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] FTL::prepareOSREntry can clear OSR entry CodeBlock if it is already invalidated
+            https://bugs.webkit.org/show_bug.cgi?id=220718
+            <rdar://problem/70527068>
+
+            Reviewed by Mark Lam.
+
+            FTL::prepareOSREntry can clear OSR entry CodeBlock if it is already invalidated. However, the caller is not assuming that,
+            and it calls clearOSREntryBlockAndResetThresholds again. And clearOSREntryBlockAndResetThresholds's assertion hit.
+            This patch correctly handles the invalidated case.
+
+            * dfg/DFGOperations.cpp:
+            (JSC::DFG::tierUpCommon):
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271571. rdar://problem/74105245
+
+    [JSC] FTL OSR entry FlushFormat array is reversed
+    https://bugs.webkit.org/show_bug.cgi?id=220695
+    <rdar://problem/72930932>
+    
+    Reviewed by Mark Lam.
+    
+    JSTests:
+    
+    * stress/ftl-osr-entry-order-reverse.js: Added.
+    (shouldThrow):
+    (foo):
+    
+    Source/JavaScriptCore:
+    
+    After r268783, FlushFormat array is erroneously sorted in reversed order.
+    This patch fixes that.
+    
+    * ftl/FTLLowerDFGToB3.cpp:
+    (JSC::FTL::DFG::LowerDFGToB3::lower):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271571 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-17  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] FTL OSR entry FlushFormat array is reversed
+            https://bugs.webkit.org/show_bug.cgi?id=220695
+            <rdar://problem/72930932>
+
+            Reviewed by Mark Lam.
+
+            After r268783, FlushFormat array is erroneously sorted in reversed order.
+            This patch fixes that.
+
+            * ftl/FTLLowerDFGToB3.cpp:
+            (JSC::FTL::DFG::LowerDFGToB3::lower):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271813. rdar://problem/73888012
+
+    Update availability annotations to match the macOS 11.0 and iOS 14.0 GM SDKs
+    https://bugs.webkit.org/show_bug.cgi?id=220874
+    <rdar://73474368>
+    
+    Reviewed by Darin Adler.
+    
+    Source/JavaScriptCore:
+    * API/JSContextPrivate.h:
+    * API/JSContextRefPrivate.h:
+    
+    Source/WebKit:
+    * UIProcess/API/Cocoa/WKContentWorld.h:
+    * UIProcess/API/Cocoa/WKError.h:
+    * UIProcess/API/Cocoa/WKFindConfiguration.h:
+    * UIProcess/API/Cocoa/WKFindResult.h:
+    * UIProcess/API/Cocoa/WKFrameInfoPrivate.h:
+    * UIProcess/API/Cocoa/WKHTTPCookieStorePrivate.h:
+    * UIProcess/API/Cocoa/WKNavigationDelegate.h:
+    * UIProcess/API/Cocoa/WKNavigationDelegatePrivate.h:
+    * UIProcess/API/Cocoa/WKOpenPanelParametersPrivate.h:
+    * UIProcess/API/Cocoa/WKPDFConfiguration.h:
+    * UIProcess/API/Cocoa/WKPreferences.h:
+    * UIProcess/API/Cocoa/WKPreferencesPrivate.h:
+    * UIProcess/API/Cocoa/WKProcessPoolPrivate.h:
+    * UIProcess/API/Cocoa/WKScriptMessage.h:
+    * UIProcess/API/Cocoa/WKScriptMessageHandlerWithReply.h:
+    * UIProcess/API/Cocoa/WKUIDelegatePrivate.h:
+    * UIProcess/API/Cocoa/WKURLSchemeTaskPrivate.h:
+    * UIProcess/API/Cocoa/WKUserContentController.h:
+    * UIProcess/API/Cocoa/WKUserContentControllerPrivate.h:
+    * UIProcess/API/Cocoa/WKUserScript.h:
+    * UIProcess/API/Cocoa/WKUserScriptPrivate.h:
+    * UIProcess/API/Cocoa/WKWebView.h:
+    * UIProcess/API/Cocoa/WKWebViewConfiguration.h:
+    * UIProcess/API/Cocoa/WKWebViewConfigurationPrivate.h:
+    * UIProcess/API/Cocoa/WKWebViewPrivate.h:
+    * UIProcess/API/Cocoa/WKWebpagePreferences.h:
+    * UIProcess/API/Cocoa/WKWebpagePreferencesPrivate.h:
+    * UIProcess/API/Cocoa/WKWebsiteDataRecordPrivate.h:
+    * UIProcess/API/Cocoa/WKWebsiteDataStorePrivate.h:
+    * UIProcess/API/Cocoa/_WKDownload.h:
+    * UIProcess/API/Cocoa/_WKFrameTreeNode.h:
+    * UIProcess/API/Cocoa/_WKInputDelegate.h:
+    * UIProcess/API/Cocoa/_WKInspectorDebuggableInfo.h:
+    * UIProcess/API/Cocoa/_WKProcessPoolConfiguration.h:
+    * UIProcess/API/Cocoa/_WKResourceLoadDelegate.h:
+    * UIProcess/API/Cocoa/_WKResourceLoadInfo.h:
+    * UIProcess/API/Cocoa/_WKResourceLoadStatisticsFirstParty.h:
+    * UIProcess/API/Cocoa/_WKResourceLoadStatisticsThirdParty.h:
+    * UIProcess/API/Cocoa/_WKTextManipulationConfiguration.h:
+    * UIProcess/API/Cocoa/_WKTextManipulationExclusionRule.h:
+    * UIProcess/API/Cocoa/_WKTextManipulationItem.h:
+    * UIProcess/API/Cocoa/_WKTextManipulationToken.h:
+    * UIProcess/API/Cocoa/_WKUserContentWorld.h:
+    * UIProcess/API/Cocoa/_WKUserStyleSheet.h:
+    * UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponse.h:
+    * UIProcess/API/Cocoa/_WKWebAuthenticationPanel.h:
+    * UIProcess/API/Cocoa/_WKWebsiteDataStoreConfiguration.h:
+    * UIProcess/API/Cocoa/_WKWebsitePolicies.h:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271813 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Chris Dumez  <cdumez@apple.com>
+
+            Update availability annotations to match the macOS 11.0 and iOS 14.0 GM SDKs
+            https://bugs.webkit.org/show_bug.cgi?id=220874
+            <rdar://73474368>
+
+            Reviewed by Darin Adler.
+
+            * API/JSContextPrivate.h:
+            * API/JSContextRefPrivate.h:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271876. rdar://problem/73887844
+
+    Crash when remote inspecting in debug builds
+    https://bugs.webkit.org/show_bug.cgi?id=220956
+    <rdar://73379637>
+    
+    Reviewed by Devin Rousso.
+    
+    Convert RemoteConnectionToTarget from using BlockPtr<> to Function<> because BlockPtr<>
+    was triggering crashes which seem to be related to mixing ARC and non-ARC code.
+    
+    * inspector/remote/RemoteConnectionToTarget.h:
+    * inspector/remote/cocoa/RemoteConnectionToTargetCocoa.mm:
+    (Inspector::RemoteTargetHandleRunSourceGlobal):
+    (Inspector::RemoteTargetQueueTaskOnGlobalQueue):
+    (Inspector::RemoteTargetHandleRunSourceWithInfo):
+    (Inspector::RemoteConnectionToTarget::dispatchAsyncOnTarget):
+    (Inspector::RemoteConnectionToTarget::setup):
+    (Inspector::RemoteConnectionToTarget::close):
+    (Inspector::RemoteConnectionToTarget::sendMessageToTarget):
+    (Inspector::RemoteConnectionToTarget::queueTaskOnPrivateRunLoop):
+    (Inspector::RemoteConnectionToTarget::takeQueue):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271876 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Simon Fraser  <simon.fraser@apple.com>
+
+            Crash when remote inspecting in debug builds
+            https://bugs.webkit.org/show_bug.cgi?id=220956
+            <rdar://73379637>
+
+            Reviewed by Devin Rousso.
+
+            Convert RemoteConnectionToTarget from using BlockPtr<> to Function<> because BlockPtr<>
+            was triggering crashes which seem to be related to mixing ARC and non-ARC code.
+
+            * inspector/remote/RemoteConnectionToTarget.h:
+            * inspector/remote/cocoa/RemoteConnectionToTargetCocoa.mm:
+            (Inspector::RemoteTargetHandleRunSourceGlobal):
+            (Inspector::RemoteTargetQueueTaskOnGlobalQueue):
+            (Inspector::RemoteTargetHandleRunSourceWithInfo):
+            (Inspector::RemoteConnectionToTarget::dispatchAsyncOnTarget):
+            (Inspector::RemoteConnectionToTarget::setup):
+            (Inspector::RemoteConnectionToTarget::close):
+            (Inspector::RemoteConnectionToTarget::sendMessageToTarget):
+            (Inspector::RemoteConnectionToTarget::queueTaskOnPrivateRunLoop):
+            (Inspector::RemoteConnectionToTarget::takeQueue):
+
+2021-01-27  Yusuke Suzuki  <ysuzuki@apple.com>
+
+        [JSC] Avoid using DirectCall when executable is wasm function
+        https://bugs.webkit.org/show_bug.cgi?id=221055
+
+        Reviewed by Keith Miller.
+
+        This is a partial patch from https://bugs.webkit.org/show_bug.cgi?id=220339, which is reverted because of Facebook crash.
+        For now, we just avoid using DirectCall to wasm functions so that normal Call will be used, and it is efficient. This
+        patch avoids JetStream2 regression.
+
+        * dfg/DFGOperations.cpp:
+        (JSC::DFG::JSC_DEFINE_JIT_OPERATION):
+        * dfg/DFGStrengthReductionPhase.cpp:
+        (JSC::DFG::StrengthReductionPhase::handleNode):
+        * jit/JITOperations.cpp:
+        (JSC::virtualForWithFunction):
+        * llint/LLIntSlowPaths.cpp:
+        (JSC::LLInt::setUpCall):
+        * runtime/Intrinsic.cpp:
+        (JSC::intrinsicName):
+        * runtime/Intrinsic.h:
+        * wasm/js/WebAssemblyFunction.cpp:
+        (JSC::WebAssemblyFunction::create):
+
+2021-01-28  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271873. rdar://problem/73722521
+
+    REGRESSION (r270874): Some React Native apps are reported broken on iOS
+    https://bugs.webkit.org/show_bug.cgi?id=220809
+    
+    Reviewed by Saam Barati.
+    
+    Source/JavaScriptCore:
+    
+    r270874 fixed for/in shadowing issue by introducing an invariant: a property
+    returned by getOwn*PropertyNames() in DontEnumPropertiesMode::Exclude should be
+    reported as [[Enumerable]] by getOwnPropertySlot(). Otherwise, for/in skips the
+    property, which causes RN apps to break.
+    
+    Since there is no way to enforce this invariant for opaque API objects like
+    JSCallbackObject, this change skips [[Enumerable]] check for them by introducing
+    GetOwnPropertySlotMayBeWrongAboutDontEnum out of line type info flag.
+    
+    Also, this patch reverts JSCallbackObject::getOwnPropertySlot() changes of r270874
+    that are no longer necessary and observable (via Object.getOwnPropertyDescriptor).
+    
+    * API/JSCallbackObject.h:
+    * API/JSCallbackObjectFunctions.h:
+    (JSC::JSCallbackObject<Parent>::getOwnPropertySlot):
+    * API/tests/testapiScripts/testapi.js:
+    * runtime/JSObject.cpp:
+    (JSC::JSObject::hasEnumerableProperty const):
+    * runtime/JSTypeInfo.h:
+    (JSC::TypeInfo::getOwnPropertySlotMayBeWrongAboutDontEnum const):
+    
+    Source/WebCore:
+    
+    * bridge/runtime_object.h:
+    
+    Source/WebKit:
+    
+    * WebProcess/Plugins/Netscape/JSNPObject.h:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271873 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-25  Alexey Shvayka  <shvaikalesh@gmail.com>
+
+            REGRESSION (r270874): Some React Native apps are reported broken on iOS
+            https://bugs.webkit.org/show_bug.cgi?id=220809
+
+            Reviewed by Saam Barati.
+
+            r270874 fixed for/in shadowing issue by introducing an invariant: a property
+            returned by getOwn*PropertyNames() in DontEnumPropertiesMode::Exclude should be
+            reported as [[Enumerable]] by getOwnPropertySlot(). Otherwise, for/in skips the
+            property, which causes RN apps to break.
+
+            Since there is no way to enforce this invariant for opaque API objects like
+            JSCallbackObject, this change skips [[Enumerable]] check for them by introducing
+            GetOwnPropertySlotMayBeWrongAboutDontEnum out of line type info flag.
+
+            Also, this patch reverts JSCallbackObject::getOwnPropertySlot() changes of r270874
+            that are no longer necessary and observable (via Object.getOwnPropertyDescriptor).
+
+            * API/JSCallbackObject.h:
+            * API/JSCallbackObjectFunctions.h:
+            (JSC::JSCallbackObject<Parent>::getOwnPropertySlot):
+            * API/tests/testapiScripts/testapi.js:
+            * runtime/JSObject.cpp:
+            (JSC::JSObject::hasEnumerableProperty const):
+            * runtime/JSTypeInfo.h:
+            (JSC::TypeInfo::getOwnPropertySlotMayBeWrongAboutDontEnum const):
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271586. rdar://problem/73477459
+
+    [AppleWin 32bit] LLInt C Loop: LowLevelInterpreter.cpp(90,7): error C2653: 'WebConfig': is not a class or namespace name
+    https://bugs.webkit.org/show_bug.cgi?id=220405
+    
+    Reviewed by Fujii Hironori.
+    
+    Add a missing #if ENABLE(UNIFIED_AND_FREEZABLE_CONFIG_RECORD).
+    
+    * llint/LowLevelInterpreter.cpp:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271586 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-18  Mark Lam  <mark.lam@apple.com>
+
+            [AppleWin 32bit] LLInt C Loop: LowLevelInterpreter.cpp(90,7): error C2653: 'WebConfig': is not a class or namespace name
+            https://bugs.webkit.org/show_bug.cgi?id=220405
+
+            Reviewed by Fujii Hironori.
+
+            Add a missing #if ENABLE(UNIFIED_AND_FREEZABLE_CONFIG_RECORD).
+
+            * llint/LowLevelInterpreter.cpp:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271422. rdar://problem/73477541
+
+    [JSC] Bypass OperationPtrTagging for JITCage verification for CallDOMGetter
+    https://bugs.webkit.org/show_bug.cgi?id=220564
+    
+    Reviewed by Saam Barati.
+    
+    JSTests:
+    
+    * stress/domjit-getter2.js: Added.
+    (shouldBe):
+    (access):
+    
+    Source/JavaScriptCore:
+    
+    CustomAccessorPtrTag functions are not registered ones for JITCage since we are using C++ trampoline to invoke them.
+    However, we do not want to use this trampoline in x64 due to performance issue. So we would like to call these
+    functions directly from JIT while they are not registered (And this is OK in JITCage since they are called from trampoline).
+    In this patch we bypass OperationPtrTagging by using WTF::tagNativeCodePtrImpl directly for non JITCage case.
+    
+    * dfg/DFGJITCompiler.h:
+    (JSC::DFG::JITCompiler::appendOperationCall):
+    * dfg/DFGSpeculativeJIT.cpp:
+    (JSC::DFG::SpeculativeJIT::compileCallDOMGetter):
+    * dfg/DFGSpeculativeJIT.h:
+    (JSC::DFG::SpeculativeJIT::appendOperationCall):
+    * ftl/FTLLowerDFGToB3.cpp:
+    (JSC::FTL::DFG::LowerDFGToB3::compileCallDOMGetter):
+    (JSC::FTL::DFG::LowerDFGToB3::vmCall):
+    * ftl/FTLOutput.h:
+    (JSC::FTL::Output::operation):
+    * tools/JSDollarVM.cpp:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271422 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] Bypass OperationPtrTagging for JITCage verification for CallDOMGetter
+            https://bugs.webkit.org/show_bug.cgi?id=220564
+
+            Reviewed by Saam Barati.
+
+            CustomAccessorPtrTag functions are not registered ones for JITCage since we are using C++ trampoline to invoke them.
+            However, we do not want to use this trampoline in x64 due to performance issue. So we would like to call these
+            functions directly from JIT while they are not registered (And this is OK in JITCage since they are called from trampoline).
+            In this patch we bypass OperationPtrTagging by using WTF::tagNativeCodePtrImpl directly for non JITCage case.
+
+            * dfg/DFGJITCompiler.h:
+            (JSC::DFG::JITCompiler::appendOperationCall):
+            * dfg/DFGSpeculativeJIT.cpp:
+            (JSC::DFG::SpeculativeJIT::compileCallDOMGetter):
+            * dfg/DFGSpeculativeJIT.h:
+            (JSC::DFG::SpeculativeJIT::appendOperationCall):
+            * ftl/FTLLowerDFGToB3.cpp:
+            (JSC::FTL::DFG::LowerDFGToB3::compileCallDOMGetter):
+            (JSC::FTL::DFG::LowerDFGToB3::vmCall):
+            * ftl/FTLOutput.h:
+            (JSC::FTL::Output::operation):
+            * tools/JSDollarVM.cpp:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271544. rdar://problem/73471591
+
+    [JSC] Clean up DFGPreciseLocalClobberize to avoid duplicate code
+    https://bugs.webkit.org/show_bug.cgi?id=220670
+    
+    Reviewed by Filip Pizlo.
+    
+    This patch cleans up DFGPreciseLocalClobberize by extracting code to lambda to remove duplicate code.
+    
+    * dfg/DFGPreciseLocalClobberize.h:
+    (JSC::DFG::PreciseLocalClobberizeAdaptor::readTop):
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271544 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-15  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [JSC] Clean up DFGPreciseLocalClobberize to avoid duplicate code
+            https://bugs.webkit.org/show_bug.cgi?id=220670
+
+            Reviewed by Filip Pizlo.
+
+            This patch cleans up DFGPreciseLocalClobberize by extracting code to lambda to remove duplicate code.
+
+            * dfg/DFGPreciseLocalClobberize.h:
+            (JSC::DFG::PreciseLocalClobberizeAdaptor::readTop):
+
+2021-01-13  Russell Epstein  <repstein@apple.com>
+
+        Revert r270664. rdar://problem/73165685
+
+2021-01-13  Russell Epstein  <repstein@apple.com>
+
+        Revert r270665. rdar://problem/73165685
+
+2021-01-13  Russell Epstein  <repstein@apple.com>
+
+        Revert r270700. rdar://problem/73165685
+
+2021-01-13  Russell Epstein  <repstein@apple.com>
+
+        Revert r270719. rdar://problem/73165685
+
 2021-01-10  Yusuke Suzuki  <ysuzuki@apple.com>
 
         [JSC] JITCage's Gate mechanism is used in ARM64E even if JITCage is disable
@@ -561,38 +1892,6 @@
         * runtime/JSBigInt.cpp:
         (JSC::JSBigInt::toUint64Heap): Deleted.
         * runtime/JSBigInt.h:
-
-2021-01-05  Yusuke Suzuki  <ysuzuki@apple.com>
-
-        [JSC] DFG/FTL DirectCall need to respect Wasm IC
-        https://bugs.webkit.org/show_bug.cgi?id=220339
-
-        Reviewed by Saam Barati.
-
-        We found that Wasm IC for fast calls are not used in several places.
-
-            1. LLInt calls
-            2. DFG/FTL DirectCall
-            3. Virtual calls
-
-        We noticed this because of r271112. r271112 made wasm function loading from exports constant-folded in DFG/FTL.
-        And it emits DirectCall instead of Call in DFG/FTL. Then, we missed Wasm IC and get large performance regression
-        in JetStream2 richard-wasm.
-
-        In this patch, we use Wasm IC as much as possible. The key thing of this wasm IC is that it relies on callee.
-        So, if the place is just checking Executable, then we should not go to that IC. Fortunately, the above three checks
-        callee before using code pointer obtained for Wasm IC.
-
-            1. LLInt call fast path first checks callee.
-            2. DFG/FTL DirectCall requires callee is constant for wasm functions.
-            3. Virtual calls are not storing generated codePtr.
-
-        * dfg/DFGOperations.cpp:
-        (JSC::DFG::JSC_DEFINE_JIT_OPERATION):
-        * jit/JITOperations.cpp:
-        (JSC::virtualForWithFunction):
-        * llint/LLIntSlowPaths.cpp:
-        (JSC::LLInt::setUpCall):
 
 2021-01-05  Yusuke Suzuki  <ysuzuki@apple.com>
 

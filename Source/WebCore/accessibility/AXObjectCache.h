@@ -193,7 +193,8 @@ public:
     Node* modalNode();
 
     void deferAttributeChangeIfNeeded(const QualifiedName&, Element*);
-    void recomputeIsIgnored(RenderObject* renderer);
+    void recomputeIsIgnored(RenderObject*);
+    void recomputeIsIgnored(Node*);
 
 #if ENABLE(ACCESSIBILITY)
     WEBCORE_EXPORT static void enableAccessibility();
@@ -272,6 +273,8 @@ public:
 
     enum AXNotification {
         AXActiveDescendantChanged,
+        AXAriaAttributeChanged,
+        AXAriaRoleChanged,
         AXAutocorrectionOccured,
         AXCheckedStateChanged,
         AXChildrenChanged,
@@ -305,7 +308,6 @@ public:
         AXReadOnlyStatusChanged,
         AXRequiredStatusChanged,
         AXTextChanged,
-        AXAriaAttributeChanged,
         AXElementBusyChanged,
         AXDraggingStarted,
         AXDraggingEnded,

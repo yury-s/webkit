@@ -908,6 +908,9 @@ void HTMLMediaElement::scheduleEvent(Ref<Event>&& event)
 
 void HTMLMediaElement::scheduleResolvePendingPlayPromises()
 {
+    if (m_pendingPlayPromises.isEmpty())
+        return;
+
     m_promiseTaskQueue.enqueueTask([this, pendingPlayPromises = WTFMove(m_pendingPlayPromises)] () mutable {
         resolvePendingPlayPromises(WTFMove(pendingPlayPromises));
     });
@@ -915,6 +918,9 @@ void HTMLMediaElement::scheduleResolvePendingPlayPromises()
 
 void HTMLMediaElement::scheduleRejectPendingPlayPromises(Ref<DOMException>&& error)
 {
+    if (m_pendingPlayPromises.isEmpty())
+        return;
+
     m_promiseTaskQueue.enqueueTask([this, error = WTFMove(error), pendingPlayPromises = WTFMove(m_pendingPlayPromises)] () mutable {
         rejectPendingPlayPromises(WTFMove(pendingPlayPromises), WTFMove(error));
     });
@@ -1067,6 +1073,9 @@ void HTMLMediaElement::load()
     Ref<HTMLMediaElement> protectedThis(*this); // prepareForLoad may result in a 'beforeload' event, which can make arbitrary DOM mutations.
 
     INFO_LOG(LOGIDENTIFIER);
+
+    if (m_videoFullscreenMode == VideoFullscreenModePictureInPicture && document().quirks().requiresUserGestureToLoadInPictureInPicture() && !document().processingUserGestureForMedia())
+        return;
 
     prepareForLoad();
     m_resourceSelectionTaskQueue.enqueueTask([this] {
@@ -3486,7 +3495,7 @@ void HTMLMediaElement::pause()
     if (m_waitingToEnterFullscreen)
         m_waitingToEnterFullscreen = false;
 
-    if (!m_mediaSession->playbackPermitted())
+    if (!m_mediaSession->playbackPermitted(MediaPlaybackOperation::Pause))
         return;
 
     if (processingUserGestureForMedia())
@@ -3494,7 +3503,6 @@ void HTMLMediaElement::pause()
 
     pauseInternal();
 }
-
 
 void HTMLMediaElement::pauseInternal()
 {
@@ -3609,6 +3617,7 @@ ExceptionOr<void> HTMLMediaElement::setVolume(double volume)
     scheduleEvent(eventNames().volumechangeEvent);
 
     if (isPlaying() && !m_mediaSession->playbackPermitted()) {
+        scheduleRejectPendingPlayPromises(DOMException::create(NotAllowedError));
         pauseInternal();
         setAutoplayEventPlaybackState(AutoplayEventPlaybackState::PreventedAutoplay);
     }
@@ -3876,6 +3885,7 @@ double HTMLMediaElement::percentLoaded() const
 void HTMLMediaElement::mediaPlayerDidAddAudioTrack(AudioTrackPrivate& track)
 {
     if (isPlaying() && !m_mediaSession->playbackPermitted()) {
+        scheduleRejectPendingPlayPromises(DOMException::create(NotAllowedError));
         pauseInternal();
         setAutoplayEventPlaybackState(AutoplayEventPlaybackState::PreventedAutoplay);
     }
@@ -5050,6 +5060,7 @@ void HTMLMediaElement::mediaPlayerCharacteristicChanged()
     updateRenderer();
 
     if (!paused() && !m_mediaSession->playbackPermitted()) {
+        scheduleRejectPendingPlayPromises(DOMException::create(NotAllowedError));
         pauseInternal();
         setAutoplayEventPlaybackState(AutoplayEventPlaybackState::PreventedAutoplay);
     }
@@ -5955,7 +5966,7 @@ void HTMLMediaElement::enterFullscreen(VideoFullscreenMode mode)
 
                 if (mode == VideoFullscreenModeStandard)
                     scheduleEvent(eventNames().webkitbeginfullscreenEvent);
-                else if (oldMode == VideoFullscreenModeStandard)
+                else if (oldMode == VideoFullscreenModeStandard && !document().quirks().shouldDisableEndFullscreenEventWhenEnteringPictureInPictureFromFullscreenQuirk())
                     scheduleEvent(eventNames().webkitendfullscreenEvent);
 
                 return;
@@ -7432,7 +7443,7 @@ void HTMLMediaElement::suspendPlayback()
 {
     ALWAYS_LOG(LOGIDENTIFIER, "paused = ", paused());
     if (!paused())
-        pause();
+        pauseInternal();
 }
 
 void HTMLMediaElement::resumeAutoplaying()
@@ -7802,6 +7813,7 @@ void HTMLMediaElement::updateShouldAutoplay()
 void HTMLMediaElement::updateShouldPlay()
 {
     if (!paused() && !m_mediaSession->playbackPermitted()) {
+        scheduleRejectPendingPlayPromises(DOMException::create(NotAllowedError));
         pauseInternal();
         setAutoplayEventPlaybackState(AutoplayEventPlaybackState::PreventedAutoplay);
     } else if (canTransitionFromAutoplayToPlay())

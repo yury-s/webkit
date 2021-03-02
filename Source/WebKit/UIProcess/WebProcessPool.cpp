@@ -567,6 +567,11 @@ void WebProcessPool::establishWorkerContextConnectionToNetworkProcess(NetworkPro
             serviceWorkerProcessProxy = process.get();
             serviceWorkerProcessProxy->enableServiceWorkers(processPool->userContentControllerIdentifierForServiceWorkers());
 
+            if (serviceWorkerProcessProxy->isInProcessCache()) {
+                processPool->webProcessCache().removeProcess(*serviceWorkerProcessProxy, WebProcessCache::ShouldShutDownProcess::No);
+                ASSERT(!serviceWorkerProcessProxy->isInProcessCache());
+            }
+
             WEBPROCESSPOOL_RELEASE_LOG_IF_ALLOWED_STATIC(ServiceWorker, "establishWorkerContextConnectionToNetworkProcess reusing an existing web process (process=%p, PID=%d)", serviceWorkerProcessProxy, serviceWorkerProcessProxy->processIdentifier());
             break;
         }
@@ -1008,6 +1013,14 @@ WebProcessProxy& WebProcessPool::processForRegistrableDomain(WebsiteDataStore& w
     return createNewWebProcess(&websiteDataStore);
 }
 
+UserContentControllerIdentifier WebProcessPool::userContentControllerIdentifierForServiceWorkers()
+{
+    if (!m_userContentControllerForServiceWorker)
+        m_userContentControllerForServiceWorker = WebUserContentControllerProxy::create();
+
+    return m_userContentControllerForServiceWorker->identifier();
+}
+
 Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API::PageConfiguration>&& pageConfiguration)
 {
     if (!pageConfiguration->pageGroup())
@@ -1057,7 +1070,7 @@ Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API:
             serviceWorkerProcess.updateServiceWorkerPreferencesStore(*m_serviceWorkerPreferences);
     }
     if (userContentController)
-        m_userContentControllerIDForServiceWorker = userContentController->identifier();
+        m_userContentControllerForServiceWorker = userContentController;
 #endif
 
     bool enableProcessSwapOnCrossSiteNavigation = page->preferences().processSwapOnCrossSiteNavigationEnabled();
@@ -1713,7 +1726,8 @@ WeakHashSet<WebProcessProxy>& WebProcessPool::serviceWorkerProcesses()
 void WebProcessPool::updateProcessAssertions()
 {
     WebsiteDataStore::forEachWebsiteDataStore([] (WebsiteDataStore& dataStore) {
-        dataStore.networkProcess().updateProcessAssertion();
+        if (auto* networkProcess = dataStore.networkProcessIfExists())
+            networkProcess->updateProcessAssertion();
     });
 #if ENABLE(GPU_PROCESS)
     if (auto* gpuProcess = GPUProcessProxy::singletonIfCreated())
