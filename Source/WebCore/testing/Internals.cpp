@@ -319,7 +319,7 @@
 #endif
 
 #if PLATFORM(MAC)
-#include "GraphicsContextGLOpenGLManager.h"
+#include "GraphicsChecksMac.h"
 #include "NSScrollerImpDetails.h"
 #include "ScrollbarThemeMac.h"
 #endif
@@ -2487,6 +2487,11 @@ void Internals::setAutomaticSpellingCorrectionEnabled(bool enabled)
 #else
     UNUSED_PARAM(enabled);
 #endif
+}
+
+bool Internals::isSpellcheckDisabledExceptTextReplacement(const HTMLInputElement& element) const
+{
+    return element.isSpellcheckDisabledExceptTextReplacement();
 }
 
 void Internals::handleAcceptedCandidate(const String& candidate, unsigned location, unsigned length)
@@ -4879,6 +4884,11 @@ bool Internals::userPrefersContrast() const
 double Internals::privatePlayerVolume(const HTMLMediaElement&)
 {
     return 0;
+}
+
+bool Internals::privatePlayerMuted(const HTMLMediaElement&)
+{
+    return false;
 }
 #endif
 

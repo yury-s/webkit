@@ -1,3 +1,298 @@
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272188. rdar://problem/74032553
+
+    [Cocoa] Disable interstitial events on AVPlayerItem.
+    https://bugs.webkit.org/show_bug.cgi?id=221215
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+    (WebCore::MediaPlayerPrivateAVFoundationObjC::createAVPlayerItem):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/AVFoundationSPI.h:
+    
+    Source/WTF:
+    
+    * wtf/PlatformHave.h:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272188 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Jer Noble  <jer.noble@apple.com>
+
+            [Cocoa] Disable interstitial events on AVPlayerItem.
+            https://bugs.webkit.org/show_bug.cgi?id=221215
+
+            Reviewed by Eric Carlson.
+
+            * pal/spi/cocoa/AVFoundationSPI.h:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272073. rdar://problem/73847891
+
+    font-stretch is not applied to system-ui
+    https://bugs.webkit.org/show_bug.cgi?id=221103
+    <rdar://problem/73719139>
+    
+    Reviewed by Darin Adler.
+    
+    Source/WebCore:
+    
+    We just never hooked it up.
+    
+    Tests: fast/text/system-font-width-2.html
+           fast/text/system-font-width-3.html
+           fast/text/system-font-width-4.html
+           fast/text/system-font-width-5.html
+           fast/text/system-font-width-6.html
+           fast/text/system-font-width-7.html
+           fast/text/system-font-width-8.html
+           fast/text/system-font-width-9.html
+           fast/text/system-font-width.html
+    
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.cpp:
+    (WebCore::SystemFontDatabaseCoreText::createSystemUIFont):
+    (WebCore::SystemFontDatabaseCoreText::createSystemDesignFont):
+    (WebCore::SystemFontDatabaseCoreText::createTextStyleFont):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightWidthItalicsAndFallbackBehavior):
+    (WebCore::mapWeight):
+    (WebCore::mapWidth):
+    (WebCore::SystemFontDatabaseCoreText::systemFontParameters):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightItalicsAndFallbackBehavior): Deleted.
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.h:
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::operator== const):
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::hash const):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/CoreTextSPI.h:
+    
+    Source/WTF:
+    
+    * wtf/PlatformHave.h:
+    
+    LayoutTests:
+    
+    * fast/text/system-font-width-2-expected-mismatch.html: Added.
+    * fast/text/system-font-width-2.html: Added.
+    * fast/text/system-font-width-3-expected-mismatch.html: Added.
+    * fast/text/system-font-width-3.html: Added.
+    * fast/text/system-font-width-4-expected-mismatch.html: Added.
+    * fast/text/system-font-width-4.html: Added.
+    * fast/text/system-font-width-5-expected.html: Added.
+    * fast/text/system-font-width-5.html: Added.
+    * fast/text/system-font-width-6-expected-mismatch.html: Added.
+    * fast/text/system-font-width-6.html: Added.
+    * fast/text/system-font-width-7-expected-mismatch.html: Added.
+    * fast/text/system-font-width-7.html: Added.
+    * fast/text/system-font-width-8-expected-mismatch.html: Added.
+    * fast/text/system-font-width-8.html: Added.
+    * fast/text/system-font-width-9-expected-mismatch.html: Added.
+    * fast/text/system-font-width-9.html: Added.
+    * fast/text/system-font-width-expected-mismatch.html: Added.
+    * fast/text/system-font-width.html: Added.
+    * platform/ios/TestExpectations:
+    * platform/mac/TestExpectations:
+    * platform/win/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272073 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-29  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            font-stretch is not applied to system-ui
+            https://bugs.webkit.org/show_bug.cgi?id=221103
+            <rdar://problem/73719139>
+
+            Reviewed by Darin Adler.
+
+            * pal/spi/cocoa/CoreTextSPI.h:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271417. rdar://problem/73376369
+
+    [macOS] Reset user directory suffix before getting sandbox directory
+    https://bugs.webkit.org/show_bug.cgi?id=220358
+    <rdar://problem/57616019>
+    
+    Reviewed by Alexey Proskuryakov.
+    
+    Source/WebCore/PAL:
+    
+    Declare functions to get and set user directory suffix.
+    
+    * pal/spi/cocoa/CoreServicesSPI.h:
+    
+    Source/WebKit:
+    
+    Reset the user directory suffix before getting the sandbox data vault directory with confstr. We do not want to include the user
+    directory suffix, since the sandbox data vault will then end up inside the host process' cache folder, which is undesirable.
+    Also, creating the data vault directory with confstr can fail under some circumstances if the user directory suffix is not empty.
+    This patch also changes how we next set the user directory suffix for the process. Instead of setting the environment variable
+    DIRHELPER_USER_DIR_SUFFIX, we can use the SPI _set_user_dir_suffix. The behavior should be identical, but I believe it is better
+    to use SPI for this.
+    
+    * Shared/mac/AuxiliaryProcessMac.mm:
+    (WebKit::initializeSandboxParameters):
+    (WebKit::AuxiliaryProcess::initializeSandbox):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271417 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Per Arne Vollan  <pvollan@apple.com>
+
+            [macOS] Reset user directory suffix before getting sandbox directory
+            https://bugs.webkit.org/show_bug.cgi?id=220358
+            <rdar://problem/57616019>
+
+            Reviewed by Alexey Proskuryakov.
+
+            Declare functions to get and set user directory suffix.
+
+            * pal/spi/cocoa/CoreServicesSPI.h:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271497. rdar://problem/73469623
+
+    Exceptions thrown when invoking a <select> on an iPhone-idiom app running on macOS
+    https://bugs.webkit.org/show_bug.cgi?id=220628
+    <rdar://problem/70546547>
+    
+    Reviewed by Wenson Hsieh.
+    Source/WebCore/PAL:
+    
+    * pal/spi/ios/MobileGestaltSPI.h:
+    
+    Source/WebKit:
+    
+    iPhone-idiom apps running on macOS need to behave exactly like iPhone apps,
+    even in ways that might not totally make sense on the platform (e.g.
+    using input accessory views for <select> instead of popover) for two reasons:
+    
+    - we want to maximize compatibility, so they should behave exactly as they do
+    on the only platform they're tested on
+    
+    - other frameworks (mostly UIKit) enforce the use of iPhone UI in iPhone-idiom
+    apps, even on macOS
+    
+    * Shared/UserInterfaceIdiom.mm:
+    (WebKit::currentUserInterfaceIdiomIsPadOrMac):
+    (WebKit::setCurrentUserInterfaceIdiomIsPadOrMac):
+    (WebKit::updateCurrentUserInterfaceIdiom):
+    (WebKit::userInterfaceIdiomIsPad): Deleted.
+    Simplify our UIUserInterfaceIdiom-caching code.
+    
+    currentUserInterfaceIdiomIsPadOrMac now does what it says on the tin, globally;
+    previously on macOS it said YES for iPhone-idiom apps, but now it says NO,
+    like you would expect.
+    
+    Use UIDevice everywhere instead of the soft-deprecated UICurrentUserInterfaceIdiomIsPad,
+    both because it is soft-deprecated, and because it lets us elide the static helper.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271497 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-14  Tim Horton  <timothy_horton@apple.com>
+
+            Exceptions thrown when invoking a <select> on an iPhone-idiom app running on macOS
+            https://bugs.webkit.org/show_bug.cgi?id=220628
+            <rdar://problem/70546547>
+
+            Reviewed by Wenson Hsieh.
+
+            * pal/spi/ios/MobileGestaltSPI.h:
+
+2021-01-25  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271405. rdar://problem/73466993
+
+    [Cocoa] Support key rotation with HLS-backed encrypted media streams
+    https://bugs.webkit.org/show_bug.cgi?id=220493
+    <rdar://68227709>
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    Support key rotation through AVContentKeySession by explicitly handling unexpected key requests
+    submitted through the new -contentKeySession:didProvideContentKeyRequests:forInitializationData:.
+    Rotation was previously handled in the delegate method -contentKeySession:didProvideContentKeyRequest,
+    but that method is no longer called after the replacement delegate method was implemented, and
+    that method never handled "skd://" style initialization data.
+    
+    Update the helper method, initTypeForRequest(), to detect "skd://" identifiers and correctly identify
+    those sessions as "skd".
+    
+    Add a new helper method, initializationDataForRequest(), which will package the AVContentKeySession's
+    identifier as initialization data.
+    
+    Drive-by Fix: Fixing this bug causes the default key group to update it's identifier, which causes an assert
+    when the group in question isn't any of those associated with an existing MediaKeySession, so handle that case
+    explicitly.
+    
+    Drive-by Fix 2: Sometimes, when GPUP is enabled for media, we will get spurious mediaPlayerEngineUpdated()
+    calls which cause cdmInstanceAttached() to be called multiple times for the same player, triggering an ASSERT.
+    If called twice with the same CDM, just return early rather than ASSERTing.
+    
+    * platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.h:
+    * platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.mm:
+    (WebCore::initTypeForRequest):
+    (WebCore::initializationDataForRequest):
+    (WebCore::CDMInstanceFairPlayStreamingAVFObjC::takeUnexpectedKeyRequestForInitializationData):
+    (WebCore::CDMInstanceFairPlayStreamingAVFObjC::didProvideRequest):
+    (WebCore::CDMInstanceFairPlayStreamingAVFObjC::didProvideRequests):
+    (WebCore::CDMInstanceFairPlayStreamingAVFObjC::handleUnexpectedRequests):
+    (WebCore::CDMInstanceFairPlayStreamingAVFObjC::groupSessionIdentifierChanged):
+    * platform/graphics/avfoundation/objc/MediaSourcePrivateAVFObjC.mm:
+    (WebCore::MediaSourcePrivateAVFObjC::cdmInstanceAttached):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/AVFoundationSPI.h:
+    
+    Source/WebKit:
+    
+    Support handling the "unexpectedInitializationDataReceived()" client callback from within the GPUP.
+    
+    * DerivedSources-input.xcfilelist:
+    * DerivedSources-output.xcfilelist:
+    * DerivedSources.make:
+    * GPUProcess/media/RemoteCDMInstanceProxy.cpp:
+    (WebKit::RemoteCDMInstanceProxy::create):
+    (WebKit::RemoteCDMInstanceProxy::RemoteCDMInstanceProxy):
+    (WebKit::RemoteCDMInstanceProxy::~RemoteCDMInstanceProxy):
+    (WebKit::RemoteCDMInstanceProxy::unrequestedInitializationDataReceived):
+    * GPUProcess/media/RemoteCDMInstanceProxy.h:
+    * GPUProcess/media/RemoteCDMProxy.cpp:
+    (WebKit::RemoteCDMProxy::createInstance):
+    * WebKit.xcodeproj/project.pbxproj:
+    * WebProcess/GPU/media/RemoteCDMInstance.cpp:
+    (WebKit::RemoteCDMInstance::RemoteCDMInstance):
+    (WebKit::RemoteCDMInstance::~RemoteCDMInstance):
+    (WebKit::RemoteCDMInstance::unrequestedInitializationDataReceived):
+    * WebProcess/GPU/media/RemoteCDMInstance.h:
+    * WebProcess/GPU/media/RemoteCDMInstance.messages.in: Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271405 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-12  Jer Noble  <jer.noble@apple.com>
+
+            [Cocoa] Support key rotation with HLS-backed encrypted media streams
+            https://bugs.webkit.org/show_bug.cgi?id=220493
+            <rdar://68227709>
+
+            Reviewed by Eric Carlson.
+
+            * pal/spi/cocoa/AVFoundationSPI.h:
+
 2021-01-08  Commit Queue  <commit-queue@webkit.org>
 
         Unreviewed, reverting r271331.

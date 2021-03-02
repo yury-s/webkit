@@ -154,23 +154,6 @@ void WebPageProxy::addPlatformLoadParameters(WebProcessProxy& process, LoadParam
 {
     loadParameters.dataDetectionContext = m_uiClient->dataDetectionContext();
 
-#if ENABLE(CONTENT_FILTERING)
-    if (!process.hasNetworkExtensionSandboxAccess() && NetworkExtensionContentFilter::isRequired()) {
-        SandboxExtension::Handle helperHandle;
-        SandboxExtension::createHandleForMachLookup("com.apple.nehelper"_s, WTF::nullopt, helperHandle);
-        loadParameters.neHelperExtensionHandle = WTFMove(helperHandle);
-        SandboxExtension::Handle managerHandle;
-#if PLATFORM(MAC) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
-        SandboxExtension::createHandleForMachLookup("com.apple.nesessionmanager"_s, WTF::nullopt, managerHandle);
-#else
-        SandboxExtension::createHandleForMachLookup("com.apple.nesessionmanager.content-filter"_s, WTF::nullopt, managerHandle);
-#endif
-        loadParameters.neSessionManagerExtensionHandle = WTFMove(managerHandle);
-
-        process.markHasNetworkExtensionSandboxAccess();
-    }
-#endif
-
 #if PLATFORM(IOS)
     if (!process.hasManagedSessionSandboxAccess() && [getWebFilterEvaluatorClass() isManagedSession]) {
         SandboxExtension::Handle handle;
@@ -522,11 +505,16 @@ void WebPageProxy::scheduleActivityStateUpdate()
     // then schedule dispatch on runloop observer to collect changes in the same runloop cycle before dispatching.
     if (hasActiveCATransaction) {
         [CATransaction addCommitHandler:[weakThis = makeWeakPtr(*this)] {
-            auto protectedThis = makeRefPtr(weakThis.get());
-            if (!protectedThis)
-                return;
+            // We can't call dispatchActivityStateChange directly underneath this commit handler, because it has side-effects
+            // that may result in other frameworks trying to install commit handlers for the same phase, which is not allowed.
+            // So, dispatch_async here; we only care that the activity state change doesn't apply until after the active commit is complete.
+            dispatch_async(dispatch_get_main_queue(), [weakThis] {
+                auto protectedThis = makeRefPtr(weakThis.get());
+                if (!protectedThis)
+                    return;
 
-            protectedThis->dispatchActivityStateChange();
+                protectedThis->dispatchActivityStateChange();
+            });
         } forPhase:kCATransactionPhasePostCommit];
         return;
     }
@@ -552,8 +540,24 @@ void WebPageProxy::createAppHighlightInSelectedRange(CreateNewGroupForHighlight 
 
     send(Messages::WebPage::CreateAppHighlightInSelectedRange(createNewGroup));
 }
-
 #endif
+
+SandboxExtension::HandleArray WebPageProxy::createNetworkExtensionsSandboxExtensions(WebProcessProxy& process)
+{
+#if ENABLE(CONTENT_FILTERING)
+    if (!process.hasNetworkExtensionSandboxAccess() && NetworkExtensionContentFilter::isRequired()) {
+        process.markHasNetworkExtensionSandboxAccess();
+        constexpr ASCIILiteral neHelperService { "com.apple.nehelper"_s };
+#if PLATFORM(MAC) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
+        constexpr ASCIILiteral neSessionManagerService { "com.apple.nesessionmanager"_s };
+#else
+        constexpr ASCIILiteral neSessionManagerService { "com.apple.nesessionmanager.content-filter"_s };
+#endif
+        return SandboxExtension::createHandlesForMachLookup({ neHelperService, neSessionManagerService }, WTF::nullopt);
+    }
+#endif
+    return SandboxExtension::HandleArray();
+}
 
 } // namespace WebKit
 

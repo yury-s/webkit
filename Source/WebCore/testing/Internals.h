@@ -368,6 +368,8 @@ public:
     void setAutomaticTextReplacementEnabled(bool);
     void setAutomaticSpellingCorrectionEnabled(bool);
 
+    bool isSpellcheckDisabledExceptTextReplacement(const HTMLInputElement&) const;
+
     void handleAcceptedCandidate(const String& candidate, unsigned location, unsigned length);
     void changeSelectionListType();
     void changeBackToReplacedString(const String& replacedString);
@@ -629,6 +631,7 @@ public:
     bool elementShouldBufferData(HTMLMediaElement&);
     String elementBufferingPolicy(HTMLMediaElement&);
     double privatePlayerVolume(const HTMLMediaElement&);
+    bool privatePlayerMuted(const HTMLMediaElement&);
     ExceptionOr<void> setOverridePreferredDynamicRangeMode(HTMLMediaElement&, const String&);
 #endif
 

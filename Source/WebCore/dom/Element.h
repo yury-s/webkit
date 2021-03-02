@@ -321,8 +321,8 @@ public:
     bool isBeingDragged() const { return isUserActionElement() && isUserActionElementDragged(); }
     bool hasFocusWithin() const { return hasNodeFlag(NodeFlag::HasFocusWithin); };
 
-    virtual void setActive(bool = true, bool pause = false);
-    virtual void setHovered(bool = true);
+    virtual void setActive(bool = true, bool pause = false, Style::InvalidationScope = Style::InvalidationScope::All);
+    virtual void setHovered(bool = true, Style::InvalidationScope = Style::InvalidationScope::All);
     virtual void setFocus(bool);
     void setBeingDragged(bool);
     void setHasFocusWithin(bool);
@@ -552,7 +552,7 @@ public:
     LayoutRect absoluteEventHandlerBounds(bool& includesFixedPositionElements) override;
 
     const RenderStyle* existingComputedStyle() const;
-    WEBCORE_EXPORT const RenderStyle* renderOrDisplayContentsStyle() const;
+    WEBCORE_EXPORT const RenderStyle* renderOrDisplayContentsStyle(PseudoId = PseudoId::None) const;
 
     void clearBeforePseudoElement();
     void clearAfterPseudoElement();

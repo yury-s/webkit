@@ -1,3 +1,325 @@
+2021-02-16  Ruben Turcios  <rubent_22@apple.com>
+
+        Cherry-pick r272703. rdar://problem/74409698
+
+    Reduce the overhead of DocumentFragment in innerHTML & outerHTML
+    https://bugs.webkit.org/show_bug.cgi?id=221535
+    <rdar://problem/73861015>
+    
+    Reviewed by Geoffrey Garen.
+    
+    Source/WebCore:
+    
+    This patch reduces the overhead of using DocumentFragment in innerHTMl and outerHTML setters by
+    1. Cache DocumentFragment used for innerHTML and outerHTML.
+    2. Adding a fast path to removeAllChildrenWithScriptAssertion when removing child nodes from (1)
+    immediately before appending it to the new parent. This is safe for now since no DOM nodes or API
+    store information about its root node or parent node when it's DocumentFragment, and and there
+    are no node flags to be updated or invalidated since we're removing already-disconnected nodes
+    to which no script ever had access up until this point. We release-assert these conditions before
+    going into the fast path.
+    
+    No new tests since there should be no observable behavior change.
+    
+    * dom/ContainerNode.cpp:
+    (WebCore::ContainerNode::removeAllChildrenWithScriptAssertion): Added a fast path. See above.
+    * dom/Document.cpp:
+    (WebCore::Document::commonTeardown): Clear m_documentFragmentForInnerOuterHTML as it would keep
+    the ownewr document (this Document) alive otherwise.
+    (WebCore::Document::documentFragmentForInnerOuterHTML): Added. Lazily create a DocumentFragment
+    used to parse the fragment for innerHTML and outerHTML setters. Remove any child nodes left in
+    the document fragment in the case the last call to replaceChildrenWithFragment took a fast path
+    for a single text node, which case we don't remove any child nodes from DocumentFragment.
+    * dom/Document.h:
+    * dom/DocumentFragment.h:
+    (WebCore::DocumentFragment::setIsDocumentFragmentForInnerOuterHTML): Added.
+    * dom/Node.h:
+    (WebCore::Node::isDocumentFragmentForInnerOuterHTML const): Added.
+    * editing/markup.cpp:
+    (WebCore::createFragmentForMarkup): Extracted from createFragmentForInnerOuterHTML to share code
+    between createFragmentForInnerOuterHTML and createContextualFragment.
+    (WebCore::createFragmentForInnerOuterHTML): Reuse the fragment in createFragmentForMarkup.
+    (WebCore::createContextualFragment): Don't reuse the fragment in createFragmentForMarkup as this
+    function is used by Range::createContextualFragment which exposes the document fragment to
+    arbitrary author scripts.
+    (WebCore::hasOneChild): Deleted since we now have Node::hasOneChild.
+    (WebCore::hasOneTextChild): Use Node::hasOneChild.
+    (WebCore::replaceChildrenWithFragment): Added assertions to make sure we don't have any child nodes
+    left after replacing the children.
+    
+    Source/WTF:
+    
+    Added a helper function for writing assertions.
+    
+    * wtf/WeakPtr.h:
+    (WTF::WeakPtrFactory::isInitialized const): Added.
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272703 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-10  Ryosuke Niwa  <rniwa@webkit.org>
+
+            Reduce the overhead of DocumentFragment in innerHTML & outerHTML
+            https://bugs.webkit.org/show_bug.cgi?id=221535
+            <rdar://problem/73861015>
+
+            Reviewed by Geoffrey Garen.
+
+            Added a helper function for writing assertions.
+
+            * wtf/WeakPtr.h:
+            (WTF::WeakPtrFactory::isInitialized const): Added.
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272234. rdar://problem/74105068
+
+    [macOS] Force loading the HEIF reader symbols before transcoding any HEIF image
+    https://bugs.webkit.org/show_bug.cgi?id=221191
+    <rdar://problem/70942158>
+    
+    Reviewed by Tim Horton.
+    
+    Source/WebCore:
+    
+    Transcoding the HEIF images requires loading the HEIF reader symbols which
+    is not happening in macOS Catalina. A workaround for this bug in WebKit is
+    to call CGImageSourceGetCount() for the CGImageSource of the HEIF image.
+    
+    * platform/graphics/cg/ImageUtilitiesCG.cpp:
+    (WebCore::transcodeImage):
+    
+    Source/WTF:
+    
+    Add a HAVE macro for the fix of <rdar://problem/59589723>.
+    
+    * wtf/PlatformHave.h:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272234 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-02  Said Abou-Hallawa  <said@apple.com>
+
+            [macOS] Force loading the HEIF reader symbols before transcoding any HEIF image
+            https://bugs.webkit.org/show_bug.cgi?id=221191
+            <rdar://problem/70942158>
+
+            Reviewed by Tim Horton.
+
+            Add a HAVE macro for the fix of <rdar://problem/59589723>.
+
+            * wtf/PlatformHave.h:
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r272188. rdar://problem/74032553
+
+    [Cocoa] Disable interstitial events on AVPlayerItem.
+    https://bugs.webkit.org/show_bug.cgi?id=221215
+    
+    Reviewed by Eric Carlson.
+    
+    Source/WebCore:
+    
+    * platform/graphics/avfoundation/objc/MediaPlayerPrivateAVFoundationObjC.mm:
+    (WebCore::MediaPlayerPrivateAVFoundationObjC::createAVPlayerItem):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/AVFoundationSPI.h:
+    
+    Source/WTF:
+    
+    * wtf/PlatformHave.h:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272188 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-02-01  Jer Noble  <jer.noble@apple.com>
+
+            [Cocoa] Disable interstitial events on AVPlayerItem.
+            https://bugs.webkit.org/show_bug.cgi?id=221215
+
+            Reviewed by Eric Carlson.
+
+            * wtf/PlatformHave.h:
+
+2021-02-08  Russell Epstein  <repstein@apple.com>
+
+        Cherry-pick r271633. rdar://problem/74105761
+
+    [WTF] StringImpl::removeCharacters should be inlined
+    https://bugs.webkit.org/show_bug.cgi?id=220742
+    
+    Reviewed by Saam Barati.
+    
+    removeCharacters is used in WebCore's HTMLInputElement's critical path. And since String relatively has many elements (characters),
+    non-inlined StringImpl::removeCharacters causes significant number of indirect function calls of `findMatch` argument since it is
+    passed function pointer. We should make them templatized function to allow inlining of `findMatch` function to avoid repeated indirect calls.
+    
+    * wtf/text/StringImpl.cpp:
+    (WTF::StringImpl::removeCharacters): Deleted.
+    * wtf/text/StringImpl.h:
+    (WTF::StringImpl::removeCharactersImpl):
+    (WTF::StringImpl::removeCharacters):
+    * wtf/text/WTFString.cpp:
+    (WTF::String::removeCharacters const): Deleted.
+    * wtf/text/WTFString.h:
+    (WTF::String::removeCharacters const):
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271633 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-19  Yusuke Suzuki  <ysuzuki@apple.com>
+
+            [WTF] StringImpl::removeCharacters should be inlined
+            https://bugs.webkit.org/show_bug.cgi?id=220742
+
+            Reviewed by Saam Barati.
+
+            removeCharacters is used in WebCore's HTMLInputElement's critical path. And since String relatively has many elements (characters),
+            non-inlined StringImpl::removeCharacters causes significant number of indirect function calls of `findMatch` argument since it is
+            passed function pointer. We should make them templatized function to allow inlining of `findMatch` function to avoid repeated indirect calls.
+
+            * wtf/text/StringImpl.cpp:
+            (WTF::StringImpl::removeCharacters): Deleted.
+            * wtf/text/StringImpl.h:
+            (WTF::StringImpl::removeCharactersImpl):
+            (WTF::StringImpl::removeCharacters):
+            * wtf/text/WTFString.cpp:
+            (WTF::String::removeCharacters const): Deleted.
+            * wtf/text/WTFString.h:
+            (WTF::String::removeCharacters const):
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r272073. rdar://problem/73847891
+
+    font-stretch is not applied to system-ui
+    https://bugs.webkit.org/show_bug.cgi?id=221103
+    <rdar://problem/73719139>
+    
+    Reviewed by Darin Adler.
+    
+    Source/WebCore:
+    
+    We just never hooked it up.
+    
+    Tests: fast/text/system-font-width-2.html
+           fast/text/system-font-width-3.html
+           fast/text/system-font-width-4.html
+           fast/text/system-font-width-5.html
+           fast/text/system-font-width-6.html
+           fast/text/system-font-width-7.html
+           fast/text/system-font-width-8.html
+           fast/text/system-font-width-9.html
+           fast/text/system-font-width.html
+    
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.cpp:
+    (WebCore::SystemFontDatabaseCoreText::createSystemUIFont):
+    (WebCore::SystemFontDatabaseCoreText::createSystemDesignFont):
+    (WebCore::SystemFontDatabaseCoreText::createTextStyleFont):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightWidthItalicsAndFallbackBehavior):
+    (WebCore::mapWeight):
+    (WebCore::mapWidth):
+    (WebCore::SystemFontDatabaseCoreText::systemFontParameters):
+    (WebCore::SystemFontDatabaseCoreText::createFontByApplyingWeightItalicsAndFallbackBehavior): Deleted.
+    * platform/graphics/cocoa/SystemFontDatabaseCoreText.h:
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::operator== const):
+    (WebCore::SystemFontDatabaseCoreText::CascadeListParameters::hash const):
+    
+    Source/WebCore/PAL:
+    
+    * pal/spi/cocoa/CoreTextSPI.h:
+    
+    Source/WTF:
+    
+    * wtf/PlatformHave.h:
+    
+    LayoutTests:
+    
+    * fast/text/system-font-width-2-expected-mismatch.html: Added.
+    * fast/text/system-font-width-2.html: Added.
+    * fast/text/system-font-width-3-expected-mismatch.html: Added.
+    * fast/text/system-font-width-3.html: Added.
+    * fast/text/system-font-width-4-expected-mismatch.html: Added.
+    * fast/text/system-font-width-4.html: Added.
+    * fast/text/system-font-width-5-expected.html: Added.
+    * fast/text/system-font-width-5.html: Added.
+    * fast/text/system-font-width-6-expected-mismatch.html: Added.
+    * fast/text/system-font-width-6.html: Added.
+    * fast/text/system-font-width-7-expected-mismatch.html: Added.
+    * fast/text/system-font-width-7.html: Added.
+    * fast/text/system-font-width-8-expected-mismatch.html: Added.
+    * fast/text/system-font-width-8.html: Added.
+    * fast/text/system-font-width-9-expected-mismatch.html: Added.
+    * fast/text/system-font-width-9.html: Added.
+    * fast/text/system-font-width-expected-mismatch.html: Added.
+    * fast/text/system-font-width.html: Added.
+    * platform/ios/TestExpectations:
+    * platform/mac/TestExpectations:
+    * platform/win/TestExpectations:
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@272073 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-29  Myles C. Maxfield  <mmaxfield@apple.com>
+
+            font-stretch is not applied to system-ui
+            https://bugs.webkit.org/show_bug.cgi?id=221103
+            <rdar://problem/73719139>
+
+            Reviewed by Darin Adler.
+
+            * wtf/PlatformHave.h:
+
+2021-02-02  Alan Coon  <alancoon@apple.com>
+
+        Cherry-pick r271926. rdar://problem/73889676
+
+    REGRESSION(r267641): WebKitDeveloperExtras preference has no effect for WebKitLegacy clients
+    https://bugs.webkit.org/show_bug.cgi?id=220996
+    <rdar://72173139>
+    
+    Reviewed by Sam Weinig.
+    
+    Source/WebKitLegacy/mac:
+    
+    Read back this preference when propagating it, because the value depends on
+    more than just the preference key. For example, it allows Debug builds to act
+    as if the preference is always enabled.
+    
+    * WebView/WebView.mm:
+    (-[WebView _preferencesChanged:]):
+    
+    Source/WTF:
+    
+    This preference should use custom bindings for WebKitLegacy.
+    
+    * Scripts/Preferences/WebPreferencesDebug.yaml:
+    
+    
+    git-svn-id: https://svn.webkit.org/repository/webkit/trunk@271926 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+    2021-01-26  BJ Burg  <bburg@apple.com>
+
+            REGRESSION(r267641): WebKitDeveloperExtras preference has no effect for WebKitLegacy clients
+            https://bugs.webkit.org/show_bug.cgi?id=220996
+            <rdar://72173139>
+
+            Reviewed by Sam Weinig.
+
+            This preference should use custom bindings for WebKitLegacy.
+
+            * Scripts/Preferences/WebPreferencesDebug.yaml:
+
+2021-01-26  Dean Jackson  <dino@apple.com>
+
+        Disable WebGL 2 on safari-611-branch
+        rdar://73629533
+        rdar://73624686
+
+        * Scripts/Preferences/WebPreferencesExperimental.yaml:
+
 2021-01-11  Kimmo Kinnunen  <kkinnunen@apple.com>
 
         WebKit::IPC::Encoder needs definitions of all custom enum values at the Encoder definition time

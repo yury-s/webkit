@@ -40,6 +40,7 @@
 #import "PluginView.h"
 #import "PrintInfo.h"
 #import "RemoteLayerTreeDrawingArea.h"
+#import "RemoteScrollingCoordinator.h"
 #import "SandboxUtilities.h"
 #import "SharedMemory.h"
 #import "SyntheticEditingCommandType.h"
@@ -853,6 +854,9 @@ void WebPage::completeSyntheticClick(Node& nodeRespondingToClick, const WebCore:
     if (m_isClosed)
         return;
 
+    if (auto selectionChangedHandler = std::exchange(m_selectionChangedHandler, {}))
+        selectionChangedHandler();
+
     tapWasHandled |= mainframe.eventHandler().handleMouseReleaseEvent(PlatformMouseEvent(roundedAdjustedPoint, roundedAdjustedPoint, LeftButton, PlatformEvent::MouseReleased, 1, shiftKey, ctrlKey, altKey, metaKey, WallTime::now(), WebCore::ForceAtClick, syntheticClickType, pointerId));
     if (m_isClosed)
         return;
@@ -1166,6 +1170,9 @@ void WebPage::commitPotentialTap(OptionSet<WebEvent::Modifier> modifiers, Transa
 
 void WebPage::commitPotentialTapFailed()
 {
+    if (auto selectionChangedHandler = std::exchange(m_selectionChangedHandler, {}))
+        selectionChangedHandler();
+
     ContentChangeObserver::didCancelPotentialTap(m_page->mainFrame());
     if (!m_page->focusController().focusedOrMainFrame().selection().selection().isContentEditable())
         clearSelection();
@@ -1182,6 +1189,9 @@ void WebPage::cancelPotentialTap()
 
 void WebPage::cancelPotentialTapInFrame(WebFrame& frame)
 {
+    if (auto selectionChangedHandler = std::exchange(m_selectionChangedHandler, {}))
+        selectionChangedHandler();
+
     if (m_potentialTapNode) {
         auto* potentialTapFrame = m_potentialTapNode->document().frame();
         if (potentialTapFrame && !potentialTapFrame->tree().isDescendantOf(frame.coreFrame()))
@@ -2111,7 +2121,7 @@ void WebPage::setFocusedFrameBeforeSelectingTextAtLocation(const IntPoint& point
         m_page->focusController().setFocusedFrame(result.innerNodeFrame());
 }
 
-void WebPage::selectTextWithGranularityAtPoint(const WebCore::IntPoint& point, WebCore::TextGranularity granularity, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& completionHandler)
+void WebPage::setSelectionRange(const WebCore::IntPoint& point, WebCore::TextGranularity granularity, bool isInteractingWithFocusedElement)
 {
     setFocusedFrameBeforeSelectingTextAtLocation(point);
 
@@ -2120,7 +2130,30 @@ void WebPage::selectTextWithGranularityAtPoint(const WebCore::IntPoint& point, W
     if (range)
         frame.selection().setSelectedRange(*range, Affinity::Upstream, WebCore::FrameSelection::ShouldCloseTyping::Yes, UserTriggered);
     m_initialSelection = range;
-    completionHandler();
+}
+
+void WebPage::selectTextWithGranularityAtPoint(const WebCore::IntPoint& point, WebCore::TextGranularity granularity, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& completionHandler)
+{
+    if (!m_potentialTapNode) {
+        setSelectionRange(point, granularity, isInteractingWithFocusedElement);
+        completionHandler();
+        return;
+    }
+    
+    ASSERT(!m_selectionChangedHandler);
+    if (auto selectionChangedHandler = std::exchange(m_selectionChangedHandler, {}))
+        selectionChangedHandler();
+
+    m_selectionChangedHandler = [point, granularity, isInteractingWithFocusedElement, completionHandler = WTFMove(completionHandler), webPage = makeWeakPtr(*this), this]() mutable {
+        RefPtr<WebPage> strongPage = webPage.get();
+        if (!strongPage) {
+            completionHandler();
+            return;
+        }
+        setSelectionRange(point, granularity, isInteractingWithFocusedElement);
+        completionHandler();
+    };
+
 }
 
 void WebPage::beginSelectionInDirection(WebCore::SelectionDirection direction, CallbackID callbackID)
@@ -2518,6 +2551,23 @@ static inline bool isAssistableElement(Element& element)
     if (is<HTMLIFrameElement>(element))
         return false;
     return element.isContentEditable();
+}
+
+static inline bool isObscuredElement(Element& element)
+{
+    auto topDocument = makeRef(element.document().topDocument());
+    auto elementRectInMainFrame = element.clientRect();
+
+    constexpr OptionSet<HitTestRequest::RequestType> hitType { HitTestRequest::ReadOnly, HitTestRequest::Active, HitTestRequest::AllowChildFrameContent, HitTestRequest::DisallowUserAgentShadowContent };
+    HitTestResult result(elementRectInMainFrame.center());
+
+    topDocument->hitTest(hitType, result);
+    result.setToNonUserAgentShadowAncestor();
+
+    if (result.targetElement() == &element)
+        return false;
+
+    return true;
 }
 
 void WebPage::getPositionInformation(const InteractionInformationRequest& request, CompletionHandler<void(InteractionInformationAtPosition&&)>&& reply)
@@ -2996,7 +3046,7 @@ static inline Element* nextAssistableElement(Node* startNode, Page& page, bool i
         nextElement = isForward
             ? page.focusController().nextFocusableElement(*nextElement)
             : page.focusController().previousFocusableElement(*nextElement);
-    } while (nextElement && !isAssistableElement(*nextElement));
+    } while (nextElement && (!isAssistableElement(*nextElement) || isObscuredElement(*nextElement)));
 
     return nextElement;
 }
@@ -3803,6 +3853,19 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
     FloatRect adjustedExposedContentRect = adjustExposedRectForNewScale(exposedContentRect, visibleContentRectUpdateInfo.scale(), scaleToUse);
     m_drawingArea->setExposedContentRect(adjustedExposedContentRect);
 
+    auto& frame = m_page->mainFrame();
+    FrameView& frameView = *frame.view();
+
+    if (auto* scrollingCoordinator = this->scrollingCoordinator()) {
+        auto& remoteScrollingCoordinator = downcast<RemoteScrollingCoordinator>(*scrollingCoordinator);
+        if (auto mainFrameScrollingNodeID = frameView.scrollingNodeID()) {
+            if (visibleContentRectUpdateInfo.viewStability().contains(ViewStabilityFlag::ScrollViewRubberBanding))
+                remoteScrollingCoordinator.addNodeWithActiveRubberBanding(mainFrameScrollingNodeID);
+            else
+                remoteScrollingCoordinator.removeNodeWithActiveRubberBanding(mainFrameScrollingNodeID);
+        }
+    }
+
     IntPoint scrollPosition = roundedIntPoint(visibleContentRectUpdateInfo.unobscuredContentRect().location());
 
     bool pageHasBeenScaledSinceLastLayerTreeCommitThatChangedPageScale = ([&] {
@@ -3838,8 +3901,6 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
         }
     }
 
-    auto& frame = m_page->mainFrame();
-    FrameView& frameView = *frame.view();
     if (scrollPosition != frameView.scrollPosition())
         m_dynamicSizeUpdateHistory.clear();
 
@@ -3888,14 +3949,15 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
         frameView.layoutOrVisualViewportChanged();
     }
 
-    if (!visibleContentRectUpdateInfo.isChangingObscuredInsetsInteractively())
+    bool isChangingObscuredInsetsInteractively = visibleContentRectUpdateInfo.viewStability().contains(ViewStabilityFlag::ChangingObscuredInsetsInteractively);
+    if (!isChangingObscuredInsetsInteractively)
         frameView.setCustomSizeForResizeEvent(expandedIntSize(visibleContentRectUpdateInfo.unobscuredRectInScrollViewCoordinates().size()));
 
-    if (ScrollingCoordinator* scrollingCoordinator = this->scrollingCoordinator()) {
-        ViewportRectStability viewportStability = ViewportRectStability::Stable;
-        ScrollingLayerPositionAction layerAction = ScrollingLayerPositionAction::Sync;
+    if (auto* scrollingCoordinator = this->scrollingCoordinator()) {
+        auto viewportStability = ViewportRectStability::Stable;
+        auto layerAction = ScrollingLayerPositionAction::Sync;
         
-        if (visibleContentRectUpdateInfo.isChangingObscuredInsetsInteractively()) {
+        if (isChangingObscuredInsetsInteractively) {
             viewportStability = ViewportRectStability::ChangingObscuredInsetsInteractively;
             layerAction = ScrollingLayerPositionAction::SetApproximate;
         } else if (!m_isInStableState) {

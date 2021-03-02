@@ -1169,14 +1169,14 @@ void SourceBufferParserWebM::VideoTrackData::createSampleBuffer(const CMTime& pr
     m_currentBlockBuffer = nullptr;
     m_currentBlockBufferPosition = 0;
 
-    if (!isKey) {
-        auto attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer.get(), true);
-        ASSERT(attachmentsArray);
-        if (!attachmentsArray) {
-            PARSER_LOG_ERROR_IF_POSSIBLE("CMSampleBufferGetSampleAttachmentsArray returned NULL");
-            return;
-        }
+    auto attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer.get(), true);
+    ASSERT(attachmentsArray);
+    if (!attachmentsArray) {
+        PARSER_LOG_ERROR_IF_POSSIBLE("CMSampleBufferGetSampleAttachmentsArray returned NULL");
+        return;
+    }
 
+    if (!isKey) {
         for (CFIndex i = 0, count = CFArrayGetCount(attachmentsArray); i < count; ++i) {
             CFMutableDictionaryRef attachments = checked_cf_cast<CFMutableDictionaryRef>(CFArrayGetValueAtIndex(attachmentsArray, i));
             CFDictionarySetValue(attachments, kCMSampleAttachmentKey_NotSync, kCFBooleanTrue);
@@ -1316,14 +1316,7 @@ const HashSet<String>& SourceBufferParserWebM::supportedVideoCodecs()
 
 const HashSet<String>& SourceBufferParserWebM::supportedAudioCodecs()
 {
-    static auto codecs = makeNeverDestroyed<HashSet<String>>({
-#if ENABLE(VORBIS)
-        "A_VORBIS",
-#endif
-#if ENABLE(OPUS)
-        "A_OPUS",
-#endif
-    });
+    static auto codecs = makeNeverDestroyed<HashSet<String>>({ "A_VORBIS", "A_OPUS" });
     return codecs;
 }
 

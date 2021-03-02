@@ -249,10 +249,12 @@ ElementUpdates TreeResolver::resolveElement(Element& element)
     }
 
     PseudoIdToElementUpdateMap pseudoUpdates;
-    for (PseudoId pseudoId = PseudoId::FirstPublicPseudoId; pseudoId < PseudoId::FirstInternalPseudoId; pseudoId = static_cast<PseudoId>(static_cast<unsigned>(pseudoId) + 1)) {
-        if (auto elementUpdate = resolvePseudoStyle(element, update, pseudoId))
-            pseudoUpdates.set(pseudoId, WTFMove(*elementUpdate));
-    }
+    if (auto beforeElementUpdate = resolvePseudoStyle(element, update, PseudoId::Before))
+        pseudoUpdates.set(PseudoId::Before, WTFMove(*beforeElementUpdate));
+    if (auto afterElementUpdate = resolvePseudoStyle(element, update, PseudoId::After))
+        pseudoUpdates.set(PseudoId::After, WTFMove(*afterElementUpdate));
+    if (auto markerElementUpdate = resolvePseudoStyle(element, update, PseudoId::Marker))
+        pseudoUpdates.set(PseudoId::Marker, WTFMove(*markerElementUpdate));
 
 #if ENABLE(TOUCH_ACTION_REGIONS)
     // FIXME: Track this exactly.
@@ -316,20 +318,7 @@ const RenderStyle* TreeResolver::parentBoxStyleForPseudo(const ElementUpdate& el
 ElementUpdate TreeResolver::createAnimatedElementUpdate(std::unique_ptr<RenderStyle> newStyle, const Styleable& styleable, Change parentChange)
 {
     auto& element = styleable.element;
-
-    // FIXME: Ideally we could just call Element::renderOrDisplayContentsStyle() with a PseudoId
-    // and get the style for any PseudoId, not just PseudoId::Before or PseudoId::After.
-    auto* pseudoElement = [styleable]() -> PseudoElement* {
-        switch (styleable.pseudoId) {
-        case PseudoId::Before:
-            return styleable.element.beforePseudoElement();
-        case PseudoId::After:
-            return styleable.element.afterPseudoElement();
-        default:
-            return nullptr;
-        }
-    }();
-    auto* oldStyle = pseudoElement ? pseudoElement->renderOrDisplayContentsStyle() : element.renderOrDisplayContentsStyle();
+    auto* oldStyle = element.renderOrDisplayContentsStyle(styleable.pseudoId);
 
     OptionSet<AnimationImpact> animationImpact;
 

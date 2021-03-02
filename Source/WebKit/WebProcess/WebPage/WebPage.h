@@ -1584,7 +1584,7 @@ private:
     void clearServiceWorkerEntitlementOverride(CompletionHandler<void()>&& completionHandler) { completionHandler(); }
 #endif
 
-    void didReceivePolicyDecision(WebCore::FrameIdentifier, uint64_t listenerID, PolicyDecision&&);
+    void didReceivePolicyDecision(WebCore::FrameIdentifier, uint64_t listenerID, PolicyDecision&&, const SandboxExtension::HandleArray&);
     void continueWillSubmitForm(WebCore::FrameIdentifier, uint64_t listenerID);
     void setUserAgent(const String&);
     void setCustomTextEncodingName(const String&);
@@ -1798,7 +1798,11 @@ private:
 
     Vector<RefPtr<SandboxExtension>> consumeSandboxExtensions(SandboxExtension::HandleArray&&);
     void revokeSandboxExtensions(Vector<RefPtr<SandboxExtension>>& sandboxExtensions);
+
+    void setSelectionRange(const WebCore::IntPoint&, WebCore::TextGranularity, bool);
     
+    void consumeNetworkExtensionSandboxExtensions(const SandboxExtension::HandleArray&);
+
     WebCore::PageIdentifier m_identifier;
 
     std::unique_ptr<WebCore::Page> m_page;
@@ -1825,6 +1829,7 @@ private:
     HashMap<PDFPluginIdentifier, WeakPtr<PDFPlugin>> m_pdfPlugInsWithHUD;
 #endif
 
+    WTF::Function<void()> m_selectionChangedHandler;
     bool m_isInRedo { false };
     bool m_isClosed { false };
     bool m_tabToLinks { false };

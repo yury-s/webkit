@@ -103,6 +103,7 @@
 #include "SpellingCorrectionCommand.h"
 #include "StaticPasteboard.h"
 #include "StyleProperties.h"
+#include "StyleTreeResolver.h"
 #include "SystemSoundManager.h"
 #include "TelephoneNumberDetector.h"
 #include "Text.h"
@@ -1763,6 +1764,11 @@ void Editor::toggleAutomaticTextReplacement()
 {
     if (client())
         client()->toggleAutomaticTextReplacement();
+}
+
+bool Editor::canEnableAutomaticSpellingCorrection() const
+{
+    return m_alternativeTextController->canEnableAutomaticSpellingCorrection();
 }
 
 bool Editor::isAutomaticSpellingCorrectionEnabled()
@@ -3439,10 +3445,14 @@ void Editor::applyEditingStyleToBodyElement() const
 bool Editor::findString(const String& target, FindOptions options)
 {
     Ref<Document> protectedDocument(m_document);
+    Optional<SimpleRange> resultRange;
+    {
+        m_document.updateLayoutIgnorePendingStylesheets();
+        Style::PostResolutionCallbackDisabler disabler(m_document);
+        VisibleSelection selection = m_document.selection().selection();
+        resultRange = rangeOfString(target, selection.firstRange(), options);
+    }
 
-    VisibleSelection selection = m_document.selection().selection();
-
-    auto resultRange = rangeOfString(target, selection.firstRange(), options);
     if (!resultRange)
         return false;
 

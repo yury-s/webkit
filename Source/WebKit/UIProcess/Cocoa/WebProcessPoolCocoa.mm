@@ -140,7 +140,8 @@ static void registerUserDefaultsIfNeeded()
 void WebProcessPool::updateProcessSuppressionState()
 {
     WebsiteDataStore::forEachWebsiteDataStore([enabled = processSuppressionEnabled()] (WebsiteDataStore& dataStore) {
-        dataStore.networkProcess().setProcessSuppressionEnabled(enabled);
+        if (auto* networkProcess = dataStore.networkProcessIfExists())
+            networkProcess->setProcessSuppressionEnabled(enabled);
     });
 
 #if ENABLE(NETSCAPE_PLUGIN_API)
@@ -470,7 +471,10 @@ void WebProcessPool::platformInitializeWebProcess(const WebProcessProxy& process
     parameters.hasStylusDevice = [[WKStylusDeviceObserver sharedInstance] hasStylusDevice];
 #endif
 
-    parameters.maximumIOSurfaceSize = WebCore::IOSurface::maximumSize();
+    // If we're using the GPU process for DOM rendering, we can't query the maximum IOSurface size in the Web Content process.
+    // However, querying this is a launch time regression, so limit this to only the necessary case.
+    if (m_defaultPageGroup->preferences().useGPUProcessForDOMRenderingEnabled())
+        parameters.maximumIOSurfaceSize = WebCore::IOSurface::maximumSize();
 }
 
 void WebProcessPool::platformInitializeNetworkProcess(NetworkProcessCreationParameters& parameters)
@@ -491,7 +495,12 @@ void WebProcessPool::platformInitializeNetworkProcess(NetworkProcessCreationPara
 #endif
 
     parameters.enablePrivateClickMeasurement = ![defaults objectForKey:WebPreferencesKey::privateClickMeasurementEnabledKey()] || [defaults boolForKey:WebPreferencesKey::privateClickMeasurementEnabledKey()];
-    parameters.enablePrivateClickMeasurementDebugMode = [defaults boolForKey:[NSString stringWithFormat:@"Experimental%@", WebPreferencesKey::privateClickMeasurementDebugModeEnabledKey().createCFString().get()]];
+#if PLATFORM(MAC)
+    NSString *format = @"Experimental%@";
+#else
+    NSString *format = @"WebKitExperimental%@";
+#endif
+    parameters.enablePrivateClickMeasurementDebugMode = [defaults boolForKey:[NSString stringWithFormat:format, WebPreferencesKey::privateClickMeasurementDebugModeEnabledKey().createCFString().get()]];
 }
 
 void WebProcessPool::platformInvalidateContext()

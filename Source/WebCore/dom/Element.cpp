@@ -678,12 +678,12 @@ bool Element::isUserActionElementDragged() const
     return document().userActionElements().isBeingDragged(*this);
 }
 
-void Element::setActive(bool flag, bool pause)
+void Element::setActive(bool flag, bool pause, Style::InvalidationScope invalidationScope)
 {
     if (flag == active())
         return;
     {
-        Style::PseudoClassChangeInvalidation styleInvalidation(*this, CSSSelector::PseudoClassActive);
+        Style::PseudoClassChangeInvalidation styleInvalidation(*this, CSSSelector::PseudoClassActive, invalidationScope);
         document().userActionElements().setActive(*this, flag);
     }
 
@@ -755,12 +755,12 @@ void Element::setHasFocusWithin(bool flag)
     }
 }
 
-void Element::setHovered(bool flag)
+void Element::setHovered(bool flag, Style::InvalidationScope invalidationScope)
 {
     if (flag == hovered())
         return;
     {
-        Style::PseudoClassChangeInvalidation styleInvalidation(*this, CSSSelector::PseudoClassHover);
+        Style::PseudoClassChangeInvalidation styleInvalidation(*this, CSSSelector::PseudoClassHover, invalidationScope);
         document().userActionElements().setHovered(*this, flag);
     }
 
@@ -1966,10 +1966,6 @@ void Element::invalidateStyle()
 {
     Node::invalidateStyle(Style::Validity::ElementInvalid);
     invalidateSiblingsIfNeeded(*this);
-
-    // FIXME: This flag should be set whenever styles are invalidated while computed styles are present,
-    // not just in this codepath.
-    setNodeFlag(NodeFlag::IsComputedStyleInvalidFlag);
 }
 
 void Element::invalidateStyleAndLayerComposition()
@@ -3293,7 +3289,7 @@ void Element::willBecomeFullscreenElement()
         child.ancestorWillEnterFullscreen();
 }
 
-static PseudoElement* beforeOrAfterPseudoElement(Element& host, PseudoId pseudoElementSpecifier)
+static PseudoElement* beforeOrAfterPseudoElement(const Element& host, PseudoId pseudoElementSpecifier)
 {
     switch (pseudoElementSpecifier) {
     case PseudoId::Before:
@@ -3315,8 +3311,20 @@ const RenderStyle* Element::existingComputedStyle() const
     return renderStyle();
 }
 
-const RenderStyle* Element::renderOrDisplayContentsStyle() const
+const RenderStyle* Element::renderOrDisplayContentsStyle(PseudoId pseudoId) const
 {
+    if (pseudoId != PseudoId::None) {
+        if (auto* pseudoElement = beforeOrAfterPseudoElement(*this, pseudoId))
+            return pseudoElement->renderOrDisplayContentsStyle();
+
+        if (auto* computedStyle = existingComputedStyle()) {
+            if (auto* cachedPseudoStyle = computedStyle->getCachedPseudoStyle(pseudoId))
+                return cachedPseudoStyle;
+        }
+
+        return nullptr;
+    }
+
     if (auto* style = renderStyle())
         return style;
 

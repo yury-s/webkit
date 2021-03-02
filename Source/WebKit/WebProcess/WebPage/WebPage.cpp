@@ -507,6 +507,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         WebSocketProvider::create(),
         makeUniqueRef<WebKit::LibWebRTCProvider>(),
         WebProcess::singleton().cacheStorageProvider(),
+        m_userContentController,
         WebBackForwardListProxy::create(*this),
         WebProcess::singleton().cookieJar(),
         makeUniqueRef<WebProgressTrackerClient>(*this),
@@ -547,7 +548,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     pageConfiguration.databaseProvider = WebDatabaseProvider::getOrCreate(m_pageGroup->pageGroupID());
     pageConfiguration.pluginInfoProvider = &WebPluginInfoProvider::singleton();
     pageConfiguration.storageNamespaceProvider = WebStorageNamespaceProvider::getOrCreate(*m_pageGroup);
-    pageConfiguration.userContentProvider = m_userContentController.ptr();
     pageConfiguration.visitedLinkStore = VisitedLinkTableController::getOrCreate(parameters.visitedLinkTableID);
 
 #if ENABLE(APPLE_PAY)
@@ -2644,6 +2644,16 @@ void WebPage::updateDrawingAreaLayerTreeFreezeState()
 {
     if (!m_drawingArea)
         return;
+
+#if ENABLE(VIDEO_PRESENTATION_MODE)
+    // When the browser is in the background, we should not freeze the layer tree
+    // if the page has a video playing in picture-in-picture.
+    if (m_videoFullscreenManager && m_videoFullscreenManager->hasVideoPlayingInPictureInPicture() && m_layerTreeFreezeReasons.hasExactlyOneBitSet() && m_layerTreeFreezeReasons.contains(LayerTreeFreezeReason::BackgroundApplication)) {
+        m_drawingArea->setLayerTreeStateIsFrozen(false);
+        return;
+    }
+#endif
+
     m_drawingArea->setLayerTreeStateIsFrozen(!!m_layerTreeFreezeReasons);
 }
 
@@ -3363,8 +3373,10 @@ void WebPage::setLayerHostingMode(LayerHostingMode layerHostingMode)
         pluginView->setLayerHostingMode(m_layerHostingMode);
 }
 
-void WebPage::didReceivePolicyDecision(FrameIdentifier frameID, uint64_t listenerID, PolicyDecision&& policyDecision)
+void WebPage::didReceivePolicyDecision(FrameIdentifier frameID, uint64_t listenerID, PolicyDecision&& policyDecision, const SandboxExtension::HandleArray& networkExtensionsHandles)
 {
+    consumeNetworkExtensionSandboxExtensions(networkExtensionsHandles);
+
     WebFrame* frame = WebProcess::singleton().webFrame(frameID);
     RELEASE_LOG_IF_ALLOWED(Loading, "didReceivePolicyDecision: policyAction: %u - frameID: %llu - webFrame: %p - mainFrame: %d", (unsigned)policyDecision.policyAction, frameID.toUInt64(), frame, frame ? frame->isMainFrame() : 0);
 
@@ -7144,6 +7156,11 @@ bool WebPage::createAppHighlightInSelectedRange(CreateNewGroupForHighlight creat
 }
 #endif
 
+#if !PLATFORM(COCOA)
+void WebPage::consumeNetworkExtensionSandboxExtensions(const SandboxExtension::HandleArray&)
+{
+}
+#endif
 
 } // namespace WebKit
 
