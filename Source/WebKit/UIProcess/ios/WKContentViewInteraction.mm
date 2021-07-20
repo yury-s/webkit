@@ -4938,19 +4938,12 @@ static void selectionChangedWithTouch(WKContentView *view, const WebCore::IntPoi
 
 - (void)beginSelectionChange
 {
-    _selectionChangeNestingLevel++;
-
     [self.inputDelegate selectionWillChange:self];
 }
 
 - (void)endSelectionChange
 {
     [self.inputDelegate selectionDidChange:self];
-
-    if (_selectionChangeNestingLevel)
-        _selectionChangeNestingLevel--;
-    else
-        ASSERT_NOT_REACHED();
 }
 
 - (void)willFinishIgnoringCalloutBarFadeAfterPerformingAction
@@ -7210,12 +7203,6 @@ static bool canUseQuickboardControllerFor(UITextContentType type)
         _lastInsertedCharacterToOverrideCharacterBeforeSelection = std::nullopt;
         if (!_usingGestureForSelection && _focusedElementInformation.autocapitalizeType == WebCore::AutocapitalizeType::Words)
             [UIKeyboardImpl.sharedInstance clearShiftState];
-
-        if (!_usingGestureForSelection && !_selectionChangeNestingLevel && _page->editorState().triggeredByAccessibilitySelectionChange) {
-            // Force UIKit to reload all EditorState-based UI; in particular, this includes text candidates.
-            [self beginSelectionChange];
-            [self endSelectionChange];
-        }
     }
 }
 
@@ -8018,11 +8005,6 @@ static WebCore::DataOwnerType coreDataOwnerType(_UIDataOwner platformType)
 
     if (gestureRecognizer == _touchEventGestureRecognizer)
         return NO;
-
-#if HAVE(UIKIT_WITH_MOUSE_SUPPORT)
-    if (gestureRecognizer == _mouseGestureRecognizer)
-        return NO;
-#endif
 
 #if ENABLE(IMAGE_ANALYSIS)
     if (deferringGestureRecognizer == _imageAnalysisDeferringGestureRecognizer)

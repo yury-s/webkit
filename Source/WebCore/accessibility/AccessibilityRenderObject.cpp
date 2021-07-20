@@ -41,7 +41,6 @@
 #include "DocumentSVG.h"
 #include "Editing.h"
 #include "Editor.h"
-#include "EditorClient.h"
 #include "ElementIterator.h"
 #include "EventHandler.h"
 #include "FloatRect.h"
@@ -1717,9 +1716,6 @@ void AccessibilityRenderObject::setSelectedTextRange(const PlainTextRange& range
 {
     setTextSelectionIntent(axObjectCache(), range.length ? AXTextStateChangeTypeSelectionExtend : AXTextStateChangeTypeSelectionMove);
 
-    if (auto client = m_renderer->document().editor().client())
-        client->willChangeSelectionForAccessibility();
-
     if (isNativeTextControl()) {
         HTMLTextFormControlElement& textControl = downcast<RenderTextControl>(*m_renderer).textFormControlElement();
         textControl.setSelectionRange(range.start, range.start + range.length);
@@ -1737,9 +1733,6 @@ void AccessibilityRenderObject::setSelectedTextRange(const PlainTextRange& range
     }
     
     clearTextSelectionIntent(axObjectCache());
-
-    if (auto client = m_renderer->document().editor().client())
-        client->didChangeSelectionForAccessibility();
 }
 
 URL AccessibilityRenderObject::url() const
@@ -2282,9 +2275,6 @@ void AccessibilityRenderObject::setSelectedVisiblePositionRange(const VisiblePos
         && isVisiblePositionRangeInDifferentDocument(range))
         return;
 
-    if (auto client = m_renderer->document().editor().client())
-        client->willChangeSelectionForAccessibility();
-
     // make selection and tell the document to use it. if it's zero length, then move to that position
     if (range.start == range.end) {
         setTextSelectionIntent(axObjectCache(), AXTextStateChangeTypeSelectionMove);
@@ -2300,13 +2290,10 @@ void AccessibilityRenderObject::setSelectedVisiblePositionRange(const VisiblePos
         setTextSelectionIntent(axObjectCache(), AXTextStateChangeTypeSelectionExtend);
 
         VisibleSelection newSelection = VisibleSelection(range.start, range.end);
-        m_renderer->frame().selection().setSelection(newSelection, FrameSelection::defaultSetSelectionOptions(UserTriggered));
+        m_renderer->frame().selection().setSelection(newSelection, FrameSelection::defaultSetSelectionOptions());
     }
 
     clearTextSelectionIntent(axObjectCache());
-
-    if (auto client = m_renderer->document().editor().client())
-        client->didChangeSelectionForAccessibility();
 }
 
 VisiblePosition AccessibilityRenderObject::visiblePositionForPoint(const IntPoint& point) const

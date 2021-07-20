@@ -463,7 +463,6 @@ using ImageAnalysisRequestIdentifier = ObjectIdentifier<ImageAnalysisRequestIden
     RetainPtr<NSDictionary> _additionalContextForStrongPasswordAssistance;
 
     std::optional<UChar32> _lastInsertedCharacterToOverrideCharacterBeforeSelection;
-    unsigned _selectionChangeNestingLevel;
 
 #if ENABLE(DRAG_SUPPORT)
     WebKit::DragDropInteractionState _dragDropInteractionState;
