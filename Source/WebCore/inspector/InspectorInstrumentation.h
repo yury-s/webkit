@@ -31,6 +31,7 @@
 
 #pragma once
 
+#include "AccessibilityObjectInterface.h"
 #include "CSSSelector.h"
 #include "CanvasBase.h"
 #include "CanvasRenderingContext.h"
@@ -79,6 +80,7 @@ class DOMWrapperWorld;
 class Document;
 class DocumentLoader;
 class EventListener;
+class HTMLInputElement;
 class HTTPHeaderMap;
 class InspectorTimelineAgent;
 class InstrumentingAgents;
@@ -201,6 +203,7 @@ public:
     static void didReceiveData(Frame*, unsigned long identifier, const uint8_t* data, int dataLength, int encodedDataLength);
     static void didFinishLoading(Frame*, DocumentLoader*, unsigned long identifier, const NetworkLoadMetrics&, ResourceLoader*);
     static void didFailLoading(Frame*, DocumentLoader*, unsigned long identifier, const ResourceError&);
+    static void didReceiveMainResourceError(Frame&, const ResourceError&);
 
     static void willSendRequest(WorkerOrWorkletGlobalScope&, unsigned long identifier, ResourceRequest&);
     static void didReceiveResourceResponse(WorkerOrWorkletGlobalScope&, unsigned long identifier, const ResourceResponse&);
@@ -227,11 +230,11 @@ public:
     static void frameDetachedFromParent(Frame&);
     static void didCommitLoad(Frame&, DocumentLoader*);
     static void frameDocumentUpdated(Frame&);
-    static void loaderDetachedFromFrame(Frame&, DocumentLoader&);
     static void frameStartedLoading(Frame&);
     static void frameStoppedLoading(Frame&);
     static void frameScheduledNavigation(Frame&, Seconds delay);
     static void frameClearedScheduledNavigation(Frame&);
+    static void didNavigateWithinPage(Frame&);
 #if ENABLE(DARK_MODE_CSS) || HAVE(OS_DARK_MODE_SUPPORT)
     static void defaultAppearanceDidChange(Page&, bool useDarkAppearance);
 #endif
@@ -242,6 +245,9 @@ public:
     static bool shouldInterceptResponse(const Frame&, const ResourceResponse&);
     static void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     static void interceptResponse(const Frame&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
+    static void interceptDidReceiveData(const Frame&, unsigned long identifier, const SharedBuffer&);
+    static void interceptDidFinishResourceLoad(const Frame&, unsigned long identifier);
+    static void interceptDidFailResourceLoad(const Frame&, unsigned long identifier, const ResourceError& error);
 
     static void addMessageToConsole(Page&, std::unique_ptr<Inspector::ConsoleMessage>);
     static void addMessageToConsole(WorkerOrWorkletGlobalScope&, std::unique_ptr<Inspector::ConsoleMessage>);
@@ -325,6 +331,12 @@ public:
     static void layerTreeDidChange(Page*);
     static void renderLayerDestroyed(Page*, const RenderLayer&);
 
+    static void runOpenPanel(Frame*, HTMLInputElement*, bool*);
+    static void frameAttached(Frame*);
+    static bool shouldBypassCSP(ScriptExecutionContext*);
+    static void willCheckNewWindowPolicy(Frame&, const URL&);
+    static void didCheckNewWindowPolicy(Frame&, bool allowed);
+
     static void frontendCreated();
     static void frontendDeleted();
     static bool hasFrontends() { return InspectorInstrumentationPublic::hasFrontends(); }
@@ -340,6 +352,8 @@ public:
 
     static void registerInstrumentingAgents(InstrumentingAgents&);
     static void unregisterInstrumentingAgents(InstrumentingAgents&);
+
+    static void maybeOverrideDefaultObjectInclusion(Page&, AccessibilityObjectInclusion&);
 
 private:
     static void didClearWindowObjectInWorldImpl(InstrumentingAgents&, Frame&, DOMWrapperWorld&);
@@ -429,6 +443,7 @@ private:
     static void didReceiveDataImpl(InstrumentingAgents&, unsigned long identifier, const uint8_t* data, int dataLength, int encodedDataLength);
     static void didFinishLoadingImpl(InstrumentingAgents&, unsigned long identifier, DocumentLoader*, const NetworkLoadMetrics&, ResourceLoader*);
     static void didFailLoadingImpl(InstrumentingAgents&, unsigned long identifier, DocumentLoader*, const ResourceError&);
+    static void didReceiveMainResourceErrorImpl(InstrumentingAgents&, Frame&, const ResourceError&);
     static void willLoadXHRSynchronouslyImpl(InstrumentingAgents&);
     static void didLoadXHRSynchronouslyImpl(InstrumentingAgents&);
     static void scriptImportedImpl(InstrumentingAgents&, unsigned long identifier, const String& sourceString);
@@ -439,11 +454,11 @@ private:
     static void frameDetachedFromParentImpl(InstrumentingAgents&, Frame&);
     static void didCommitLoadImpl(InstrumentingAgents&, Frame&, DocumentLoader*);
     static void frameDocumentUpdatedImpl(InstrumentingAgents&, Frame&);
-    static void loaderDetachedFromFrameImpl(InstrumentingAgents&, DocumentLoader&);
     static void frameStartedLoadingImpl(InstrumentingAgents&, Frame&);
     static void frameStoppedLoadingImpl(InstrumentingAgents&, Frame&);
     static void frameScheduledNavigationImpl(InstrumentingAgents&, Frame&, Seconds delay);
     static void frameClearedScheduledNavigationImpl(InstrumentingAgents&, Frame&);
+    static void didNavigateWithinPageImpl(InstrumentingAgents&, Frame&);
 #if ENABLE(DARK_MODE_CSS) || HAVE(OS_DARK_MODE_SUPPORT)
     static void defaultAppearanceDidChangeImpl(InstrumentingAgents&, bool useDarkAppearance);
 #endif
@@ -454,6 +469,9 @@ private:
     static bool shouldInterceptResponseImpl(InstrumentingAgents&, const ResourceResponse&);
     static void interceptRequestImpl(InstrumentingAgents&, ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
+    static void interceptDidReceiveDataImpl(InstrumentingAgents&, unsigned long identifier, const SharedBuffer&);
+    static void interceptDidFinishResourceLoadImpl(InstrumentingAgents&, unsigned long identifier);
+    static void interceptDidFailResourceLoadImpl(InstrumentingAgents&, unsigned long identifier, const ResourceError& error);
 
     static void addMessageToConsoleImpl(InstrumentingAgents&, std::unique_ptr<Inspector::ConsoleMessage>);
 
@@ -532,6 +550,12 @@ private:
 
     static void layerTreeDidChangeImpl(InstrumentingAgents&);
     static void renderLayerDestroyedImpl(InstrumentingAgents&, const RenderLayer&);
+
+    static void runOpenPanelImpl(InstrumentingAgents&, HTMLInputElement*, bool*);
+    static void frameAttachedImpl(InstrumentingAgents&, Frame&);
+    static bool shouldBypassCSPImpl(InstrumentingAgents&);
+    static void willCheckNewWindowPolicyImpl(InstrumentingAgents&, const URL&);
+    static void didCheckNewWindowPolicyImpl(InstrumentingAgents&, bool allowed);
 
     static InstrumentingAgents& instrumentingAgents(Page&);
     static InstrumentingAgents& instrumentingAgents(WorkerOrWorkletGlobalScope&);
@@ -1134,6 +1158,13 @@ inline void InspectorInstrumentation::didFailLoading(Frame* frame, DocumentLoade
         didFailLoadingImpl(*agents, identifier, loader, error);
 }
 
+inline void InspectorInstrumentation::didReceiveMainResourceError(Frame& frame, const ResourceError& error)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        didReceiveMainResourceErrorImpl(*agents, frame, error);
+}
+
 inline void InspectorInstrumentation::didFailLoading(WorkerOrWorkletGlobalScope& globalScope, unsigned long identifier, const ResourceError& error)
 {
     didFailLoadingImpl(instrumentingAgents(globalScope), identifier, nullptr, error);
@@ -1229,13 +1260,6 @@ inline void InspectorInstrumentation::frameDocumentUpdated(Frame& frame)
         frameDocumentUpdatedImpl(*agents, frame);
 }
 
-inline void InspectorInstrumentation::loaderDetachedFromFrame(Frame& frame, DocumentLoader& loader)
-{
-    FAST_RETURN_IF_NO_FRONTENDS(void());
-    if (auto* agents = instrumentingAgents(frame))
-        loaderDetachedFromFrameImpl(*agents, loader);
-}
-
 inline void InspectorInstrumentation::frameStartedLoading(Frame& frame)
 {
     FAST_RETURN_IF_NO_FRONTENDS(void());
@@ -1262,6 +1286,13 @@ inline void InspectorInstrumentation::frameClearedScheduledNavigation(Frame& fra
     FAST_RETURN_IF_NO_FRONTENDS(void());
     if (auto* agents = instrumentingAgents(frame))
         frameClearedScheduledNavigationImpl(*agents, frame);
+}
+
+inline void InspectorInstrumentation::didNavigateWithinPage(Frame& frame)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        didNavigateWithinPageImpl(*agents, frame);
 }
 
 #if ENABLE(DARK_MODE_CSS) || HAVE(OS_DARK_MODE_SUPPORT)
@@ -1314,6 +1345,22 @@ inline void InspectorInstrumentation::interceptResponse(const Frame& frame, cons
     ASSERT(InspectorInstrumentation::shouldInterceptResponse(frame, response));
     if (auto* agents = instrumentingAgents(frame))
         interceptResponseImpl(*agents, response, identifier, WTFMove(handler));
+}
+
+inline void InspectorInstrumentation::interceptDidReceiveData(const Frame& frame, unsigned long identifier, const SharedBuffer& buffer)
+{
+    if (auto* agents = instrumentingAgents(frame))
+        interceptDidReceiveDataImpl(*agents, identifier, buffer);
+}
+inline void InspectorInstrumentation::interceptDidFinishResourceLoad(const Frame& frame, unsigned long identifier)
+{
+    if (auto* agents = instrumentingAgents(frame))
+        interceptDidFinishResourceLoadImpl(*agents, identifier);
+}
+inline void InspectorInstrumentation::interceptDidFailResourceLoad(const Frame& frame, unsigned long identifier, const ResourceError& error)
+{
+    if (auto* agents = instrumentingAgents(frame))
+        interceptDidFailResourceLoadImpl(*agents, identifier, error);
 }
 
 inline void InspectorInstrumentation::didOpenDatabase(Database& database)
@@ -1729,6 +1776,42 @@ inline void InspectorInstrumentation::renderLayerDestroyed(Page* page, const Ren
     FAST_RETURN_IF_NO_FRONTENDS(void());
     if (auto* agents = instrumentingAgents(page))
         renderLayerDestroyedImpl(*agents, renderLayer);
+}
+
+inline void InspectorInstrumentation::runOpenPanel(Frame* frame, HTMLInputElement* element, bool* intercept)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(*frame))
+        runOpenPanelImpl(*agents, element, intercept);
+}
+
+inline void InspectorInstrumentation::frameAttached(Frame* frame)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        frameAttachedImpl(*agents, *frame);
+}
+
+inline bool InspectorInstrumentation::shouldBypassCSP(ScriptExecutionContext* context)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(false);
+    if (auto* agents = instrumentingAgents(context))
+        return shouldBypassCSPImpl(*agents);
+    return false;
+}
+
+inline void InspectorInstrumentation::willCheckNewWindowPolicy(Frame& frame, const URL& url)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        willCheckNewWindowPolicyImpl(*agents, url);
+}
+
+inline void InspectorInstrumentation::didCheckNewWindowPolicy(Frame& frame, bool allowed)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        didCheckNewWindowPolicyImpl(*agents, allowed);
 }
 
 inline InstrumentingAgents* InspectorInstrumentation::instrumentingAgents(ScriptExecutionContext* context)

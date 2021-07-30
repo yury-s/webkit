@@ -196,6 +196,7 @@ void WebResourceLoader::didReceiveData(const IPC::DataReference& data, int64_t e
 
     if (UNLIKELY(m_interceptController.isIntercepting(m_coreLoader->identifier()))) {
         auto buffer = SharedBuffer::create(data.data(), data.size());
+        InspectorInstrumentationWebKit::interceptDidReceiveData(m_coreLoader->frame(), m_coreLoader->identifier(), buffer.get());
         m_interceptController.defer(m_coreLoader->identifier(), [this, protectedThis = makeRef(*this), buffer = WTFMove(buffer), encodedDataLength]() mutable {
             if (m_coreLoader)
                 didReceiveData({ buffer->data(), buffer->size() }, encodedDataLength);
@@ -216,6 +217,7 @@ void WebResourceLoader::didFinishResourceLoad(const NetworkLoadMetrics& networkL
     WEBRESOURCELOADER_RELEASE_LOG("didFinishResourceLoad: (length=%zd)", m_numBytesReceived);
 
     if (UNLIKELY(m_interceptController.isIntercepting(m_coreLoader->identifier()))) {
+        InspectorInstrumentationWebKit::interceptDidFinishResourceLoad(m_coreLoader->frame(), m_coreLoader->identifier());
         m_interceptController.defer(m_coreLoader->identifier(), [this, protectedThis = makeRef(*this), networkLoadMetrics]() mutable {
             if (m_coreLoader)
                 didFinishResourceLoad(networkLoadMetrics);
@@ -259,6 +261,7 @@ void WebResourceLoader::didFailResourceLoad(const ResourceError& error)
     WEBRESOURCELOADER_RELEASE_LOG("didFailResourceLoad:");
 
     if (UNLIKELY(m_interceptController.isIntercepting(m_coreLoader->identifier()))) {
+        InspectorInstrumentationWebKit::interceptDidFailResourceLoad(m_coreLoader->frame(), m_coreLoader->identifier(), error);
         m_interceptController.defer(m_coreLoader->identifier(), [this, protectedThis = makeRef(*this), error]() mutable {
             if (m_coreLoader)
                 didFailResourceLoad(error);

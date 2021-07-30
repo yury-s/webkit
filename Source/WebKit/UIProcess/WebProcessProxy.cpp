@@ -126,6 +126,11 @@ HashMap<ProcessIdentifier, WebProcessProxy*>& WebProcessProxy::allProcesses()
     return map;
 }
 
+Vector<WebProcessProxy*> WebProcessProxy::allProcessesForInspector()
+{
+    return copyToVector(allProcesses().values());
+}
+
 WebProcessProxy* WebProcessProxy::processForIdentifier(ProcessIdentifier identifier)
 {
     return allProcesses().get(identifier);
