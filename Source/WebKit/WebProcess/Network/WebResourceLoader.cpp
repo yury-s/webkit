@@ -155,17 +155,14 @@ void WebResourceLoader::didReceiveResponse(const ResourceResponse& response, boo
     if (InspectorInstrumentationWebKit::shouldInterceptResponse(m_coreLoader->frame(), response)) {
         unsigned long interceptedRequestIdentifier = m_coreLoader->identifier();
         m_interceptController.beginInterceptingResponse(interceptedRequestIdentifier);
-        InspectorInstrumentationWebKit::interceptResponse(m_coreLoader->frame(), response, interceptedRequestIdentifier, [this, protectedThis = makeRef(*this), interceptedRequestIdentifier, policyDecisionCompletionHandler = WTFMove(policyDecisionCompletionHandler)](const ResourceResponse& inspectorResponse, RefPtr<SharedBuffer> overrideData) mutable {
+        InspectorInstrumentationWebKit::interceptResponse(m_coreLoader->frame(), response, interceptedRequestIdentifier, [this, protectedThis = makeRef(*this), interceptedRequestIdentifier](const ResourceResponse& inspectorResponse, RefPtr<SharedBuffer> overrideData) mutable {
             if (!m_coreLoader || !m_coreLoader->identifier()) {
                 WEBRESOURCELOADER_RELEASE_LOG("didReceiveResponse: not continuing intercept load because no coreLoader or no ID");
                 m_interceptController.continueResponse(interceptedRequestIdentifier);
                 return;
             }
 
-            m_coreLoader->didReceiveResponse(inspectorResponse, [this, protectedThis = WTFMove(protectedThis), interceptedRequestIdentifier, policyDecisionCompletionHandler = WTFMove(policyDecisionCompletionHandler), overrideData = WTFMove(overrideData)]() mutable {
-                if (policyDecisionCompletionHandler)
-                    policyDecisionCompletionHandler();
-
+            m_coreLoader->didReceiveResponse(inspectorResponse, [this, protectedThis = WTFMove(protectedThis), interceptedRequestIdentifier, overrideData = WTFMove(overrideData)]() mutable {
                 if (!m_coreLoader || !m_coreLoader->identifier()) {
                     m_interceptController.continueResponse(interceptedRequestIdentifier);
                     return;
@@ -183,6 +180,8 @@ void WebResourceLoader::didReceiveResponse(const ResourceResponse& response, boo
                 }
             });
         });
+        if (policyDecisionCompletionHandler)
+          policyDecisionCompletionHandler();
         return;
     }
 
