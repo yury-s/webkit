@@ -283,6 +283,8 @@ private:
 
     void clearPageSpecificData(WebCore::PageIdentifier);
 
+    void setCookieFromResponse(NetworkResourceLoadParameters&&, const URL& mainDocumentURL, const String& setCookieValue);
+
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
     void removeStorageAccessForFrame(WebCore::FrameIdentifier, WebCore::PageIdentifier);
 

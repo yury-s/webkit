@@ -50,4 +50,19 @@ void InspectorInstrumentationWebKit::interceptResponseInternal(const Frame& fram
     InspectorInstrumentation::interceptResponse(frame, response, identifier, WTFMove(handler));
 }
 
+void InspectorInstrumentationWebKit::interceptDidReceiveDataInternal(const Frame& frame, unsigned long identifier, const SharedBuffer& buffer)
+{
+    InspectorInstrumentation::interceptDidReceiveData(frame, identifier, buffer);
+}
+
+void InspectorInstrumentationWebKit::interceptDidFinishResourceLoadInternal(const Frame& frame, unsigned long identifier)
+{
+    InspectorInstrumentation::interceptDidFinishResourceLoad(frame, identifier);
+}
+
+void InspectorInstrumentationWebKit::interceptDidFailResourceLoadInternal(const Frame& frame, unsigned long identifier, const ResourceError& error)
+{
+    InspectorInstrumentation::interceptDidFailResourceLoad(frame, identifier, error);
+}
+
 } // namespace WebCore

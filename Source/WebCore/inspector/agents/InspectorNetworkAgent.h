@@ -72,6 +72,7 @@ public:
     static Ref<TextResourceDecoder> createTextDecoder(const String& mimeType, const String& textEncodingName);
     static std::optional<String> textContentForCachedResource(CachedResource&);
     static bool cachedResourceContent(CachedResource&, String* result, bool* base64Encoded);
+    static String initiatorIdentifierForEventSource();
 
     // InspectorAgentBase
     void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) final;
@@ -82,6 +83,7 @@ public:
     Inspector::Protocol::ErrorStringOr<void> disable() final;
     Inspector::Protocol::ErrorStringOr<void> setExtraHTTPHeaders(Ref<JSON::Object>&&) final;
     Inspector::Protocol::ErrorStringOr<std::tuple<String, bool /* base64Encoded */>> getResponseBody(const Inspector::Protocol::Network::RequestId&) final;
+    void getInterceptedResponseBody(const Inspector::Protocol::Network::RequestId&, Ref<GetInterceptedResponseBodyCallback>&&) final;
     Inspector::Protocol::ErrorStringOr<void> setResourceCachingDisabled(bool) final;
     void loadResource(const Inspector::Protocol::Network::FrameId&, const String& url, Ref<LoadResourceCallback>&&) final;
     Inspector::Protocol::ErrorStringOr<String> getSerializedCertificate(const Inspector::Protocol::Network::RequestId&) final;
@@ -94,6 +96,7 @@ public:
     Inspector::Protocol::ErrorStringOr<void> interceptWithResponse(const Inspector::Protocol::Network::RequestId&, const String& content, bool base64Encoded, const String& mimeType, std::optional<int>&& status, const String& statusText, RefPtr<JSON::Object>&& headers) final;
     Inspector::Protocol::ErrorStringOr<void> interceptRequestWithResponse(const Inspector::Protocol::Network::RequestId&, const String& content, bool base64Encoded, const String& mimeType, int status, const String& statusText, Ref<JSON::Object>&& headers) final;
     Inspector::Protocol::ErrorStringOr<void> interceptRequestWithError(const Inspector::Protocol::Network::RequestId&, Inspector::Protocol::Network::ResourceErrorType) final;
+    Inspector::Protocol::ErrorStringOr<void> setEmulateOfflineState(bool offline) final;
 
     // InspectorInstrumentation
     void willRecalculateStyle();
@@ -125,6 +128,9 @@ public:
     bool shouldInterceptResponse(const ResourceResponse&);
     void interceptResponse(const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
     void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
+    void interceptDidReceiveData(unsigned long identifier, const SharedBuffer&);
+    void interceptDidFinishResourceLoad(unsigned long identifier);
+    void interceptDidFailResourceLoad(unsigned long identifier, const ResourceError& error);
 
     void searchOtherRequests(const JSC::Yarr::RegularExpression&, Ref<JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>>&);
     void searchInRequest(Inspector::Protocol::ErrorString&, const Inspector::Protocol::Network::RequestId&, const String& query, bool caseSensitive, bool isRegex, RefPtr<JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>>&);
@@ -188,6 +194,7 @@ private:
         PendingInterceptResponse(const ResourceResponse& originalResponse, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& completionHandler)
             : m_originalResponse(originalResponse)
             , m_completionHandler(WTFMove(completionHandler))
+            , m_receivedData(SharedBuffer::create())
         { }
 
         ~PendingInterceptResponse()
@@ -211,12 +218,44 @@ private:
             m_responded = true;
 
             m_completionHandler(response, data);
+
+            m_receivedData->clear();
+            notifyDataHandlers();
+        }
+
+        void didReceiveData(const SharedBuffer& buffer)
+        {
+            m_receivedData->append(buffer);
+        }
+
+        void getReceivedData(CompletionHandler<void(const SharedBuffer&)>&& completionHandler)
+        {
+            if (m_finishedLoading || m_responded) {
+                completionHandler(m_receivedData.get());
+                return;
+            }
+            m_receivedDataHandlers.append(WTFMove(completionHandler));
+        }
+
+        void didFinishLoading() {
+            m_finishedLoading = true;
+            notifyDataHandlers();
         }
 
     private:
+        void notifyDataHandlers()
+        {
+            for (auto& handler : m_receivedDataHandlers)
+                handler(m_receivedData.get());
+            m_receivedDataHandlers.clear();
+        }
+
         ResourceResponse m_originalResponse;
         CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)> m_completionHandler;
+        Ref<SharedBuffer> m_receivedData;
+        Vector<CompletionHandler<void(const SharedBuffer&)>> m_receivedDataHandlers;
         bool m_responded { false };
+        bool m_finishedLoading { false };
     };
 
     std::unique_ptr<Inspector::NetworkFrontendDispatcher> m_frontendDispatcher;

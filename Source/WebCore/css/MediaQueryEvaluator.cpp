@@ -844,7 +844,11 @@ static bool prefersContrastEvaluate(CSSValue* value, const CSSToLengthConversion
 static bool prefersReducedMotionEvaluate(CSSValue* value, const CSSToLengthConversionData&, Frame& frame, MediaFeaturePrefix)
 {
     bool userPrefersReducedMotion = false;
-
+    
+    std::optional<bool> reducedMotionOverride = frame.page()->useReducedMotionOverride();
+    if (reducedMotionOverride)
+        userPrefersReducedMotion = reducedMotionOverride.value();
+    else {
     switch (frame.settings().forcedPrefersReducedMotionAccessibilityValue()) {
     case ForcedAccessibilityValue::On:
         userPrefersReducedMotion = true;
@@ -856,6 +860,7 @@ static bool prefersReducedMotionEvaluate(CSSValue* value, const CSSToLengthConve
         userPrefersReducedMotion = Theme::singleton().userPrefersReducedMotion();
 #endif
         break;
+    }
     }
 
     if (!value)
