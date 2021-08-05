@@ -28,7 +28,7 @@
 #include "StorageAreaIdentifier.h"
 #include "StorageNamespaceIdentifier.h"
 #include <WebCore/SecurityOriginData.h>
-#include <wtf/Forward.h>
+#include <wtf/Function.h>
 #include <wtf/HashMap.h>
 #include <wtf/WeakPtr.h>
 #include <wtf/WorkQueue.h>
@@ -58,6 +58,8 @@ public:
     Vector<WebCore::SecurityOriginData> ephemeralOrigins() const;
 
     Vector<StorageAreaIdentifier> storageAreaIdentifiers() const;
+
+    void forEachStorageArea(Function<void(const StorageArea&)>) const;
 
 private:
     StorageManager& m_storageManager;
