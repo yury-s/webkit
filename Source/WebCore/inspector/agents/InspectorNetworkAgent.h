@@ -94,6 +94,7 @@ public:
     Inspector::Protocol::ErrorStringOr<void> interceptContinue(const Inspector::Protocol::Network::RequestId&, Inspector::Protocol::Network::NetworkStage) final;
     Inspector::Protocol::ErrorStringOr<void> interceptWithRequest(const Inspector::Protocol::Network::RequestId&, const String& url, const String& method, RefPtr<JSON::Object>&& headers, const String& postData) final;
     Inspector::Protocol::ErrorStringOr<void> interceptWithResponse(const Inspector::Protocol::Network::RequestId&, const String& content, bool base64Encoded, const String& mimeType, std::optional<int>&& status, const String& statusText, RefPtr<JSON::Object>&& headers) final;
+    Inspector::Protocol::ErrorStringOr<void> interceptResponseWithError(const Inspector::Protocol::Network::RequestId&, Inspector::Protocol::Network::ResourceErrorType) final;
     Inspector::Protocol::ErrorStringOr<void> interceptRequestWithResponse(const Inspector::Protocol::Network::RequestId&, const String& content, bool base64Encoded, const String& mimeType, int status, const String& statusText, Ref<JSON::Object>&& headers) final;
     Inspector::Protocol::ErrorStringOr<void> interceptRequestWithError(const Inspector::Protocol::Network::RequestId&, Inspector::Protocol::Network::ResourceErrorType) final;
     Inspector::Protocol::ErrorStringOr<void> setEmulateOfflineState(bool offline) final;
@@ -126,7 +127,7 @@ public:
     bool willIntercept(const ResourceRequest&);
     bool shouldInterceptRequest(const ResourceRequest&);
     bool shouldInterceptResponse(const ResourceResponse&);
-    void interceptResponse(const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
+    void interceptResponse(const ResourceResponse&, unsigned long identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
     void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     void interceptDidReceiveData(unsigned long identifier, const SharedBuffer&);
     void interceptDidFinishResourceLoad(unsigned long identifier);
@@ -191,7 +192,7 @@ private:
         WTF_MAKE_NONCOPYABLE(PendingInterceptResponse);
         WTF_MAKE_FAST_ALLOCATED;
     public:
-        PendingInterceptResponse(const ResourceResponse& originalResponse, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& completionHandler)
+        PendingInterceptResponse(const ResourceResponse& originalResponse, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&& completionHandler)
             : m_originalResponse(originalResponse)
             , m_completionHandler(WTFMove(completionHandler))
             , m_receivedData(SharedBuffer::create())
@@ -211,16 +212,12 @@ private:
 
         void respond(const ResourceResponse& response, RefPtr<SharedBuffer> data)
         {
-            ASSERT(!m_responded);
-            if (m_responded)
-                return;
+            respond({ }, response, data);
+        }
 
-            m_responded = true;
-
-            m_completionHandler(response, data);
-
-            m_receivedData->clear();
-            notifyDataHandlers();
+        void fail(const ResourceError& error)
+        {
+            respond({ error },  m_originalResponse, nullptr);
         }
 
         void didReceiveData(const SharedBuffer& buffer)
@@ -243,6 +240,20 @@ private:
         }
 
     private:
+        void respond(std::optional<ResourceError>&& error, const ResourceResponse& response, RefPtr<SharedBuffer> data)
+        {
+            ASSERT(!m_responded);
+            if (m_responded)
+                return;
+
+            m_responded = true;
+
+            m_completionHandler(WTFMove(error), response, data);
+
+            m_receivedData->clear();
+            notifyDataHandlers();
+        }
+
         void notifyDataHandlers()
         {
             for (auto& handler : m_receivedDataHandlers)
@@ -251,7 +262,7 @@ private:
         }
 
         ResourceResponse m_originalResponse;
-        CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)> m_completionHandler;
+        CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)> m_completionHandler;
         Ref<SharedBuffer> m_receivedData;
         Vector<CompletionHandler<void(const SharedBuffer&)>> m_receivedDataHandlers;
         bool m_responded { false };

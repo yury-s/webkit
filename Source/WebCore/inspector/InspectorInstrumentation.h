@@ -234,7 +234,7 @@ public:
     static bool shouldInterceptRequest(const Frame&, const ResourceRequest&);
     static bool shouldInterceptResponse(const Frame&, const ResourceResponse&);
     static void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
-    static void interceptResponse(const Frame&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
+    static void interceptResponse(const Frame&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
     static void interceptDidReceiveData(const Frame&, unsigned long identifier, const SharedBuffer&);
     static void interceptDidFinishResourceLoad(const Frame&, unsigned long identifier);
     static void interceptDidFailResourceLoad(const Frame&, unsigned long identifier, const ResourceError& error);
@@ -451,7 +451,7 @@ private:
     static bool shouldInterceptRequestImpl(InstrumentingAgents&, const ResourceRequest&);
     static bool shouldInterceptResponseImpl(InstrumentingAgents&, const ResourceResponse&);
     static void interceptRequestImpl(InstrumentingAgents&, ResourceLoader&, Function<void(const ResourceRequest&)>&&);
-    static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
+    static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, unsigned long identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
     static void interceptDidReceiveDataImpl(InstrumentingAgents&, unsigned long identifier, const SharedBuffer&);
     static void interceptDidFinishResourceLoadImpl(InstrumentingAgents&, unsigned long identifier);
     static void interceptDidFailResourceLoadImpl(InstrumentingAgents&, unsigned long identifier, const ResourceError& error);
@@ -1315,7 +1315,7 @@ inline void InspectorInstrumentation::interceptRequest(ResourceLoader& loader, F
         interceptRequestImpl(*agents, loader, WTFMove(handler));
 }
 
-inline void InspectorInstrumentation::interceptResponse(const Frame& frame, const ResourceResponse& response, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
+inline void InspectorInstrumentation::interceptResponse(const Frame& frame, const ResourceResponse& response, unsigned long identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
 {
     ASSERT(InspectorInstrumentation::shouldInterceptResponse(frame, response));
     if (auto* agents = instrumentingAgents(frame))

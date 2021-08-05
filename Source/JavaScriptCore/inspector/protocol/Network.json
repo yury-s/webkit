@@ -314,6 +314,15 @@
             ]
         },
         {
+            "name": "interceptResponseWithError",
+            "description": "Fail response with given error type.",
+            "targetTypes": ["page"],
+            "parameters": [
+                { "name": "requestId", "$ref": "RequestId", "description": "Identifier for the intercepted Network response to fail." },
+                { "name": "errorType", "$ref": "ResourceErrorType", "description": "Deliver error reason for the request failure." }
+            ]
+        },
+        {
             "name": "interceptRequestWithResponse",
             "description": "Provide response for an intercepted request. Request completely bypasses the network in this case and is immediately fulfilled with the provided data.",
             "targetTypes": ["page"],

@@ -45,7 +45,7 @@ void InspectorInstrumentationWebKit::interceptRequestInternal(ResourceLoader& lo
     InspectorInstrumentation::interceptRequest(loader, WTFMove(handler));
 }
 
-void InspectorInstrumentationWebKit::interceptResponseInternal(const Frame& frame, const ResourceResponse& response, unsigned long identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
+void InspectorInstrumentationWebKit::interceptResponseInternal(const Frame& frame, const ResourceResponse& response, unsigned long identifier, CompletionHandler<void(std::optional<ResourceError>&& error, const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
 {
     InspectorInstrumentation::interceptResponse(frame, response, identifier, WTFMove(handler));
 }
