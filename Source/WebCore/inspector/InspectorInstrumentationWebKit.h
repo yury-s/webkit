@@ -26,6 +26,7 @@
 #pragma once
 
 #include "InspectorInstrumentationPublic.h"
+#include "ResourceError.h"
 #include "ResourceLoader.h"
 #include <wtf/CompletionHandler.h>
 #include <wtf/Function.h>

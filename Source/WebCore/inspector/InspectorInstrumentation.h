@@ -45,6 +45,7 @@
 #include "HitTestResult.h"
 #include "InspectorInstrumentationPublic.h"
 #include "Page.h"
+#include "ResourceError.h"
 #include "ResourceLoader.h"
 #include "StorageArea.h"
 #include "WebAnimation.h"
