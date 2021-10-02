@@ -138,6 +138,7 @@ public:
     void setCookieObserverHandler(Function<void ()>&&);
     void getCredentialFromPersistentStorage(const ProtectionSpace&, GCancellable*, Function<void (Credential&&)>&& completionHandler);
     void saveCredentialToPersistentStorage(const ProtectionSpace&, const Credential&);
+    void setCookiesFromResponse(const URL& firstParty, const URL&, const String& setCookieValue);
 #elif USE(CURL)
     WEBCORE_EXPORT NetworkStorageSession(PAL::SessionID);
     ~NetworkStorageSession();

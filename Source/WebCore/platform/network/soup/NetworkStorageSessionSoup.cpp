@@ -408,6 +408,22 @@ void NetworkStorageSession::setCookie(const Cookie& cookie)
     soup_cookie_jar_add_cookie(cookieStorage(), cookie.toSoupCookie());
 }
 
+void  NetworkStorageSession::setCookiesFromResponse(const URL&, const URL& url, const String& setCookieValue)
+{
+    auto origin = urlToSoupURI(url);
+    if (!origin)
+        return;
+
+    for (auto& cookieString : setCookieValue.split('\n')) {
+        GUniquePtr<SoupCookie> cookie(soup_cookie_parse(cookieString.utf8().data(), origin.get()));
+
+        if (!cookie)
+            continue;
+
+        soup_cookie_jar_add_cookie(cookieStorage(), cookie.release());
+    }
+}
+
 void NetworkStorageSession::deleteCookie(const Cookie& cookie)
 {
     GUniquePtr<SoupCookie> targetCookie(cookie.toSoupCookie());

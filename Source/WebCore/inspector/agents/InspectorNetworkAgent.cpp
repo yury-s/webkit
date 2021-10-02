@@ -1373,10 +1373,11 @@ Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptRequestWithRespons
     String setCookieValue;
     for (auto& header : headers.get()) {
         auto headerValue = header.value->asString();
-        if (!!headerValue)
-            explicitHeaders.add(header.key, headerValue);
         if (equalIgnoringASCIICase(header.key, "Set-Cookie"))
             setCookieValue = headerValue;
+        else if (!!headerValue)
+            explicitHeaders.add(header.key, headerValue);
+
     }
     response.setHTTPHeaderFields(WTFMove(explicitHeaders));
     response.setHTTPHeaderField(HTTPHeaderName::ContentType, response.mimeType());
