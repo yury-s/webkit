@@ -76,6 +76,11 @@
 #include <WebCore/SameSiteInfo.h>
 #include <WebCore/SecurityPolicy.h>
 
+#if PLATFORM(COCOA)
+#include "NetworkDataTaskCocoa.h"
+#include "NetworkSessionCocoa.h"
+#endif
+
 #if ENABLE(APPLE_PAY_REMOTE_UI)
 #include "WebPaymentCoordinatorProxyMessages.h"
 #endif
@@ -945,6 +950,19 @@ void NetworkConnectionToWebProcess::clearPageSpecificData(PageIdentifier pageID)
 #if ENABLE(INTELLIGENT_TRACKING_PREVENTION)
     if (auto* storageSession = networkProcess().storageSession(m_sessionID))
         storageSession->clearPageSpecificDataForResourceLoadStatistics(pageID);
+#endif
+}
+
+void NetworkConnectionToWebProcess::setCookieFromResponse(NetworkResourceLoadParameters&& parameters, const URL& mainDocumentURL, const String& setCookieValue)
+{
+#if USE(SOUP) ||  USE(CURL)
+    auto* networkStorageSession = storageSession();
+    if (!networkStorageSession)
+        return;
+    networkStorageSession->setCookiesFromResponse(parameters.request.firstPartyForCookies(), parameters.request.url(), setCookieValue);
+#elif PLATFORM(COCOA)
+    if (auto* session = networkSession())
+        NetworkDataTaskCocoa::setCookieFromResponse(*static_cast<NetworkSessionCocoa*>(session), WTFMove(parameters), mainDocumentURL, setCookieValue);
 #endif
 }
 
