@@ -106,7 +106,7 @@ void NetworkStorageSession::setCookiesFromDOM(const URL& firstParty, const SameS
     cookieDatabase().setCookie(firstParty, url, value, CookieJarDB::Source::Script, cappedLifetime);
 }
 
-void NetworkStorageSession::setCookiesFromHTTPResponse(const URL& firstParty, const URL& url, const String& value) const
+void NetworkStorageSession::setCookiesFromHTTPResponse(const URL& firstParty, const SameSiteInfo&, const URL& url, const String& value) const
 {
     cookieDatabase().setCookie(firstParty, url, value, CookieJarDB::Source::Network);
 }
@@ -114,6 +114,12 @@ void NetworkStorageSession::setCookiesFromHTTPResponse(const URL& firstParty, co
 void NetworkStorageSession::setCookieAcceptPolicy(CookieAcceptPolicy policy) const
 {
     cookieDatabase().setAcceptPolicy(policy);
+}
+
+void  NetworkStorageSession::setCookiesFromResponse(const URL& firstParty, const URL& url, const String& setCookieValue)
+{
+    for (auto& cookieString : setCookieValue.split('\n'))
+        cookieDatabase().setCookie(firstParty, url, cookieString, CookieJarDB::Source::Network);
 }
 
 HTTPCookieAcceptPolicy NetworkStorageSession::cookieAcceptPolicy() const
