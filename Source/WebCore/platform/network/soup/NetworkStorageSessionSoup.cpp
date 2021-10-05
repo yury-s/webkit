@@ -408,7 +408,7 @@ void NetworkStorageSession::setCookie(const Cookie& cookie)
     soup_cookie_jar_add_cookie(cookieStorage(), cookie.toSoupCookie());
 }
 
-void  NetworkStorageSession::setCookiesFromResponse(const URL& firstParty, const URL& url, const String& setCookieValue)
+void  NetworkStorageSession::setCookiesFromResponse(const URL& firstParty, const SameSiteInfo&, const URL& url, const String& setCookieValue)
 {
     auto origin = urlToSoupURI(url);
     if (!origin)

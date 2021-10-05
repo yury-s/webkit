@@ -28,12 +28,9 @@
 
 #include "NetworkConnectionToWebProcessMessages.h"
 #include "NetworkProcessConnection.h"
-#include "NetworkResourceLoadParameters.h"
 #include "WebFrame.h"
-#include "WebLoaderStrategy.h"
 #include "WebPage.h"
 #include "WebProcess.h"
-#include "WebResourceLoader.h"
 #include <WebCore/CookieRequestHeaderFieldProxy.h>
 #include <WebCore/DeprecatedGlobalSettings.h>
 #include <WebCore/Document.h>
@@ -261,20 +258,8 @@ void WebCookieJar::deleteCookie(const WebCore::Document& document, const URL& ur
 
 void WebCookieJar::setCookieFromResponse(ResourceLoader& loader, const String& setCookieValue)
 {
-    auto* webFrame = WebFrame::fromCoreFrame(*loader.frame());
-
-    WebResourceLoader::TrackingParameters trackingParameters;
-    trackingParameters.webPageProxyID = webFrame->page()->webPageProxyIdentifier();
-    trackingParameters.pageID = webFrame->page()->identifier();
-    trackingParameters.frameID = webFrame->frameID();
-    trackingParameters.resourceID = loader.identifier();
-
-    NetworkResourceLoadParameters loadParameters;
-    if (!WebLoaderStrategy::fillParametersForNetworkProcessLoad(loader, loader.request(), trackingParameters, true, 0_s, loadParameters))
-        return;
-
-    URL mainDocumentURL = loader.frame()->document()->topDocument().url();
-    WebProcess::singleton().ensureNetworkProcessConnection().connection().send(Messages::NetworkConnectionToWebProcess::SetCookieFromResponse(loadParameters, mainDocumentURL, setCookieValue), 0);
+    const auto& request = loader.request();
+    WebProcess::singleton().ensureNetworkProcessConnection().connection().send(Messages::NetworkConnectionToWebProcess::SetCookieFromResponse(request.firstPartyForCookies(), SameSiteInfo::create(request), request.url(), setCookieValue), 0);
 }
 
 } // namespace WebKit

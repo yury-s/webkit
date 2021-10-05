@@ -88,8 +88,6 @@ public:
 
     void checkTAO(const WebCore::ResourceResponse&);
 
-    static void setCookieFromResponse(NetworkSessionCocoa& session, const NetworkLoadParameters&, const URL& mainDocumentURL, const String& setCookieValue);
-
 private:
     NetworkDataTaskCocoa(NetworkSession&, NetworkDataTaskClient&, const NetworkLoadParameters&);
 

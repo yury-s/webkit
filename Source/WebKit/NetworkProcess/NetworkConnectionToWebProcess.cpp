@@ -953,17 +953,12 @@ void NetworkConnectionToWebProcess::clearPageSpecificData(PageIdentifier pageID)
 #endif
 }
 
-void NetworkConnectionToWebProcess::setCookieFromResponse(NetworkResourceLoadParameters&& parameters, const URL& mainDocumentURL, const String& setCookieValue)
+void NetworkConnectionToWebProcess::setCookieFromResponse(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, const String& setCookieValue)
 {
-#if USE(SOUP) ||  USE(CURL)
     auto* networkStorageSession = storageSession();
     if (!networkStorageSession)
         return;
-    networkStorageSession->setCookiesFromResponse(parameters.request.firstPartyForCookies(), parameters.request.url(), setCookieValue);
-#elif PLATFORM(COCOA)
-    if (auto* session = networkSession())
-        NetworkDataTaskCocoa::setCookieFromResponse(*static_cast<NetworkSessionCocoa*>(session), WTFMove(parameters), mainDocumentURL, setCookieValue);
-#endif
+    networkStorageSession->setCookiesFromResponse(firstParty, sameSiteInfo, url, setCookieValue);
 }
 
 #if ENABLE(INTELLIGENT_TRACKING_PREVENTION)

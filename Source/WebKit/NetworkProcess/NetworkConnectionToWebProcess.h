@@ -288,7 +288,7 @@ private:
 
     void clearPageSpecificData(WebCore::PageIdentifier);
 
-    void setCookieFromResponse(NetworkResourceLoadParameters&&, const URL& mainDocumentURL, const String& setCookieValue);
+    void setCookieFromResponse(const URL& firstParty, const WebCore::SameSiteInfo&, const URL& url, const String& setCookieValue);
 
 #if ENABLE(INTELLIGENT_TRACKING_PREVENTION)
     void removeStorageAccessForFrame(WebCore::FrameIdentifier, WebCore::PageIdentifier);
