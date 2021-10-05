@@ -268,7 +268,7 @@ void LineLayout::updateFormattingRootGeometryAndInvalidate()
 
     auto updateGeometry = [&](auto& root) {
         root.setContentBoxWidth(flow.contentLogicalWidth());
-        root.setPadding(Layout::Edges { { flow.paddingStart(), flow.paddingEnd() }, { flow.paddingBefore(), flow.paddingAfter() } });
+	root.setPadding(Layout::Edges { { flow.paddingStart(), flow.paddingEnd() }, { flow.paddingBefore(), flow.paddingAfter() } });
         root.setBorder(Layout::Edges { { flow.borderStart(), flow.borderEnd() }, { flow.borderBefore(), flow.borderAfter() } });
         root.setHorizontalMargin({ });
         root.setVerticalMargin({ });
