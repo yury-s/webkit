@@ -955,11 +955,11 @@ void NetworkConnectionToWebProcess::clearPageSpecificData(PageIdentifier pageID)
 
 void NetworkConnectionToWebProcess::setCookieFromResponse(NetworkResourceLoadParameters&& parameters, const URL& mainDocumentURL, const String& setCookieValue)
 {
-#if USE(SOUP)
+#if USE(SOUP) ||  USE(CURL)
     auto* networkStorageSession = storageSession();
     if (!networkStorageSession)
         return;
-    networkStorageSession->setCookiesFromResponse(mainDocumentURL, parameters.request.url(), setCookieValue);
+    networkStorageSession->setCookiesFromResponse(parameters.request.firstPartyForCookies(), parameters.request.url(), setCookieValue);
 #elif PLATFORM(COCOA)
     if (auto* session = networkSession())
         NetworkDataTaskCocoa::setCookieFromResponse(*static_cast<NetworkSessionCocoa*>(session), WTFMove(parameters), mainDocumentURL, setCookieValue);

@@ -148,6 +148,7 @@ public:
     WEBCORE_EXPORT void setCookiesFromHTTPResponse(const URL& firstParty, const URL&, const String&) const;
     WEBCORE_EXPORT void setCookieAcceptPolicy(CookieAcceptPolicy) const;
     WEBCORE_EXPORT void setProxySettings(CurlProxySettings&&);
+    void setCookiesFromResponse(const URL& firstParty, const URL&, const String& setCookieValue);
 #else
     WEBCORE_EXPORT NetworkStorageSession(PAL::SessionID, NetworkingContext*);
     ~NetworkStorageSession();
