@@ -408,10 +408,14 @@ void NetworkStorageSession::setCookie(const Cookie& cookie)
     soup_cookie_jar_add_cookie(cookieStorage(), cookie.toSoupCookie());
 }
 
-void  NetworkStorageSession::setCookiesFromResponse(const URL&, const URL& url, const String& setCookieValue)
+void  NetworkStorageSession::setCookiesFromResponse(const URL& firstParty, const URL& url, const String& setCookieValue)
 {
     auto origin = urlToSoupURI(url);
     if (!origin)
+        return;
+
+    auto firstPartyURI = urlToSoupURI(firstParty);
+    if (!firstPartyURI)
         return;
 
     for (auto& cookieString : setCookieValue.split('\n')) {
@@ -420,7 +424,11 @@ void  NetworkStorageSession::setCookiesFromResponse(const URL&, const URL& url, 
         if (!cookie)
             continue;
 
-        soup_cookie_jar_add_cookie(cookieStorage(), cookie.release());
+#if SOUP_CHECK_VERSION(2, 67, 1)
+        soup_cookie_jar_add_cookie_full(cookieStorage(), cookie.release(), origin.get(), firstPartyURI.get());
+#else
+        soup_cookie_jar_add_cookie_with_first_party(cookieStorage(), firstPartyURI.get(), cookie.release());
+#endif
     }
 }
 
