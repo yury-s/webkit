@@ -784,10 +784,16 @@ void NetworkDataTaskCocoa::setCookieFromResponse(NetworkSessionCocoa& networkSes
         return;
     }
 
-    NSString* cookieString = (NSString *)setCookieValue;
-    NSString* cookieKey = @"Set-Cookie";
-    NSDictionary* headers = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObject:cookieString] forKeys:[NSArray arrayWithObject:cookieKey]];
-    NSArray<NSHTTPCookie*>* cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:(NSURL *)url];
+    Vector<String> cookieValues = setCookieValue.split('\n');
+    size_t count = cookieValues.size();
+    auto* cookies = [NSMutableArray arrayWithCapacity:count];
+    for (const auto& cookieValue : cookieValues) {
+        NSString* cookieString = (NSString *)cookieValue;
+        NSString* cookieKey = @"Set-Cookie";
+        NSDictionary* headers = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObject:cookieString] forKeys:[NSArray arrayWithObject:cookieKey]];
+        NSArray<NSHTTPCookie*>* parsedCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:(NSURL *)url];
+        [cookies addObject:parsedCookies[0]];
+    }
 
     NSURL* siteForCookies = task->m_task.get()._siteForCookies;
     NSURL* documentURL = task->isTopLevelNavigation() ? siteForCookies : (NSURL *)mainDocumentURL;
