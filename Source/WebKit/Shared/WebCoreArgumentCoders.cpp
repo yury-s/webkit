@@ -119,6 +119,10 @@
 #include <WebCore/TextRecognitionResult.h>
 #endif
 
+#if PLATFORM(WPE)
+#include "ArgumentCodersWPE.h"
+#endif
+
 // FIXME: Seems like we could use std::tuple to cut down the code below a lot!
 
 namespace IPC {
@@ -1377,6 +1381,9 @@ void ArgumentCoder<WindowFeatures>::encode(Encoder& encoder, const WindowFeature
     encoder << windowFeatures.resizable;
     encoder << windowFeatures.fullscreen;
     encoder << windowFeatures.dialog;
+    encoder << windowFeatures.noopener;
+    encoder << windowFeatures.noreferrer;
+    encoder << windowFeatures.additionalFeatures;
 }
 
 bool ArgumentCoder<WindowFeatures>::decode(Decoder& decoder, WindowFeatures& windowFeatures)
@@ -1405,6 +1412,12 @@ bool ArgumentCoder<WindowFeatures>::decode(Decoder& decoder, WindowFeatures& win
         return false;
     if (!decoder.decode(windowFeatures.dialog))
         return false;
+    if (!decoder.decode(windowFeatures.noopener))
+        return false;
+    if (!decoder.decode(windowFeatures.noreferrer))
+        return false;
+    if (!decoder.decode(windowFeatures.additionalFeatures))
+        return false;
     return true;
 }
 
@@ -1418,6 +1431,11 @@ void ArgumentCoder<DragData>::encode(Encoder& encoder, const DragData& dragData)
 #if PLATFORM(COCOA)
     encoder << dragData.pasteboardName();
     encoder << dragData.fileNames();
+#endif
+#if PLATFORM(WIN)
+    DragData dragDataCopy = dragData;
+    HashMap<unsigned int, Vector<String>> hash = dragDataCopy.dragDataMap();
+    encoder << hash;
 #endif
     encoder << dragData.dragDestinationActionMask();
     encoder << dragData.pageID();
@@ -1441,9 +1459,16 @@ bool ArgumentCoder<DragData>::decode(Decoder& decoder, DragData& dragData)
     if (!decoder.decode(applicationFlags))
         return false;
 
+#if PLATFORM(WIN)
+    DragDataMap dragDataMap;
+    if (!decoder.decode(dragDataMap))
+        return false;
+#else
     String pasteboardName;
-    Vector<String> fileNames;
+#endif
+
 #if PLATFORM(COCOA)
+    Vector<String> fileNames;
     if (!decoder.decode(pasteboardName))
         return false;
 
@@ -1459,8 +1484,14 @@ bool ArgumentCoder<DragData>::decode(Decoder& decoder, DragData& dragData)
     if (!decoder.decode(pageID))
         return false;
 
+#if PLATFORM(WIN)
+    dragData = DragData(dragDataMap, clientPosition, globalPosition, draggingSourceOperationMask, applicationFlags, pageID);
+#else
     dragData = DragData(pasteboardName, clientPosition, globalPosition, draggingSourceOperationMask, applicationFlags, dragDestinationActionMask, pageID);
+#endif
+#if PLATFORM(COCOA)
     dragData.setFileNames(fileNames);
+#endif
 
     return true;
 }
