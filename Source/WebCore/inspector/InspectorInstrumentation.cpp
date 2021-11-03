@@ -860,28 +860,10 @@ void InspectorInstrumentation::interceptRequestImpl(InstrumentingAgents& instrum
         networkAgent->interceptRequest(loader, WTFMove(handler));
 }
 
-void InspectorInstrumentation::interceptResponseImpl(InstrumentingAgents& instrumentingAgents, const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
+void InspectorInstrumentation::interceptResponseImpl(InstrumentingAgents& instrumentingAgents, const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
 {
     if (auto* networkAgent = instrumentingAgents.enabledNetworkAgent())
         networkAgent->interceptResponse(response, identifier, WTFMove(handler));
-}
-
-void InspectorInstrumentation::interceptDidReceiveDataImpl(InstrumentingAgents& instrumentingAgents, ResourceLoaderIdentifier identifier, const SharedBuffer& buffer)
-{
-    if (auto* networkAgent = instrumentingAgents.enabledNetworkAgent())
-        networkAgent->interceptDidReceiveData(identifier, buffer);
-}
-
-void InspectorInstrumentation::interceptDidFinishResourceLoadImpl(InstrumentingAgents& instrumentingAgents, ResourceLoaderIdentifier identifier)
-{
-    if (auto* networkAgent = instrumentingAgents.enabledNetworkAgent())
-        networkAgent->interceptDidFinishResourceLoad(identifier);
-}
-
-void InspectorInstrumentation::interceptDidFailResourceLoadImpl(InstrumentingAgents& instrumentingAgents, ResourceLoaderIdentifier identifier, const ResourceError& error)
-{
-    if (auto* networkAgent = instrumentingAgents.enabledNetworkAgent())
-        networkAgent->interceptDidFailResourceLoad(identifier, error);
 }
 
 // JavaScriptCore InspectorDebuggerAgent should know Console MessageTypes.

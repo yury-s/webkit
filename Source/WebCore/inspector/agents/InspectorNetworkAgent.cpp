@@ -93,7 +93,6 @@
 #include <wtf/text/WTFString.h>
 
 typedef Inspector::NetworkBackendDispatcherHandler::LoadResourceCallback LoadResourceCallback;
-using GetInterceptedResponseBodyCallback = Inspector::NetworkBackendDispatcherHandler::GetInterceptedResponseBodyCallback;
 
 namespace WebCore {
 
@@ -963,18 +962,6 @@ Protocol::ErrorStringOr<std::tuple<String, bool /* base64Encoded */>> InspectorN
     return makeUnexpected("Missing content of resource for given requestId"_s);
 }
 
-void InspectorNetworkAgent::getInterceptedResponseBody(const Inspector::Protocol::Network::RequestId& requestId, Ref<GetInterceptedResponseBodyCallback>&& callback)
-{
-    auto pendingInterceptResponse = m_pendingInterceptResponses.get(requestId);
-    if (!pendingInterceptResponse) {
-        callback->sendFailure("Missing pending intercept response for given requestId"_s);
-        return;
-    }
-    pendingInterceptResponse->getReceivedData([callback = WTFMove(callback)] (const SharedBuffer& buffer) {
-        callback->sendSuccess(base64EncodeToString(buffer.data(), buffer.size()));
-    });
-}
-
 Protocol::ErrorStringOr<void> InspectorNetworkAgent::setResourceCachingDisabled(bool disabled)
 {
     setResourceCachingDisabledInternal(disabled);
@@ -1129,7 +1116,8 @@ bool InspectorNetworkAgent::willIntercept(const ResourceRequest& request)
     if (!m_interceptionEnabled)
         return false;
 
-    return shouldIntercept(request.url(), Protocol::Network::NetworkStage::Response);
+    return shouldIntercept(request.url(), Protocol::Network::NetworkStage::Request)
+        || shouldIntercept(request.url(), Protocol::Network::NetworkStage::Response);
 }
 
 bool InspectorNetworkAgent::shouldInterceptRequest(const ResourceRequest& request)
@@ -1162,7 +1150,7 @@ void InspectorNetworkAgent::interceptRequest(ResourceLoader& loader, Function<vo
     m_frontendDispatcher->requestIntercepted(requestId, buildObjectForResourceRequest(loader.request()));
 }
 
-void InspectorNetworkAgent::interceptResponse(const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
+void InspectorNetworkAgent::interceptResponse(const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
 {
     ASSERT(m_enabled);
     ASSERT(m_interceptionEnabled);
@@ -1170,7 +1158,7 @@ void InspectorNetworkAgent::interceptResponse(const ResourceResponse& response, 
     String requestId = IdentifiersFactory::requestId(identifier.toUInt64());
     if (m_pendingInterceptResponses.contains(requestId)) {
         ASSERT_NOT_REACHED();
-        handler({ }, response, nullptr);
+        handler(response, nullptr);
         return;
     }
 
@@ -1181,62 +1169,6 @@ void InspectorNetworkAgent::interceptResponse(const ResourceResponse& response, 
         return;
 
     m_frontendDispatcher->responseIntercepted(requestId, resourceResponse.releaseNonNull());
-}
-
-Inspector::Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptResponseWithError(const Inspector::Protocol::Network::RequestId& requestId, Inspector::Protocol::Network::ResourceErrorType errorType)
-{
-    auto pendingResponse = m_pendingInterceptResponses.take(requestId);
-    if (!pendingResponse)
-        return makeUnexpected("Missing pending intercept response for given requestId"_s);
-
-    const auto& url = pendingResponse->originalResponse().url();
-    switch (errorType) {
-    case Protocol::Network::ResourceErrorType::General:
-        pendingResponse->fail(ResourceError(errorDomainWebKitInternal, 0, url, "Request intercepted"_s, ResourceError::Type::General));
-        return { };
-
-    case Protocol::Network::ResourceErrorType::AccessControl:
-        pendingResponse->fail(ResourceError(errorDomainWebKitInternal, 0, url, "Access denied"_s, ResourceError::Type::AccessControl));
-        return { };
-
-    case Protocol::Network::ResourceErrorType::Cancellation:
-        pendingResponse->fail(ResourceError(errorDomainWebKitInternal, 0, url, "Request canceled"_s, ResourceError::Type::Cancellation));
-        return { };
-
-    case Protocol::Network::ResourceErrorType::Timeout:
-        pendingResponse->fail(ResourceError(errorDomainWebKitInternal, 0, url, "Request timed out"_s, ResourceError::Type::Timeout));
-        return { };
-    }
-
-    ASSERT_NOT_REACHED();
-    return { };
-}
-
-void InspectorNetworkAgent::interceptDidReceiveData(ResourceLoaderIdentifier identifier, const SharedBuffer& buffer)
-{
-    String requestId = IdentifiersFactory::requestId(identifier.toUInt64());
-    auto* interceptedResponse = m_pendingInterceptResponses.get(requestId);
-    if (!interceptedResponse) {
-        ASSERT_NOT_REACHED();
-        return;
-    }
-    interceptedResponse->didReceiveData(buffer);
-}
-
-void InspectorNetworkAgent::interceptDidFinishResourceLoad(ResourceLoaderIdentifier identifier)
-{
-    String requestId = IdentifiersFactory::requestId(identifier.toUInt64());
-    auto* interceptedResponse = m_pendingInterceptResponses.get(requestId);
-    if (!interceptedResponse) {
-        ASSERT_NOT_REACHED();
-        return;
-    }
-    interceptedResponse->didFinishLoading();
-}
-
-void InspectorNetworkAgent::interceptDidFailResourceLoad(ResourceLoaderIdentifier identifier, const ResourceError&)
-{
-    interceptDidFinishResourceLoad(identifier);
 }
 
 Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptContinue(const Protocol::Network::RequestId& requestId, Protocol::Network::NetworkStage networkStage)
@@ -1370,21 +1302,13 @@ Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptRequestWithRespons
     response.setHTTPStatusCode(status);
     response.setHTTPStatusText(statusText);
     HTTPHeaderMap explicitHeaders;
-    String setCookieValue;
     for (auto& header : headers.get()) {
         auto headerValue = header.value->asString();
-        if (equalIgnoringASCIICase(header.key, "Set-Cookie"))
-            setCookieValue = headerValue;
-        else if (!!headerValue)
+        if (!!headerValue)
             explicitHeaders.add(header.key, headerValue);
-
     }
     response.setHTTPHeaderFields(WTFMove(explicitHeaders));
     response.setHTTPHeaderField(HTTPHeaderName::ContentType, response.mimeType());
-
-    auto* frame = loader->frame();
-    if (!setCookieValue.isEmpty() && frame && frame->page())
-        frame->page()->cookieJar().setCookieFromResponse(*loader.get(), setCookieValue);
 
     loader->didReceiveResponse(response, [loader, buffer = data.releaseNonNull()]() mutable {
         if (loader->reachedTerminalState())

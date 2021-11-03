@@ -76,11 +76,6 @@
 #include <WebCore/SameSiteInfo.h>
 #include <WebCore/SecurityPolicy.h>
 
-#if PLATFORM(COCOA)
-#include "NetworkDataTaskCocoa.h"
-#include "NetworkSessionCocoa.h"
-#endif
-
 #if ENABLE(APPLE_PAY_REMOTE_UI)
 #include "WebPaymentCoordinatorProxyMessages.h"
 #endif
@@ -954,14 +949,6 @@ void NetworkConnectionToWebProcess::clearPageSpecificData(PageIdentifier pageID)
     if (auto* storageSession = networkProcess().storageSession(m_sessionID))
         storageSession->clearPageSpecificDataForResourceLoadStatistics(pageID);
 #endif
-}
-
-void NetworkConnectionToWebProcess::setCookieFromResponse(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, const String& setCookieValue)
-{
-    auto* networkStorageSession = storageSession();
-    if (!networkStorageSession)
-        return;
-    networkStorageSession->setCookiesFromResponse(firstParty, sameSiteInfo, url, setCookieValue);
 }
 
 #if ENABLE(INTELLIGENT_TRACKING_PREVENTION)
