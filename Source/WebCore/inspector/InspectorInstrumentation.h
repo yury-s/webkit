@@ -241,10 +241,7 @@ public:
     static bool shouldInterceptRequest(const Frame&, const ResourceRequest&);
     static bool shouldInterceptResponse(const Frame&, const ResourceResponse&);
     static void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
-    static void interceptResponse(const Frame&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
-    static void interceptDidReceiveData(const Frame&, ResourceLoaderIdentifier, const SharedBuffer&);
-    static void interceptDidFinishResourceLoad(const Frame&, ResourceLoaderIdentifier);
-    static void interceptDidFailResourceLoad(const Frame&, ResourceLoaderIdentifier, const ResourceError& error);
+    static void interceptResponse(const Frame&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
 
     static void addMessageToConsole(Page&, std::unique_ptr<Inspector::ConsoleMessage>);
     static void addMessageToConsole(WorkerOrWorkletGlobalScope&, std::unique_ptr<Inspector::ConsoleMessage>);
@@ -460,10 +457,6 @@ private:
     static bool shouldInterceptResponseImpl(InstrumentingAgents&, const ResourceResponse&);
     static void interceptRequestImpl(InstrumentingAgents&, ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
-    static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&&);
-    static void interceptDidReceiveDataImpl(InstrumentingAgents&, ResourceLoaderIdentifier, const SharedBuffer&);
-    static void interceptDidFinishResourceLoadImpl(InstrumentingAgents&, ResourceLoaderIdentifier);
-    static void interceptDidFailResourceLoadImpl(InstrumentingAgents&, ResourceLoaderIdentifier, const ResourceError& error);
 
     static void addMessageToConsoleImpl(InstrumentingAgents&, std::unique_ptr<Inspector::ConsoleMessage>);
 
@@ -1331,27 +1324,11 @@ inline void InspectorInstrumentation::interceptRequest(ResourceLoader& loader, F
         interceptRequestImpl(*agents, loader, WTFMove(handler));
 }
 
-inline void InspectorInstrumentation::interceptResponse(const Frame& frame, const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(std::optional<ResourceError>&&, const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
+inline void InspectorInstrumentation::interceptResponse(const Frame& frame, const ResourceResponse& response, ResourceLoaderIdentifier identifier, CompletionHandler<void(const ResourceResponse&, RefPtr<SharedBuffer>)>&& handler)
 {
     ASSERT(InspectorInstrumentation::shouldInterceptResponse(frame, response));
     if (auto* agents = instrumentingAgents(frame))
         interceptResponseImpl(*agents, response, identifier, WTFMove(handler));
-}
-
-inline void InspectorInstrumentation::interceptDidReceiveData(const Frame& frame, ResourceLoaderIdentifier identifier, const SharedBuffer& buffer)
-{
-    if (auto* agents = instrumentingAgents(frame))
-        interceptDidReceiveDataImpl(*agents, identifier, buffer);
-}
-inline void InspectorInstrumentation::interceptDidFinishResourceLoad(const Frame& frame, ResourceLoaderIdentifier identifier)
-{
-    if (auto* agents = instrumentingAgents(frame))
-        interceptDidFinishResourceLoadImpl(*agents, identifier);
-}
-inline void InspectorInstrumentation::interceptDidFailResourceLoad(const Frame& frame, ResourceLoaderIdentifier identifier, const ResourceError& error)
-{
-    if (auto* agents = instrumentingAgents(frame))
-        interceptDidFailResourceLoadImpl(*agents, identifier, error);
 }
 
 inline void InspectorInstrumentation::didOpenDatabase(Database& database)
