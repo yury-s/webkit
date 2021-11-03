@@ -1302,13 +1302,21 @@ Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptRequestWithRespons
     response.setHTTPStatusCode(status);
     response.setHTTPStatusText(statusText);
     HTTPHeaderMap explicitHeaders;
+    String setCookieValue;
     for (auto& header : headers.get()) {
         auto headerValue = header.value->asString();
-        if (!!headerValue)
+        if (equalIgnoringASCIICase(header.key, "Set-Cookie"))
+            setCookieValue = headerValue;
+        else if (!!headerValue)
             explicitHeaders.add(header.key, headerValue);
+
     }
     response.setHTTPHeaderFields(WTFMove(explicitHeaders));
     response.setHTTPHeaderField(HTTPHeaderName::ContentType, response.mimeType());
+
+    auto* frame = loader->frame();
+    if (!setCookieValue.isEmpty() && frame && frame->page())
+        frame->page()->cookieJar().setCookieFromResponse(*loader.get(), setCookieValue);
 
     loader->didReceiveResponse(response, [loader, buffer = data.releaseNonNull()]() mutable {
         if (loader->reachedTerminalState())
