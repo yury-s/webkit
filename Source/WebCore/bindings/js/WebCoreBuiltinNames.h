@@ -109,6 +109,8 @@ namespace WebCore {
     macro(Database) \
     macro(DataTransferItem) \
     macro(DataTransferItemList) \
+    macro(DeviceMotionEvent) \
+    macro(DeviceOrientationEvent) \
     macro(DocumentTimeline) \
     macro(EnterPictureInPictureEvent) \
     macro(ExtendableEvent) \
