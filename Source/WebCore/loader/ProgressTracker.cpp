@@ -152,8 +152,6 @@ void ProgressTracker::progressCompleted(Frame& frame)
     if (!m_numProgressTrackedFrames || m_originatingProgressFrame == &frame)
         finalProgressComplete();
 
-    InspectorInstrumentation::frameStoppedLoading(frame);
-
     m_client->didChangeEstimatedProgress();
 }
 

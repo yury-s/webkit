@@ -529,6 +529,8 @@ void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy)
 
     // FIXME: This will cancel redirection timer, which really needs to be restarted when restoring the frame from b/f cache.
     m_frame.navigationScheduler().cancel();
+
+    InspectorInstrumentation::frameStoppedLoading(m_frame);
 }
 
 void FrameLoader::stop()
