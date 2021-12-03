@@ -24,7 +24,10 @@
 #pragma once
 
 #include "FilterEffectApplier.h"
+#include "IntPoint.h"
+#include "IntSize.h"
 #include <wtf/Vector.h>
+#include <JavaScriptCore/Uint8ClampedArray.h>
 
 namespace WebCore {
 
