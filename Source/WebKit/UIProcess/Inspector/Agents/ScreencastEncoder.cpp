@@ -120,9 +120,8 @@ public:
         : m_surface(WTFMove(surface))
     { }
 #elif PLATFORM(MAC)
-    VPXFrame(RetainPtr<CGImageRef> windowImage, std::optional<double> scale, int offsetTop)
+    VPXFrame(RetainPtr<CGImageRef> windowImage, int offsetTop)
         : m_windowImage(WTFMove(windowImage))
-        , m_scale(scale)
         , m_offsetTop(offsetTop)
     { }
 #endif
@@ -140,7 +139,7 @@ public:
         int argb_stride = image->w * 4;
         UniqueArray<uint8_t> buffer = makeUniqueArray<uint8_t>(argb_stride * image->h);
         uint8_t* argb_data = buffer.get();
-        ScreencastEncoder::imageToARGB(m_windowImage.get(), argb_data, image->w, image->h, m_scale, m_offsetTop);
+        ScreencastEncoder::imageToARGB(m_windowImage.get(), argb_data, image->w, image->h, m_offsetTop);
 #endif
         const int y_stride = image->stride[0];
         ASSERT(image->stride[1] == image->stride[2]);
@@ -162,7 +161,6 @@ private:
     RefPtr<cairo_surface_t> m_surface;
 #elif PLATFORM(MAC)
     RetainPtr<CGImageRef> m_windowImage;
-    std::optional<double> m_scale;
     int m_offsetTop { 0 };
 #endif
     Seconds m_duration;
@@ -253,10 +251,9 @@ private:
     std::unique_ptr<vpx_image_t> m_image;
 };
 
-ScreencastEncoder::ScreencastEncoder(std::unique_ptr<VPXCodec>&& vpxCodec, IntSize size, std::optional<double> scale)
+ScreencastEncoder::ScreencastEncoder(std::unique_ptr<VPXCodec>&& vpxCodec, IntSize size)
     : m_vpxCodec(WTFMove(vpxCodec))
     , m_size(size)
-    , m_scale(scale)
 {
     ASSERT(!size.isZero());
 }
@@ -265,7 +262,7 @@ ScreencastEncoder::~ScreencastEncoder()
 {
 }
 
-RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const String& filePath, IntSize size, std::optional<double> scale)
+RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const String& filePath, IntSize size)
 {
     vpx_codec_iface_t* codec_interface = vpx_codec_vp8_cx();
     if (!codec_interface) {
@@ -305,7 +302,7 @@ RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const S
     }
 
     std::unique_ptr<VPXCodec> vpxCodec(new VPXCodec(codec, cfg, file));
-    return adoptRef(new ScreencastEncoder(WTFMove(vpxCodec), size, scale));
+    return adoptRef(new ScreencastEncoder(WTFMove(vpxCodec), size));
 }
 
 void ScreencastEncoder::flushLastFrame()
@@ -338,10 +335,7 @@ void ScreencastEncoder::encodeFrame(cairo_surface_t* drawingAreaSurface, IntSize
         RefPtr<cairo_t> cr = adoptRef(cairo_create(surface.get()));
 
         cairo_matrix_t transform;
-        if (m_scale) {
-            cairo_matrix_init_scale(&transform, *m_scale, *m_scale);
-            cairo_transform(cr.get(), &transform);
-        } else if (size.width() > m_size.width() || size.height() > m_size.height()) {
+        if (size.width() > m_size.width() || size.height() > m_size.height()) {
             // If no scale is specified shrink to fit the frame.
             double scale = std::min(static_cast<double>(m_size.width()) / size.width(),
                                     static_cast<double>(m_size.height()) / size.height());
@@ -362,7 +356,7 @@ void ScreencastEncoder::encodeFrame(RetainPtr<CGImageRef>&& windowImage)
 {
     flushLastFrame();
 
-    m_lastFrame = makeUnique<VPXFrame>(WTFMove(windowImage), m_scale, m_offsetTop);
+    m_lastFrame = makeUnique<VPXFrame>(WTFMove(windowImage), m_offsetTop);
 }
 #endif
 

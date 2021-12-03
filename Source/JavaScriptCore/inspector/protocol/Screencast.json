@@ -16,8 +16,7 @@
                 { "name": "file", "type": "string", "description": "Output file location." },
                 { "name": "width", "type": "integer" },
                 { "name": "height", "type": "integer" },
-                { "name": "toolbarHeight", "type": "integer" },
-                { "name": "scale", "type": "number", "optional": true }
+                { "name": "toolbarHeight", "type": "integer" }
             ],
             "returns": [
                 { "name": "screencastId", "$ref": "ScreencastId", "description": "Unique identifier of the screencast." }

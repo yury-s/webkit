@@ -32,7 +32,7 @@
 
 namespace WebKit {
 
-void ScreencastEncoder::imageToARGB(CGImageRef image, uint8_t* argb_data, int width, int height, std::optional<double> scale, int offsetTop)
+void ScreencastEncoder::imageToARGB(CGImageRef image, uint8_t* argb_data, int width, int height, int offsetTop)
 {
     size_t bitsPerComponent = 8;
     size_t bytesPerPixel = 4;
@@ -41,12 +41,9 @@ void ScreencastEncoder::imageToARGB(CGImageRef image, uint8_t* argb_data, int wi
     RetainPtr<CGContextRef> context = adoptCF(CGBitmapContextCreate(argb_data, width, height, bitsPerComponent, bytesPerRow, colorSpace.get(), kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little));
     double imageWidth = CGImageGetWidth(image);
     double imageHeight = CGImageGetHeight(image);
-    // TODO: exclude controls from original screenshot
     double pageHeight = imageHeight - offsetTop;
     double ratio = 1;
-    if (scale) {
-        ratio = *scale;
-    } else if (imageWidth > width || pageHeight > height) {
+    if (imageWidth > width || pageHeight > height) {
         ratio = std::min(width / imageWidth, height / pageHeight);
     }
     imageWidth *= ratio;

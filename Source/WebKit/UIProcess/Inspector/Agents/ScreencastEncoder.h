@@ -46,10 +46,10 @@ class ScreencastEncoder : public ThreadSafeRefCounted<ScreencastEncoder> {
 public:
     static constexpr int fps = 25;
 
-    static RefPtr<ScreencastEncoder> create(String& errorString, const String& filePath, WebCore::IntSize, std::optional<double> scale);
+    static RefPtr<ScreencastEncoder> create(String& errorString, const String& filePath, WebCore::IntSize);
 
     class VPXCodec;
-    ScreencastEncoder(std::unique_ptr<VPXCodec>&&, WebCore::IntSize, std::optional<double> scale);
+    ScreencastEncoder(std::unique_ptr<VPXCodec>&&, WebCore::IntSize);
     ~ScreencastEncoder();
 
 #if USE(CAIRO)
@@ -64,12 +64,11 @@ public:
 private:
     void flushLastFrame();
 #if PLATFORM(MAC)
-    static void imageToARGB(CGImageRef, uint8_t* rgba_data, int width, int height, std::optional<double> scale, int offsetTop);
+    static void imageToARGB(CGImageRef, uint8_t* rgba_data, int width, int height, int offsetTop);
 #endif
 
     std::unique_ptr<VPXCodec> m_vpxCodec;
     const WebCore::IntSize m_size;
-    std::optional<double> m_scale;
     MonotonicTime m_lastFrameTimestamp;
     class VPXFrame;
     std::unique_ptr<VPXFrame> m_lastFrame;

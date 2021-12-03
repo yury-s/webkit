@@ -138,7 +138,7 @@ void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)
 }
 #endif
 
-Inspector::Protocol::ErrorStringOr<String /* screencastID */> InspectorScreencastAgent::startVideo(const String& file, int width, int height, int toolbarHeight, std::optional<double>&& scale)
+Inspector::Protocol::ErrorStringOr<String /* screencastID */> InspectorScreencastAgent::startVideo(const String& file, int width, int height, int toolbarHeight)
 {
     if (m_encoder)
         return makeUnexpected("Already recording"_s);
@@ -146,11 +146,8 @@ Inspector::Protocol::ErrorStringOr<String /* screencastID */> InspectorScreencas
     if (width < 10 || width > 10000 || height < 10 || height > 10000)
         return makeUnexpected("Invalid size"_s);
 
-    if (scale && (*scale <= 0 || *scale > 1))
-        return makeUnexpected("Unsupported scale"_s);
-
     String errorString;
-    m_encoder = ScreencastEncoder::create(errorString, file, WebCore::IntSize(width, height), WTFMove(scale));
+    m_encoder = ScreencastEncoder::create(errorString, file, WebCore::IntSize(width, height));
     if (!m_encoder)
         return makeUnexpected(errorString);
 

@@ -63,7 +63,7 @@ public:
     void didPaint(cairo_surface_t*);
 #endif
 
-    Inspector::Protocol::ErrorStringOr<String /* screencastID */> startVideo(const String& file, int width, int height, int toolbarHeight, std::optional<double>&& scale) override;
+    Inspector::Protocol::ErrorStringOr<String /* screencastID */> startVideo(const String& file, int width, int height, int toolbarHeight) override;
     void stopVideo(Ref<StopVideoCallback>&&) override;
 
     Inspector::Protocol::ErrorStringOr<int /* generation */> startScreencast(int width, int height, int toolbarHeight, int quality) override;
