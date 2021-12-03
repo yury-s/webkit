@@ -393,6 +393,10 @@ inline double timeToMS(double hour, double min, double sec, double ms)
     return (((hour * WTF::minutesPerHour + min) * WTF::secondsPerMinute + sec) * WTF::msPerSecond + ms);
 }
 
+WTF_EXPORT_PRIVATE bool setTimeZoneForAutomation(const String& timeZone);
+WTF_EXPORT_PRIVATE String timeZoneForAutomation();
+WTF_EXPORT_PRIVATE String timeZoneDisplayNameForAutomation();
+
 // Returns combined offset in millisecond (UTC + DST).
 WTF_EXPORT_PRIVATE LocalTimeOffset calculateLocalTimeOffset(double utcInMilliseconds, TimeType = UTCTime);
 
