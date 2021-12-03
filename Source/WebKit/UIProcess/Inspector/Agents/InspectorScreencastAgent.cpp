@@ -91,6 +91,13 @@ void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)
 #if PLATFORM(WPE)
     // Get actual image size (in device pixels).
     WebCore::IntSize displaySize(cairo_image_surface_get_width(surface), cairo_image_surface_get_height(surface));
+
+    WebCore::IntSize drawingAreaSize = m_page.drawingArea()->size();
+    drawingAreaSize.scale(m_page.deviceScaleFactor());
+    if (drawingAreaSize != displaySize) {
+        return;
+    }
+
 #else
     WebCore::IntSize displaySize = m_page.drawingArea()->size();
 #endif
