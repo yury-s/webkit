@@ -225,7 +225,6 @@ private:
                     return false;
                 }
                 ++m_frameCount;
-                // fprintf(stderr, "  #%03d %spts=%" PRId64 " sz=%zd\n", m_frameCount, (pkt->data.frame.flags & VPX_FRAME_IS_KEY) != 0 ? "[K] " : "", pkt->data.frame.pts, pkt->data.frame.sz);
                 m_pts += pkt->data.frame.duration;
             }
         }
@@ -241,7 +240,6 @@ private:
 
         m_writer->finish();
         fclose(m_file);
-        // fprintf(stderr, "ScreencastEncoder::finish %d frames\n", m_frameCount);
     }
 
     Ref<WorkQueue> m_encoderQueue;
@@ -307,7 +305,6 @@ RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const S
     }
 
     std::unique_ptr<VPXCodec> vpxCodec(new VPXCodec(codec, cfg, file));
-    // fprintf(stderr, "ScreencastEncoder initialized with: %s\n", vpx_codec_iface_name(codec_interface));
     return adoptRef(new ScreencastEncoder(WTFMove(vpxCodec), size, scale));
 }
 
@@ -329,21 +326,17 @@ void ScreencastEncoder::flushLastFrame()
 #if USE(CAIRO)
 void ScreencastEncoder::encodeFrame(cairo_surface_t* drawingAreaSurface, IntSize size)
 {
-    // fprintf(stderr, "ScreencastEncoder::encodeFrame\n");
     flushLastFrame();
     // Note that in WPE drawing area size is updated asynchronously and may differ from acutal
     // size of the surface.
     if (size.isZero()) {
-        // fprintf(stderr, "Cairo surface size is 0\n");
         return;
     }
 
-    // TODO: adjust device scale factor?
     RefPtr<cairo_surface_t> surface = adoptRef(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, m_size.width(), m_size.height()));
     {
         RefPtr<cairo_t> cr = adoptRef(cairo_create(surface.get()));
 
-        // TODO: compare to libyuv scale functions?
         cairo_matrix_t transform;
         if (m_scale) {
             cairo_matrix_init_scale(&transform, *m_scale, *m_scale);
@@ -367,7 +360,6 @@ void ScreencastEncoder::encodeFrame(cairo_surface_t* drawingAreaSurface, IntSize
 #elif PLATFORM(MAC)
 void ScreencastEncoder::encodeFrame(RetainPtr<CGImageRef>&& windowImage)
 {
-    // fprintf(stderr, "ScreencastEncoder::encodeFrame\n");
     flushLastFrame();
 
     m_lastFrame = makeUnique<VPXFrame>(WTFMove(windowImage), m_scale, m_offsetTop);

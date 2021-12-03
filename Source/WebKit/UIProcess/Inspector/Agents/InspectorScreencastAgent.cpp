@@ -88,8 +88,14 @@ void InspectorScreencastAgent::willDestroyFrontendAndBackend(DisconnectReason)
 #if USE(CAIRO)
 void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)
 {
+#if PLATFORM(WPE)
+    // Get actual image size (in device pixels).
+    WebCore::IntSize displaySize(cairo_image_surface_get_width(surface), cairo_image_surface_get_height(surface));
+#else
+    WebCore::IntSize displaySize = m_page.drawingArea()->size();
+#endif
     if (m_encoder)
-        m_encoder->encodeFrame(surface, m_page.drawingArea()->size());
+        m_encoder->encodeFrame(surface, displaySize);
     if (m_screencast) {
 
         {
@@ -108,7 +114,6 @@ void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)
         if (m_screencastFramesInFlight > kMaxFramesInFlight)
             return;
         // Scale image to fit width / height
-        WebCore::IntSize displaySize = m_page.drawingArea()->size();
         double scale = std::min(m_screencastWidth / displaySize.width(), m_screencastHeight / displaySize.height());
         RefPtr<cairo_surface_t> scaledSurface;
         if (scale < 1) {
