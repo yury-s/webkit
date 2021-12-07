@@ -627,6 +627,14 @@ static void filterSavedCallback(WebKitUserContentFilterStore *store, GAsyncResul
     g_main_loop_quit(data->mainLoop);
 }
 
+static WebKitSettings* createPlaywrightSettings() {
+    WebKitSettings* webkitSettings = webkit_settings_new();
+    // Playwright: revert to the default state before https://github.com/WebKit/WebKit/commit/a73a25b9ea9229987c8fa7b2e092e6324cb17913
+    webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER);
+    webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_ON_DEMAND);
+    return webkitSettings;
+}
+
 static WebKitWebContext *persistentWebContext = NULL;
 
 static WebKitWebView *createNewPage(WebKitBrowserInspector *browser_inspector, WebKitWebContext *context)
@@ -636,6 +644,7 @@ static WebKitWebView *createNewPage(WebKitBrowserInspector *browser_inspector, W
 
     WebKitWebView *newWebView = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
         "web-context", context,
+        "settings", createPlaywrightSettings(),
         "is-ephemeral", webkit_web_context_is_ephemeral(context),
         "is-controlled-by-automation", TRUE,
         NULL));
@@ -864,7 +873,7 @@ int main(int argc, char *argv[])
     g_option_context_add_group(context, gtk_get_option_group(TRUE));
 #endif
 
-    WebKitSettings *webkitSettings = webkit_settings_new();
+    WebKitSettings *webkitSettings = createPlaywrightSettings();
     webkit_settings_set_enable_developer_extras(webkitSettings, TRUE);
     webkit_settings_set_enable_webgl(webkitSettings, TRUE);
     webkit_settings_set_enable_media_stream(webkitSettings, TRUE);
