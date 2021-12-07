@@ -32,6 +32,7 @@
 #include "NavigationSOAuthorizationSession.h"
 #include <WebCore/FrameIdentifier.h>
 #include <wtf/Deque.h>
+#include <variant>
 
 namespace WebKit {
 
