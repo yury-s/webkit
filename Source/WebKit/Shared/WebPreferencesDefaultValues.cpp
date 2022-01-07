@@ -162,7 +162,9 @@ bool defaultOfflineWebApplicationCacheEnabled()
 
 bool defaultUseGPUProcessForCanvasRenderingEnabled()
 {
-#if ENABLE(GPU_PROCESS_BY_DEFAULT) || PLATFORM(WIN)
+#if PLATFORM(WIN)
+    bool defaultValue = false; // Playwright: force-disable on Windows
+#elif ENABLE(GPU_PROCESS_BY_DEFAULT)
     bool defaultValue = true;
 #else
     bool defaultValue = false;
@@ -190,7 +192,7 @@ bool defaultUseGPUProcessForMediaEnabled()
 bool defaultUseGPUProcessForWebGLEnabled()
 {
 #if PLATFORM(WIN)
-    bool defaultValue = true;
+    bool defaultValue = false; // Playwright: force disable on Windows
 #else
     bool defaultValue = false;
 #endif
