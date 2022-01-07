@@ -189,7 +189,9 @@ void NetworkDataTaskCurl::curlDidReceiveBuffer(CurlRequest&, Ref<FragmentedShare
     if (state() == State::Canceling || state() == State::Completed || (!m_client && !isDownload()))
         return;
     if (isDownload()) {
-        FileSystem::writeToFile(m_downloadDestinationFile, buffer->data(), buffer->size());
+        buffer->forEachSegment([&](auto& segment) {
+            FileSystem::writeToFile(m_downloadDestinationFile, segment.data(), segment.size());
+        });
         return;
     }
     m_client->didReceiveData(WTFMove(buffer));

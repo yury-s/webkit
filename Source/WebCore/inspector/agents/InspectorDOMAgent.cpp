@@ -2982,17 +2982,17 @@ RefPtr<Inspector::Protocol::Runtime::RemoteObject> InspectorDOMAgent::resolveNod
     if (!frame)
         return nullptr;
 
+    auto& globalObject = mainWorldGlobalObject(*frame);
     InjectedScript injectedScript;
-    if (contextId) {
+    if (contextId)
         injectedScript = m_injectedScriptManager.injectedScriptForId(*contextId);
-    } else {
-        auto& globalObject = mainWorldGlobalObject(*frame);
+    else
         injectedScript = m_injectedScriptManager.injectedScriptFor(&globalObject);
-    }
+
     if (injectedScript.hasNoValue())
         return nullptr;
 
-    return injectedScript.wrapObject(nodeAsScriptValue(*injectedScript.globalObject(), node), objectGroup);
+    return injectedScript.wrapObject(nodeAsScriptValue(globalObject, node), objectGroup);
 }
 
 Node* InspectorDOMAgent::scriptValueAsNode(JSC::JSValue value)
