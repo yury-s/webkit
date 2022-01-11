@@ -2802,10 +2802,10 @@ void WebPageProxy::startDrag(SelectionData&& selectionData, OptionSet<WebCore::D
 #endif
 
 #if PLATFORM(WIN) && ENABLE(DRAG_SUPPORT)
-void WebPageProxy::startDrag(WebCore::DragDataMap& dragDataMap)
+void WebPageProxy::startDrag(WebCore::DragDataMap&& dragDataMap)
 {
     if (m_interceptDrags) {
-        m_dragSelectionData = dragDataMap;
+        m_dragSelectionData = WTFMove(dragDataMap);
         m_dragSourceOperationMask = WebCore::anyDragOperation();
     }
     didStartDrag();

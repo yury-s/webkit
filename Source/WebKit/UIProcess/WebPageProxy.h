@@ -1296,7 +1296,7 @@ public:
     void startDrag(WebCore::SelectionData&&, OptionSet<WebCore::DragOperation>, const ShareableBitmap::Handle& dragImage);
 #endif
 #if PLATFORM(WIN)
-    void startDrag(WebCore::DragDataMap& dragDataMap);
+    void startDrag(WebCore::DragDataMap&& dragDataMap);
 #endif
 #endif
 
