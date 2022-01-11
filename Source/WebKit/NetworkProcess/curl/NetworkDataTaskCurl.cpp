@@ -190,7 +190,7 @@ void NetworkDataTaskCurl::curlDidReceiveData(CurlRequest&, const SharedBuffer& b
     if (state() == State::Canceling || state() == State::Completed || (!m_client && !isDownload()))
         return;
     if (isDownload()) {
-        buffer->forEachSegment([&](auto& segment) {
+        buffer.forEachSegment([&](auto& segment) {
             FileSystem::writeToFile(m_downloadDestinationFile, segment.data(), segment.size());
         });
         return;
