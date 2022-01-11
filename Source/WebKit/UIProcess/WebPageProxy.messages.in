@@ -308,7 +308,7 @@ messages -> WebPageProxy {
     StartDrag(WebCore::SelectionData selectionData, OptionSet<WebCore::DragOperation> dragOperationMask, WebKit::ShareableBitmap::Handle dragImage)
 #endif
 #if PLATFORM(WIN) && ENABLE(DRAG_SUPPORT)
-    StartDrag(HashMap<unsigned, Vector<String>> dragDataMap)
+    StartDrag(WebCore::DragDataMap dragDataMap)
 #endif
 #if ENABLE(DRAG_SUPPORT)
     DidPerformDragOperation(bool handled)
