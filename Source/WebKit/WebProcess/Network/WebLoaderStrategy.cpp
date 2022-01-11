@@ -316,7 +316,7 @@ bool WebLoaderStrategy::fillParametersForNetworkProcessLoad(ResourceLoader& reso
             RunLoop::main().dispatch([resourceLoader = Ref { resourceLoader }] {
                 resourceLoader->didFail(resourceLoader->blockedError());
             });
-            return;
+            return false;
         }
     }
 
@@ -326,7 +326,6 @@ bool WebLoaderStrategy::fillParametersForNetworkProcessLoad(ResourceLoader& reso
 
     LOG(NetworkScheduling, "(WebProcess) WebLoaderStrategy::scheduleLoad, url '%s' will be scheduled with the NetworkProcess with priority %d, storedCredentialsPolicy %i", resourceLoader.url().string().latin1().data(), static_cast<int>(resourceLoader.request().priority()), (int)storedCredentialsPolicy);
 
-    NetworkResourceLoadParameters loadParameters;
     loadParameters.identifier = identifier;
     loadParameters.webPageProxyID = trackingParameters.webPageProxyID;
     loadParameters.webPageID = trackingParameters.pageID;
