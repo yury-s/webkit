@@ -189,21 +189,13 @@ void NetworkDataTaskCurl::curlDidReceiveData(CurlRequest&, const SharedBuffer& b
     Ref protectedThis { *this };
     if (state() == State::Canceling || state() == State::Completed || (!m_client && !isDownload()))
         return;
-<<<<<<< HEAD
-
-    m_client->didReceiveData(buffer);
-||||||| constructed merge base
-
-    m_client->didReceiveData(WTFMove(buffer));
-=======
     if (isDownload()) {
         buffer->forEachSegment([&](auto& segment) {
             FileSystem::writeToFile(m_downloadDestinationFile, segment.data(), segment.size());
         });
         return;
     }
-    m_client->didReceiveData(WTFMove(buffer));
->>>>>>> chore(webkit): bootstrap build #1592
+    m_client->didReceiveData(buffer);
 }
 
 void NetworkDataTaskCurl::curlDidComplete(CurlRequest&, NetworkLoadMetrics&& networkLoadMetrics)

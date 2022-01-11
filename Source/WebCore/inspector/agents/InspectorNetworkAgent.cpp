@@ -1309,11 +1309,6 @@ Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptRequestWithRespons
     }
     response.setHTTPHeaderFields(WTFMove(explicitHeaders));
     response.setHTTPHeaderField(HTTPHeaderName::ContentType, response.mimeType());
-<<<<<<< HEAD
-    loader->didReceiveResponse(response, [loader, buffer = data.releaseNonNull()]() {
-||||||| constructed merge base
-    loader->didReceiveResponse(response, [loader, buffer = data.releaseNonNull()]() mutable {
-=======
 
     auto* frame = loader->frame();
     if (!setCookieValue.isEmpty() && frame && frame->page())
@@ -1322,7 +1317,6 @@ Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptRequestWithRespons
     loader->didReceiveResponse(response, [loader, buffer = data.releaseNonNull()]() mutable {
         if (loader->reachedTerminalState())
             return;
->>>>>>> chore(webkit): bootstrap build #1592
         if (buffer->size())
             loader->didReceiveData(buffer, buffer->size(), DataPayloadWholeResource);
         loader->didFinishLoading(NetworkLoadMetrics());

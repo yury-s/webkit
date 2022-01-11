@@ -326,16 +326,7 @@ bool WebLoaderStrategy::fillParametersForNetworkProcessLoad(ResourceLoader& reso
 
     LOG(NetworkScheduling, "(WebProcess) WebLoaderStrategy::scheduleLoad, url '%s' will be scheduled with the NetworkProcess with priority %d, storedCredentialsPolicy %i", resourceLoader.url().string().latin1().data(), static_cast<int>(resourceLoader.request().priority()), (int)storedCredentialsPolicy);
 
-<<<<<<< HEAD
     NetworkResourceLoadParameters loadParameters;
-||||||| constructed merge base
-    auto* frame = resourceLoader.frame();
-
-    NetworkResourceLoadParameters loadParameters;
-=======
-    auto* frame = resourceLoader.frame();
-
->>>>>>> chore(webkit): bootstrap build #1592
     loadParameters.identifier = identifier;
     loadParameters.webPageProxyID = trackingParameters.webPageProxyID;
     loadParameters.webPageID = trackingParameters.pageID;

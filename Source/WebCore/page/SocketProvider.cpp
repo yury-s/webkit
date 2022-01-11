@@ -33,14 +33,8 @@ namespace WebCore {
     
 Ref<SocketStreamHandle> SocketProvider::createSocketStreamHandle(const URL& url, SocketStreamHandleClient& client, WebSocketIdentifier, PAL::SessionID sessionID, const String& credentialPartition, const StorageSessionProvider* provider)
 {
-<<<<<<< HEAD
     static const auto shouldAcceptInsecureCertificates = false;
     return SocketStreamHandleImpl::create(url, client, sessionID, credentialPartition, { }, provider, shouldAcceptInsecureCertificates);
-||||||| constructed merge base
-    return SocketStreamHandleImpl::create(url, client, sessionID, credentialPartition, { }, provider);
-=======
-    return SocketStreamHandleImpl::create(url, false, client, sessionID, credentialPartition, { }, provider);
->>>>>>> chore(webkit): bootstrap build #1592
 }
 
 RefPtr<ThreadableWebSocketChannel> SocketProvider::createWebSocketChannel(Document&, WebSocketChannelClient&)

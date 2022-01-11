@@ -44,13 +44,7 @@ class StorageSessionProvider;
 
 class SocketStreamHandleImpl : public SocketStreamHandle, public CurlStream::Client {
 public:
-<<<<<<< HEAD
-    static Ref<SocketStreamHandleImpl> create(const URL& url, SocketStreamHandleClient& client, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider* provider, bool) { return adoptRef(*new SocketStreamHandleImpl(url, client, provider)); }
-||||||| constructed merge base
-    static Ref<SocketStreamHandleImpl> create(const URL& url, SocketStreamHandleClient& client, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider* provider) { return adoptRef(*new SocketStreamHandleImpl(url, client, provider)); }
-=======
-    static Ref<SocketStreamHandleImpl> create(const URL& url, bool ignoreCertificateErrors, SocketStreamHandleClient& client, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider* provider) { return adoptRef(*new SocketStreamHandleImpl(url, ignoreCertificateErrors, client, provider)); }
->>>>>>> chore(webkit): bootstrap build #1592
+    static Ref<SocketStreamHandleImpl> create(const URL& url, SocketStreamHandleClient& client, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider* provider, bool ignoreCertificateErrors) { return adoptRef(*new SocketStreamHandleImpl(url, ignoreCertificateErrors, client, provider)); }
 
     virtual ~SocketStreamHandleImpl();
 

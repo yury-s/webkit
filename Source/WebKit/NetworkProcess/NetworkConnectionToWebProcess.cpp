@@ -440,6 +440,10 @@ void NetworkConnectionToWebProcess::createSocketStream(URL&& url, String cachePa
     if (auto* session = networkSession())
         acceptInsecureCertificates = session->shouldAcceptInsecureCertificatesForWebSockets();
 #endif
+    if (auto* session = networkSession()) {
+        if (session->ignoreCertificateErrors())
+            acceptInsecureCertificates = true;
+    }
     m_networkSocketStreams.add(identifier, NetworkSocketStream::create(m_networkProcess.get(), WTFMove(url), m_sessionID, cachePartition, identifier, m_connection, WTFMove(token), acceptInsecureCertificates));
 }
 

@@ -96,13 +96,7 @@ static inline auto callbacksRunLoopMode()
 #endif
 }
 
-<<<<<<< HEAD
 SocketStreamHandleImpl::SocketStreamHandleImpl(const URL& url, SocketStreamHandleClient& client, PAL::SessionID sessionID, const String& credentialPartition, SourceApplicationAuditToken&& auditData, const StorageSessionProvider* provider, bool acceptInsecureCertificates)
-||||||| constructed merge base
-SocketStreamHandleImpl::SocketStreamHandleImpl(const URL& url, SocketStreamHandleClient& client, PAL::SessionID sessionID, const String& credentialPartition, SourceApplicationAuditToken&& auditData, const StorageSessionProvider* provider)
-=======
-SocketStreamHandleImpl::SocketStreamHandleImpl(const URL& url, bool ignoreCertificateErrors, SocketStreamHandleClient& client, PAL::SessionID sessionID, const String& credentialPartition, SourceApplicationAuditToken&& auditData, const StorageSessionProvider* provider)
->>>>>>> chore(webkit): bootstrap build #1592
     : SocketStreamHandle(url, client)
     , m_connectingSubstate(New)
     , m_connectionType(Unknown)
@@ -111,7 +105,6 @@ SocketStreamHandleImpl::SocketStreamHandleImpl(const URL& url, bool ignoreCertif
     , m_credentialPartition(credentialPartition)
     , m_auditData(WTFMove(auditData))
     , m_storageSessionProvider(provider)
-    , m_ignoreCertificateErrors(ignoreCertificateErrors)
 {
     LOG(Network, "SocketStreamHandle %p new client %p", this, &m_client);
 
@@ -365,14 +358,8 @@ void SocketStreamHandleImpl::createStreams()
     }
 
     if (shouldUseSSL()) {
-<<<<<<< HEAD
         // FIXME: rdar://86641948 Remove shouldAcceptInsecureCertificatesForWebSockets once HAVE(NSURLSESSION_WEBSOCKET) is supported on all Cocoa platforms.
         CFBooleanRef validateCertificateChain = DeprecatedGlobalSettings::allowsAnySSLCertificate() || m_shouldAcceptInsecureCertificates ? kCFBooleanFalse : kCFBooleanTrue;
-||||||| constructed merge base
-        CFBooleanRef validateCertificateChain = DeprecatedGlobalSettings::allowsAnySSLCertificate() ? kCFBooleanFalse : kCFBooleanTrue;
-=======
-        CFBooleanRef validateCertificateChain = m_ignoreCertificateErrors || DeprecatedGlobalSettings::allowsAnySSLCertificate() ? kCFBooleanFalse : kCFBooleanTrue;
->>>>>>> chore(webkit): bootstrap build #1592
         const void* keys[] = {
             kCFStreamSSLPeerName,
             kCFStreamSSLLevel,

@@ -1109,16 +1109,8 @@ inline void InspectorInstrumentation::didReceiveThreadableLoaderResponse(Documen
     if (auto* agents = instrumentingAgents(documentThreadableLoader.document()))
         didReceiveThreadableLoaderResponseImpl(*agents, documentThreadableLoader, identifier);
 }
-<<<<<<< HEAD
     
 inline void InspectorInstrumentation::didReceiveData(Frame* frame, ResourceLoaderIdentifier identifier, const SharedBuffer& buffer, int encodedDataLength)
-||||||| constructed merge base
-    
-inline void InspectorInstrumentation::didReceiveData(Frame* frame, ResourceLoaderIdentifier identifier, const uint8_t* data, int dataLength, int encodedDataLength)
-=======
-
-inline void InspectorInstrumentation::didReceiveData(Frame* frame, ResourceLoaderIdentifier identifier, const uint8_t* data, int dataLength, int encodedDataLength)
->>>>>>> chore(webkit): bootstrap build #1592
 {
     FAST_RETURN_IF_NO_FRONTENDS(void());
     if (auto* agents = instrumentingAgents(frame))

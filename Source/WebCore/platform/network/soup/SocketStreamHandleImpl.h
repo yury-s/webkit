@@ -47,13 +47,7 @@ class StorageSessionProvider;
 
 class SocketStreamHandleImpl final : public SocketStreamHandle {
 public:
-<<<<<<< HEAD
     static Ref<SocketStreamHandleImpl> create(const URL&, SocketStreamHandleClient&, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider*, bool)
-||||||| constructed merge base
-    static Ref<SocketStreamHandleImpl> create(const URL&, SocketStreamHandleClient&, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider*)
-=======
-    static Ref<SocketStreamHandleImpl> create(const URL&, bool, SocketStreamHandleClient&, PAL::SessionID, const String&, SourceApplicationAuditToken&&, const StorageSessionProvider*)
->>>>>>> chore(webkit): bootstrap build #1592
     {
         RELEASE_ASSERT_NOT_REACHED();
     }
