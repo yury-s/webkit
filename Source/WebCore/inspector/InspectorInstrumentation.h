@@ -321,6 +321,8 @@ public:
     static void runOpenPanel(Frame*, HTMLInputElement*, bool*);
     static void frameAttached(Frame*);
     static bool shouldBypassCSP(ScriptExecutionContext*);
+    static void willCheckNavigationPolicy(Frame&);
+    static void didCheckNavigationPolicy(Frame&, bool cancel);
 
     static void frontendCreated();
     static void frontendDeleted();
@@ -529,6 +531,8 @@ private:
     static void runOpenPanelImpl(InstrumentingAgents&, HTMLInputElement*, bool*);
     static void frameAttachedImpl(InstrumentingAgents&, Frame&);
     static bool shouldBypassCSPImpl(InstrumentingAgents&);
+    static void willCheckNavigationPolicyImpl(InstrumentingAgents&, Frame&);
+    static void didCheckNavigationPolicyImpl(InstrumentingAgents&, Frame&, bool cancel);
 
     static InstrumentingAgents& instrumentingAgents(Page&);
     static InstrumentingAgents& instrumentingAgents(WorkerOrWorkletGlobalScope&);
@@ -1725,6 +1729,20 @@ inline bool InspectorInstrumentation::shouldBypassCSP(ScriptExecutionContext* co
     if (auto* agents = instrumentingAgents(context))
         return shouldBypassCSPImpl(*agents);
     return false;
+}
+
+inline void InspectorInstrumentation::willCheckNavigationPolicy(Frame& frame)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        willCheckNavigationPolicyImpl(*agents, frame);
+}
+
+inline void InspectorInstrumentation::didCheckNavigationPolicy(Frame& frame, bool cancel)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(void());
+    if (auto* agents = instrumentingAgents(frame))
+        didCheckNavigationPolicyImpl(*agents, frame, cancel);
 }
 
 inline InstrumentingAgents* InspectorInstrumentation::instrumentingAgents(ScriptExecutionContext* context)

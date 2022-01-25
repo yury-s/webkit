@@ -591,6 +591,34 @@
             ]
         },
         {
+            "name": "willCheckNavigationPolicy",
+            "description": "Fired when page is about to check policy for newly triggered navigation.",
+            "parameters": [
+                {
+                    "name": "frameId",
+                    "description": "Id of the frame.",
+                    "$ref": "Network.FrameId"
+                }
+            ]
+          },
+          {
+            "name": "didCheckNavigationPolicy",
+            "description": "Fired when page has received navigation policy decision.",
+            "parameters": [
+                {
+                    "name": "frameId",
+                    "description": "Id of the frame.",
+                    "$ref": "Network.FrameId"
+                },
+                {
+                    "name": "cancel",
+                    "description": "True if the navigation will not continue in this frame.",
+                    "type": "boolean",
+                    "optional": true
+                }
+            ]
+          },
+          {
             "name": "fileChooserOpened",
             "description": "Fired when the page shows file chooser for it's <input type=file>.",
             "parameters": [

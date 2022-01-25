@@ -1317,6 +1317,18 @@ bool InspectorInstrumentation::shouldBypassCSPImpl(InstrumentingAgents& instrume
     return false;
 }
 
+void InspectorInstrumentation::willCheckNavigationPolicyImpl(InstrumentingAgents& instrumentingAgents, Frame& frame)
+{
+    if (InspectorPageAgent* pageAgent = instrumentingAgents.enabledPageAgent())
+        pageAgent->willCheckNavigationPolicy(frame);
+}
+
+void InspectorInstrumentation::didCheckNavigationPolicyImpl(InstrumentingAgents& instrumentingAgents, Frame& frame, bool cancel)
+{
+    if (InspectorPageAgent* pageAgent = instrumentingAgents.enabledPageAgent())
+        pageAgent->didCheckNavigationPolicy(frame, cancel);
+}
+
 InstrumentingAgents& InspectorInstrumentation::instrumentingAgents(WorkerOrWorkletGlobalScope& globalScope)
 {
     return globalScope.inspectorController().m_instrumentingAgents;

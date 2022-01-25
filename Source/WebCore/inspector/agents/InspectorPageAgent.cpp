@@ -1101,6 +1101,16 @@ bool InspectorPageAgent::shouldBypassCSP()
     return m_bypassCSP;
 }
 
+void InspectorPageAgent::willCheckNavigationPolicy(Frame& frame)
+{
+    m_frontendDispatcher->willCheckNavigationPolicy(frameId(&frame));
+}
+
+void InspectorPageAgent::didCheckNavigationPolicy(Frame& frame, bool cancel)
+{
+    m_frontendDispatcher->didCheckNavigationPolicy(frameId(&frame), cancel);
+}
+
 Ref<Protocol::Page::Frame> InspectorPageAgent::buildObjectForFrame(Frame* frame)
 {
     ASSERT_ARG(frame, frame);
