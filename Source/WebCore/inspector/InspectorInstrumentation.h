@@ -321,8 +321,6 @@ public:
     static void runOpenPanel(Frame*, HTMLInputElement*, bool*);
     static void frameAttached(Frame*);
     static bool shouldBypassCSP(ScriptExecutionContext*);
-    static void willCheckNewWindowPolicy(Frame&, const URL&);
-    static void didCheckNewWindowPolicy(Frame&, bool allowed);
 
     static void frontendCreated();
     static void frontendDeleted();
@@ -531,8 +529,6 @@ private:
     static void runOpenPanelImpl(InstrumentingAgents&, HTMLInputElement*, bool*);
     static void frameAttachedImpl(InstrumentingAgents&, Frame&);
     static bool shouldBypassCSPImpl(InstrumentingAgents&);
-    static void willCheckNewWindowPolicyImpl(InstrumentingAgents&, const URL&);
-    static void didCheckNewWindowPolicyImpl(InstrumentingAgents&, bool allowed);
 
     static InstrumentingAgents& instrumentingAgents(Page&);
     static InstrumentingAgents& instrumentingAgents(WorkerOrWorkletGlobalScope&);
@@ -1729,20 +1725,6 @@ inline bool InspectorInstrumentation::shouldBypassCSP(ScriptExecutionContext* co
     if (auto* agents = instrumentingAgents(context))
         return shouldBypassCSPImpl(*agents);
     return false;
-}
-
-inline void InspectorInstrumentation::willCheckNewWindowPolicy(Frame& frame, const URL& url)
-{
-    FAST_RETURN_IF_NO_FRONTENDS(void());
-    if (auto* agents = instrumentingAgents(frame))
-        willCheckNewWindowPolicyImpl(*agents, url);
-}
-
-inline void InspectorInstrumentation::didCheckNewWindowPolicy(Frame& frame, bool allowed)
-{
-    FAST_RETURN_IF_NO_FRONTENDS(void());
-    if (auto* agents = instrumentingAgents(frame))
-        didCheckNewWindowPolicyImpl(*agents, allowed);
 }
 
 inline InstrumentingAgents* InspectorInstrumentation::instrumentingAgents(ScriptExecutionContext* context)

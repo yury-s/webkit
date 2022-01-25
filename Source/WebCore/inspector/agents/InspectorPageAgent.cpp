@@ -1101,16 +1101,6 @@ bool InspectorPageAgent::shouldBypassCSP()
     return m_bypassCSP;
 }
 
-void InspectorPageAgent::willCheckNewWindowPolicy(const URL& url)
-{
-    m_frontendDispatcher->willRequestOpenWindow(url.string());
-}
-
-void InspectorPageAgent::didCheckNewWindowPolicy(bool allowed)
-{
-    m_frontendDispatcher->didRequestOpenWindow(allowed);
-}
-
 Ref<Protocol::Page::Frame> InspectorPageAgent::buildObjectForFrame(Frame* frame)
 {
     ASSERT_ARG(frame, frame);

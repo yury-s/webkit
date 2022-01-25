@@ -171,8 +171,6 @@ public:
     void runOpenPanel(HTMLInputElement* element, bool* intercept);
     void frameAttached(Frame&);
     bool shouldBypassCSP();
-    void willCheckNewWindowPolicy(const URL&);
-    void didCheckNewWindowPolicy(bool allowed);
     bool doingAccessibilitySnapshot() const { return m_doingAccessibilitySnapshot; };
 
     Frame* frameForId(const Inspector::Protocol::Network::FrameId&);

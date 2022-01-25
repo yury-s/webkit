@@ -591,20 +591,6 @@
             ]
         },
         {
-          "name": "willRequestOpenWindow",
-          "description": "Fired when page tries to open a new window.",
-          "parameters": [
-              { "name": "url", "type": "string" }
-          ]
-        },
-        {
-          "name": "didRequestOpenWindow",
-          "description": "Fired after page did try to open a new window.",
-          "parameters": [
-              { "name": "opened", "type": "boolean" }
-          ]
-        },
-        {
             "name": "fileChooserOpened",
             "description": "Fired when the page shows file chooser for it's <input type=file>.",
             "parameters": [
