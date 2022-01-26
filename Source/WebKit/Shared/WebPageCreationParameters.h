@@ -254,6 +254,8 @@ struct WebPageCreationParameters {
 
     WebCore::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking { WebCore::ShouldRelaxThirdPartyCookieBlocking::No };
 
+    bool shouldPauseInInspectorWhenShown { false };
+
 #if PLATFORM(GTK)
     GtkSettingsState gtkSettings;
 #endif
