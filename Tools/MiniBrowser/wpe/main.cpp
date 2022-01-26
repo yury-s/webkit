@@ -179,6 +179,8 @@ static gboolean scriptDialogHandled(WebKitWebView*, WebKitScriptDialog* dialog, 
     return TRUE;
 }
 
+static gboolean webViewDecidePolicy(WebKitWebView *webView, WebKitPolicyDecision *decision, WebKitPolicyDecisionType decisionType, gpointer);
+
 static WebKitWebView* createWebView(WebKitWebView* webView, WebKitNavigationAction*, gpointer);
 
 static WebKitWebView* createWebViewImpl(WebKitWebView* webView, WebKitWebContext *webContext)
@@ -219,13 +221,35 @@ static WebKitWebView* createWebViewImpl(WebKitWebView* webView, WebKitWebContext
     g_signal_connect(newWebView, "load-failed", G_CALLBACK(webViewLoadFailed), nullptr);
     g_signal_connect(newWebView, "script-dialog", G_CALLBACK(scriptDialog), nullptr);
     g_signal_connect(newWebView, "script-dialog-handled", G_CALLBACK(scriptDialogHandled), nullptr);
-    g_signal_connect(newWebView, "create", G_CALLBACK(createWebView), nullptr);
+    g_signal_connect(newWebView, "decide-policy", G_CALLBACK(webViewDecidePolicy), nullptr);
     return newWebView;
 }
 
 static WebKitWebView* createWebView(WebKitWebView* webView, WebKitNavigationAction*, gpointer)
 {
     return createWebViewImpl(webView, nullptr);
+}
+
+static gboolean webViewDecidePolicy(WebKitWebView *webView, WebKitPolicyDecision *decision, WebKitPolicyDecisionType decisionType, gpointer)
+{
+    if (decisionType != WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION)
+        return FALSE;
+
+    WebKitNavigationAction *navigationAction = webkit_navigation_policy_decision_get_navigation_action(WEBKIT_NAVIGATION_POLICY_DECISION(decision));
+    if (webkit_navigation_action_get_navigation_type(navigationAction) != WEBKIT_NAVIGATION_TYPE_LINK_CLICKED)
+        return FALSE;
+
+    guint modifiers = webkit_navigation_action_get_modifiers(navigationAction);
+    if (webkit_navigation_action_get_mouse_button(navigationAction) != 2 /* GDK_BUTTON_MIDDLE */ &&
+        (webkit_navigation_action_get_mouse_button(navigationAction) != 1 /* GDK_BUTTON_PRIMARY */ || (modifiers & (wpe_input_keyboard_modifier_control | wpe_input_keyboard_modifier_shift)) == 0))
+        return FALSE;
+
+    /* Open a new tab if link clicked with the middle button, shift+click or ctrl+click. */
+    WebKitWebView* newWebView = createWebViewImpl(nullptr, webkit_web_view_get_context(webView));
+    webkit_web_view_load_request(newWebView, webkit_navigation_action_get_request(navigationAction));
+
+    webkit_policy_decision_ignore(decision);
+    return TRUE;
 }
 
 static WebKitWebContext *persistentWebContext = NULL;

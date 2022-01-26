@@ -491,8 +491,12 @@ static gboolean webViewDecidePolicy(WebKitWebView *webView, WebKitPolicyDecision
         return FALSE;
 
     WebKitNavigationAction *navigationAction = webkit_navigation_policy_decision_get_navigation_action(WEBKIT_NAVIGATION_POLICY_DECISION(decision));
-    if (webkit_navigation_action_get_navigation_type(navigationAction) != WEBKIT_NAVIGATION_TYPE_LINK_CLICKED
-        || webkit_navigation_action_get_mouse_button(navigationAction) != GDK_BUTTON_MIDDLE)
+    if (webkit_navigation_action_get_navigation_type(navigationAction) != WEBKIT_NAVIGATION_TYPE_LINK_CLICKED)
+        return FALSE;
+
+    guint modifiers = webkit_navigation_action_get_modifiers(navigationAction);
+    if (webkit_navigation_action_get_mouse_button(navigationAction) != GDK_BUTTON_MIDDLE &&
+        (webkit_navigation_action_get_mouse_button(navigationAction) != GDK_BUTTON_PRIMARY || (modifiers & (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) == 0))
         return FALSE;
 
     /* Multiple tabs are not allowed in editor mode. */
