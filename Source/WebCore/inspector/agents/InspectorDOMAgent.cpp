@@ -1735,7 +1735,7 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::scrollIntoViewIfNeeded(const St
         absoluteBounds.setHeight(LayoutUnit(std::max(*height, 1.0)));
     }
     ScrollAlignment alignment = ScrollAlignment::alignCenterIfNeeded;
-    alignment.m_enableLegacyHorizontalVisibilityThreshold = true;
+    alignment.m_enableLegacyHorizontalVisibilityThreshold = false; // Disable RenderLayer minium horizontal scroll threshold.
     renderer->scrollRectToVisible(absoluteBounds, insideFixed, { SelectionRevealMode::Reveal, alignment, alignment, ShouldAllowCrossOriginScrolling::Yes });
     return { };
 }
