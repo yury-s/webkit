@@ -387,8 +387,8 @@ void InspectorController::inspect(Node* node)
     if (!enabled())
         return;
 
-    if (!hasRemoteFrontend())
-        show();
+    // HACK: Always attempt to show inspector even if there is a remote connection.
+    show();
 
     ensureDOMAgent().inspect(node);
 }
@@ -527,6 +527,26 @@ void InspectorController::willComposite(Frame& frame)
 void InspectorController::didComposite(Frame& frame)
 {
     InspectorInstrumentation::didComposite(frame);
+}
+
+void InspectorController::pauseWhenShown()
+{
+    m_pauseWhenShown = true;
+}
+
+void InspectorController::resumeIfPausedInNewWindow()
+{
+    m_pauseWhenShown = false;
+}
+
+void InspectorController::didShowNewWindow()
+{
+    if (!m_pauseWhenShown)
+        return;
+    while (m_pauseWhenShown) {
+        if (RunLoop::cycle() == RunLoop::CycleResult::Stop)
+            break;
+    }
 }
 
 } // namespace WebCore
