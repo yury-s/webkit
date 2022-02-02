@@ -34,7 +34,6 @@
 #include <JavaScriptCore/RemoteInspectorServer.h>
 #include <WebCore/WebCoreBundleWin.h>
 #include <wtf/text/StringToIntegerConversion.h>
-#include <wtf/URL.h>
 #endif
 
 namespace WebKit {
