@@ -36,6 +36,7 @@
 
 namespace WebKit {
 
+class OverridenGeolocationProvider;
 class WebsiteDataStore;
 class WebPageProxy;
 class WebProcessPool;
@@ -50,6 +51,7 @@ public:
     RefPtr<WebsiteDataStore> dataStore;
     RefPtr<WebProcessPool> processPool;
     HashSet<WebPageProxy*> pages;
+    OverridenGeolocationProvider* geolocationProvider { nullptr };
 };
 
 class InspectorPlaywrightAgentClient {

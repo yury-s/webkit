@@ -28,6 +28,7 @@
 
 #if ENABLE(REMOTE_INSPECTOR)
 
+#include "APIGeolocationProvider.h"
 #include "APIPageConfiguration.h"
 #include "FrameInfoData.h"
 #include "InspectorPlaywrightAgentClient.h"
@@ -121,7 +122,47 @@ private:
     WebPageProxy& m_page;
 };
 
+class OverridenGeolocationProvider final : public API::GeolocationProvider {
+public:
+    explicit OverridenGeolocationProvider(BrowserContext* browserContext)
+        : m_position(WebGeolocationPosition::create(WebCore::GeolocationPositionData()))
+        , m_browserContext(browserContext)
+    {
+        m_browserContext->geolocationProvider = this;
+    }
+
+    ~OverridenGeolocationProvider() override {
+        m_browserContext->geolocationProvider = nullptr;
+    }
+
+    void setPosition(const Ref<WebGeolocationPosition>& position) {
+        m_position = position;
+    }
+
+private:
+    void startUpdating(WebGeolocationManagerProxy& proxy) override
+    {
+        proxy.providerDidChangePosition(&m_position.get());
+    }
+
+    void stopUpdating(WebGeolocationManagerProxy&) override
+    {
+    }
+
+    void setEnableHighAccuracy(WebGeolocationManagerProxy&, bool enabled) override
+    {
+    }
+
+    Ref<WebGeolocationPosition> m_position;
+    BrowserContext* m_browserContext;
+};
+
 namespace {
+
+void setGeolocationProvider(BrowserContext* browserContext) {
+    auto* geoManager = browserContext->processPool->supplement<WebGeolocationManagerProxy>();
+    geoManager->setProvider(makeUnique<OverridenGeolocationProvider>(browserContext));
+}
 
 String toBrowserContextIDProtocolString(const PAL::SessionID& sessionID)
 {
@@ -433,6 +474,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::enable()
         m_defaultContext = context.get();
         context->processPool = WebProcessPool::allProcessPools().first().ptr();
         context->dataStore = defaultDataStore;
+        setGeolocationProvider(context.get());
         // Add default context to the map so that we can easily find it for
         // created/deleted pages.
         PAL::SessionID sessionID = context->dataStore->sessionID();
@@ -527,7 +569,7 @@ Inspector::Protocol::ErrorStringOr<String /* browserContextID */> InspectorPlayw
     // Ensure network process.
     browserContext->dataStore->networkProcess();
     browserContext->dataStore->setDownloadInstrumentation(this);
-
+    setGeolocationProvider(browserContext.get());
     PAL::SessionID sessionID = browserContext->dataStore->sessionID();
     String browserContextID = toBrowserContextIDProtocolString(sessionID);
     m_browserContexts.set(browserContextID, WTFMove(browserContext));
@@ -830,6 +872,9 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setGeolocatio
             return makeUnexpected("Invalid geolocation format"_s);
 
         auto position = WebGeolocationPosition::create(WebCore::GeolocationPositionData(*timestamp, *latitude, *longitude, *accuracy));
+        if (!browserContext->geolocationProvider)
+            return makeUnexpected("Internal error: geolocation provider has been destroyed."_s);
+        browserContext->geolocationProvider->setPosition(position);
         geoManager->providerDidChangePosition(&position.get());
     } else {
         geoManager->providerDidFailToDeterminePosition("Position unavailable"_s);
