@@ -3123,7 +3123,7 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::setAllowEditingUserAgentShadowT
     return { };
 }
 
-Protocol::ErrorStringOr<void> InspectorDOMAgent::setInputFiles(const String& objectId, Ref<JSON::Array>&& files) {
+Protocol::ErrorStringOr<void> InspectorDOMAgent::setInputFiles(const String& objectId, RefPtr<JSON::Array>&& files, RefPtr<JSON::Array>&& paths) {
     InjectedScript injectedScript = m_injectedScriptManager.injectedScriptForObjectId(objectId);
     if (injectedScript.hasNoValue())
         return makeUnexpected("Can not find element's context for given id"_s);
@@ -3135,26 +3135,41 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::setInputFiles(const String& obj
     if (node->nodeType() != Node::ELEMENT_NODE || node->nodeName() != "INPUT")
         return makeUnexpected("Not an input node"_s);
 
+    if (!(bool(files) ^ bool(paths)))
+        return makeUnexpected("Exactly one of files and paths should be specified"_s);
+
     HTMLInputElement* element = static_cast<HTMLInputElement*>(node);
     Vector<Ref<File>> fileObjects;
-    for (unsigned i = 0; i < files->length(); ++i) {
-        RefPtr<JSON::Value> item = files->get(i);
-        RefPtr<JSON::Object> obj = item->asObject();
-        if (!obj)
-            return makeUnexpected("Invalid file payload format"_s);
+    if (files) {
+        for (unsigned i = 0; i < files->length(); ++i) {
+            RefPtr<JSON::Value> item = files->get(i);
+            RefPtr<JSON::Object> obj = item->asObject();
+            if (!obj)
+                return makeUnexpected("Invalid file payload format"_s);
 
-        String name;
-        String type;
-        String data;
-        if (!obj->getString("name", name) || !obj->getString("type", type) || !obj->getString("data", data))
-            return makeUnexpected("Invalid file payload format"_s);
+            String name;
+            String type;
+            String data;
+            if (!obj->getString("name", name) || !obj->getString("type", type) || !obj->getString("data", data))
+                return makeUnexpected("Invalid file payload format"_s);
 
-        std::optional<Vector<uint8_t>> buffer = base64Decode(data);
-        if (!buffer)
-            return makeUnexpected("Unable to decode given content"_s);
+            std::optional<Vector<uint8_t>> buffer = base64Decode(data);
+            if (!buffer)
+                return makeUnexpected("Unable to decode given content"_s);
 
-        ScriptExecutionContext* context = element->scriptExecutionContext();
-        fileObjects.append(File::create(context, Blob::create(context, WTFMove(*buffer), type), name));
+            ScriptExecutionContext* context = element->scriptExecutionContext();
+            fileObjects.append(File::create(context, Blob::create(context, WTFMove(*buffer), type), name));
+        }
+    } else {
+        for (unsigned i = 0; i < paths->length(); ++i) {
+            RefPtr<JSON::Value> item = paths->get(i);
+            String path = item->asString();
+            if (path.isEmpty())
+                return makeUnexpected("Invalid file path"_s);
+
+            ScriptExecutionContext* context = element->scriptExecutionContext();
+            fileObjects.append(File::create(context, path));
+        }
     }
     RefPtr<FileList> fileList = FileList::create(WTFMove(fileObjects));
     element->setFiles(WTFMove(fileList));
