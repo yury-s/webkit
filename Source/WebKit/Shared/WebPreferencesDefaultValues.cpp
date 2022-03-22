@@ -161,7 +161,9 @@ bool defaultOfflineWebApplicationCacheEnabled()
 
 bool defaultUseGPUProcessForCanvasRenderingEnabled()
 {
-#if ENABLE(GPU_PROCESS_BY_DEFAULT) || PLATFORM(WIN)
+#if PLATFORM(WIN)
+    bool defaultValue = false; // Playwright: force-disable on Windows
+#elif ENABLE(GPU_PROCESS_BY_DEFAULT)
     bool defaultValue = true;
 #else
     bool defaultValue = false;
@@ -188,9 +190,10 @@ bool defaultUseGPUProcessForMediaEnabled()
 
 bool defaultUseGPUProcessForWebGLEnabled()
 {
-#if (ENABLE(GPU_PROCESS_BY_DEFAULT) && PLATFORM(IOS_FAMILY)) || PLATFORM(WIN)
+#if (ENABLE(GPU_PROCESS_BY_DEFAULT) && PLATFORM(IOS_FAMILY))
     bool defaultValue = true;
 #else
+    // Playwright: force disable on Windows and other platforms.
     bool defaultValue = false;
 #endif
     return isFeatureFlagEnabled("gpu_process_webgl", defaultValue);

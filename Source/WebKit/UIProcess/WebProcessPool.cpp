@@ -539,6 +539,14 @@ void WebProcessPool::establishRemoteWorkerContextConnectionToNetworkProcess(Remo
 
     RefPtr<WebProcessProxy> requestingProcess = requestingProcessIdentifier ? WebProcessProxy::processForIdentifier(*requestingProcessIdentifier) : nullptr;
     WebProcessPool* processPool = requestingProcess ? &requestingProcess->processPool() : processPools()[0];
+    // Playwright begin
+    for (auto& process : websiteDataStore->processes()) {
+        if (process.processPoolIfExists()) {
+            processPool = process.processPoolIfExists();
+            break;
+        }
+    }
+    // Playwright end
     ASSERT(processPool);
 
     WebProcessProxy* remoteWorkerProcessProxy { nullptr };
@@ -817,8 +825,12 @@ void WebProcessPool::initializeNewWebProcess(WebProcessProxy& process, WebsiteDa
 #endif
 
     parameters.cacheModel = LegacyGlobalSettings::singleton().cacheModel();
-    parameters.overrideLanguages = configuration().overrideLanguages();
-    LOG_WITH_STREAM(Language, stream << "WebProcessPool is initializing a new web process with overrideLanguages: " << parameters.overrideLanguages);
+    if (websiteDataStore && websiteDataStore->languagesForAutomation().size())
+        parameters.overrideLanguages = websiteDataStore->languagesForAutomation();
+    else {
+        parameters.overrideLanguages = configuration().overrideLanguages();
+        LOG_WITH_STREAM(Language, stream << "WebProcessPool is initializing a new web process with overrideLanguages: " << parameters.overrideLanguages);
+    }
 
     parameters.urlSchemesRegisteredAsEmptyDocument = copyToVector(m_schemesToRegisterAsEmptyDocument);
     parameters.urlSchemesRegisteredAsSecure = copyToVector(LegacyGlobalSettings::singleton().schemesToRegisterAsSecure());
