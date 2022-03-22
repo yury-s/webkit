@@ -86,6 +86,7 @@ private:
     void deleteContext(const String& browserContextID, Ref<DeleteContextCallback>&& callback) override;
     Inspector::Protocol::ErrorStringOr<String /* pageProxyID */> createPage(const String& browserContextID) override;
     void navigate(const String& url, const String& pageProxyID, const String& frameId, const String& referrer, Ref<NavigateCallback>&&) override;
+    Inspector::Protocol::ErrorStringOr<void> grantFileReadAccess(const String& pageProxyID, Ref<JSON::Array>&& paths) override;
     Inspector::Protocol::ErrorStringOr<void> setIgnoreCertificateErrors(const String& browserContextID, bool ignore) override;
 
     void getAllCookies(const String& browserContextID, Ref<GetAllCookiesCallback>&&) override;

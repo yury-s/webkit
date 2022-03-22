@@ -135,6 +135,14 @@
             ]
         },
         {
+            "name": "grantFileReadAccess",
+            "description": "Grants read access for the specified files to the web process of the page.",
+            "parameters": [
+                { "name": "pageProxyId", "$ref": "PageProxyID", "description": "Unique identifier of the page proxy." },
+                { "name": "paths", "type": "array", "items": { "type": "string" }, "description": "Id of the frame to navigate."}
+            ]
+        },
+        {
             "name": "setIgnoreCertificateErrors",
             "description": "Change whether all certificate errors should be ignored.",
             "parameters": [

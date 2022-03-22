@@ -36,6 +36,7 @@
 #include "NetworkProcessMessages.h"
 #include "NetworkProcessProxy.h"
 #include "PageClient.h"
+#include "SandboxExtension.h"
 #include "StorageNamespaceIdentifier.h"
 #include "WebAutomationSession.h"
 #include "WebGeolocationManagerProxy.h"
@@ -44,6 +45,7 @@
 #include "WebPageGroup.h"
 #include "WebPageInspectorController.h"
 #include "WebPageInspectorTarget.h"
+#include "WebPageMessages.h"
 #include "WebPageProxy.h"
 #include "WebProcessPool.h"
 #include "WebProcessProxy.h"
@@ -695,6 +697,28 @@ void InspectorPlaywrightAgent::navigate(const String& url, const String& pagePro
             navigationIDString = String::number(navigationID);
         callback->sendSuccess(navigationIDString);
     });
+}
+
+Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileReadAccess(const String& pageProxyID, Ref<JSON::Array>&& paths)
+{
+#if ENABLE(SANDBOX_EXTENSIONS)
+    auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
+    if (!pageProxyChannel)
+        return makeUnexpected("Unknown pageProxyID"_s);
+
+    Vector<String> files;
+    for (const auto& value : paths.get()) {
+        String path;
+        if (!value->asString(path))
+            return makeUnexpected("Filr path must be a string"_s);
+
+        files.append(path);
+    }
+
+    auto sandboxExtensionHandles = SandboxExtension::createReadOnlyHandlesForFiles("InspectorPlaywrightAgent::grantFileReadAccess"_s, files);
+    pageProxyChannel->page().send(Messages::WebPage::ExtendSandboxForFilesFromOpenPanel(WTFMove(sandboxExtensionHandles)));
+#endif
+    return { };
 }
 
 Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setIgnoreCertificateErrors(const String& browserContextID, bool ignore)
