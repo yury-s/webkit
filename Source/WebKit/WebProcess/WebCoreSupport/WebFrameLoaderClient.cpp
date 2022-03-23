@@ -1582,13 +1582,6 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     if (webPage->scrollPinningBehavior() != DoNotPin)
         view->setScrollPinningBehavior(webPage->scrollPinningBehavior());
 
-#if USE(COORDINATED_GRAPHICS)
-    if (shouldUseFixedLayout) {
-        view->setDelegatesScrolling(shouldUseFixedLayout);
-        view->setPaintsEntireContents(shouldUseFixedLayout);
-        return;
-    }
-#endif
 }
 
 void WebFrameLoaderClient::didRestoreFromBackForwardCache()
