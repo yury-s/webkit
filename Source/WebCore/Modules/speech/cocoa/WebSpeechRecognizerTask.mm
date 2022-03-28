@@ -200,6 +200,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)speechRecognizer:(SFSpeechRecognizer *)speechRecognizer availabilityDidChange:(BOOL)available
 {
+    UNUSED_PARAM(speechRecognizer);
     ASSERT(isMainThread());
 
     if (available || !_task)
@@ -213,6 +214,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)speechRecognitionTask:(SFSpeechRecognitionTask *)task didHypothesizeTranscription:(SFTranscription *)transcription
 {
+    UNUSED_PARAM(task);
     ASSERT(isMainThread());
 
     [self sendSpeechStartIfNeeded];
@@ -221,6 +223,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)speechRecognitionTask:(SFSpeechRecognitionTask *)task didFinishRecognition:(SFSpeechRecognitionResult *)recognitionResult
 {
+    UNUSED_PARAM(task);
     ASSERT(isMainThread());
     [self callbackWithTranscriptions:recognitionResult.transcriptions isFinal:YES];
 
@@ -232,6 +235,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)speechRecognitionTaskWasCancelled:(SFSpeechRecognitionTask *)task
 {
+    UNUSED_PARAM(task);
     ASSERT(isMainThread());
 
     [self sendSpeechEndIfNeeded];

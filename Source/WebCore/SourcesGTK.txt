@@ -152,3 +152,10 @@ platform/xdg/MIMETypeRegistryXdg.cpp
 
 rendering/RenderThemeAdwaita.cpp
 rendering/RenderThemeGtk.cpp
+
+// Playwright: begin.
+JSSpeechSynthesisErrorCode.cpp
+JSSpeechSynthesisErrorEvent.cpp
+JSSpeechSynthesisErrorEventInit.cpp
+JSSpeechSynthesisEventInit.cpp
+// Playwright: end.
