@@ -285,6 +285,8 @@ void InspectorController::disconnectFrontend(FrontendChannel& frontendChannel)
 
         // Unplug all instrumentations since they aren't needed now.
         InspectorInstrumentation::unregisterInstrumentingAgents(m_instrumentingAgents.get());
+
+        m_pauseWhenShown = false;
     }
 
     m_inspectorClient->frontendCountChanged(m_frontendRouter->frontendCount());
@@ -303,6 +305,8 @@ void InspectorController::disconnectAllFrontends()
 
     // The frontend should call setInspectorFrontendClient(nullptr) under closeWindow().
     ASSERT(!m_inspectorFrontendClient);
+
+    m_pauseWhenShown = false;
 
     if (!m_frontendRouter->hasFrontends())
         return;
