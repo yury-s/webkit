@@ -150,7 +150,8 @@ WebsiteDataStore::~WebsiteDataStore()
 
     ASSERT(allDataStores().get(m_sessionID) == this);
     allDataStores().remove(m_sessionID);
-    networkProcess().removeSession(*this);
+    if (m_networkProcess)
+        m_networkProcess->removeSession(*this);
 #if ENABLE(GPU_PROCESS)
     if (auto* gpuProcessProxy = GPUProcessProxy::singletonIfCreated())
         gpuProcessProxy->removeSession(m_sessionID);
@@ -1986,6 +1987,17 @@ String WebsiteDataStore::defaultDeviceIdHashSaltsStorageDirectory()
 void WebsiteDataStore::renameOriginInWebsiteData(URL&& oldName, URL&& newName, OptionSet<WebsiteDataType> dataTypes, CompletionHandler<void()>&& completionHandler)
 {
     networkProcess().renameOriginInWebsiteData(m_sessionID, oldName, newName, dataTypes, WTFMove(completionHandler));
+}
+
+void WebsiteDataStore::setLanguagesForAutomation(Vector<String>&& languages)
+{
+    m_languagesForAutomation = WTFMove(languages);
+}
+
+void WebsiteDataStore::setDownloadForAutomation(std::optional<bool> allow, const String& downloadPath)
+{
+    m_allowDownloadForAutomation = allow;
+    m_downloadPathForAutomation = downloadPath;
 }
 
 #if ENABLE(APP_BOUND_DOMAINS)

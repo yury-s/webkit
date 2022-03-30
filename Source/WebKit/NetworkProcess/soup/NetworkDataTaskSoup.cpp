@@ -494,6 +494,8 @@ void NetworkDataTaskSoup::didSendRequest(GRefPtr<GInputStream>&& inputStream)
             m_networkLoadMetrics.failsTAOCheck = !passesTimingAllowOriginCheck(m_response, *origin);
     }
 
+    auto& additionalMetrics = additionalNetworkLoadMetricsForWebInspector();
+    m_response.m_httpRequestHeaderFields = additionalMetrics.requestHeaders;
     dispatchDidReceiveResponse();
 }
 
@@ -591,6 +593,8 @@ bool NetworkDataTaskSoup::acceptCertificate(GTlsCertificate* certificate, GTlsCe
 {
     ASSERT(m_soupMessage);
     URL url = soupURIToURL(soup_message_get_uri(m_soupMessage.get()));
+    if (m_session->ignoreCertificateErrors())
+        return true;
     auto error = static_cast<NetworkSessionSoup&>(*m_session).soupNetworkSession().checkTLSErrors(url, certificate, tlsErrors);
     if (!error)
         return true;
@@ -1218,6 +1222,12 @@ WebCore::AdditionalNetworkLoadMetricsForWebInspector& NetworkDataTaskSoup::addit
     return *m_networkLoadMetrics.additionalNetworkLoadMetricsForWebInspector;
 }
 
+static void headers_size(const char *name, const char *value, gpointer pointer)
+{
+    int* size = static_cast<int*>(pointer);
+    *size += strlen(name) + strlen(value) + 4;
+}
+
 void NetworkDataTaskSoup::didGetHeaders()
 {
     // We are a bit more conservative with the persistent credential storage than the session store,
@@ -1263,6 +1273,20 @@ void NetworkDataTaskSoup::didGetHeaders()
         additionalMetrics.tlsProtocol = tlsProtocolVersionToString(soup_message_get_tls_protocol_version(m_soupMessage.get()));
         additionalMetrics.tlsCipher = String::fromUTF8(soup_message_get_tls_ciphersuite_name(m_soupMessage.get()));
         additionalMetrics.responseHeaderBytesReceived = soup_message_metrics_get_response_header_bytes_received(metrics);
+#else
+        {
+            auto* requestHeaders = soup_message_get_request_headers(m_soupMessage.get());
+            int requestHeadersSize = 0;
+            soup_message_headers_foreach(requestHeaders, headers_size, &requestHeadersSize);
+            additionalMetrics.requestHeaderBytesSent = requestHeadersSize;
+        }
+
+        {
+            auto* responseHeaders = soup_message_get_response_headers(m_soupMessage.get());
+            int responseHeadersSize = 0;
+            soup_message_headers_foreach(responseHeaders, headers_size, &responseHeadersSize);
+            additionalMetrics.responseHeaderBytesReceived = responseHeadersSize;
+        }
 #endif
     }
 
