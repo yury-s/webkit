@@ -64,7 +64,7 @@ typedef WebCore::AccessibilityObjectAtspi AccessibilityObjectWrapper;
 typedef struct _WebKitAccessible WebKitAccessible;
 typedef struct _WebKitAccessible AccessibilityObjectWrapper;
 #else
-class AccessibilityObjectWrapper;
+class AccessibilityObjectWrapper : public RefCounted<AccessibilityObjectWrapper> {};
 #endif
 
 namespace PAL {
@@ -1544,6 +1544,8 @@ private:
     RefPtr<AccessibilityObjectAtspi> m_wrapper;
 #elif USE(ATK)
     GRefPtr<WebKitAccessible> m_wrapper;
+#else
+    RefPtr<AccessibilityObjectWrapper> m_wrapper;
 #endif
     virtual void detachPlatformWrapper(AccessibilityDetachmentType) = 0;
 };

@@ -55,6 +55,9 @@ accessibility/atspi/AccessibilityObjectValueAtspi.cpp
 accessibility/atspi/AccessibilityRootAtspi.cpp
 accessibility/atspi/AXObjectCacheAtspi.cpp
 
+accessibility/empty/AXObjectCacheEmpty.cpp
+accessibility/empty/AccessibilityObjectEmpty.cpp
+
 editing/atk/FrameSelectionAtk.cpp
 editing/atspi/FrameSelectionAtspi.cpp
 editing/libwpe/EditorLibWPE.cpp

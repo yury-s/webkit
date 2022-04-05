@@ -50,6 +50,9 @@ list(APPEND WebKitTestRunnerInjectedBundle_SOURCES
     InjectedBundle/atspi/AccessibilityNotificationHandler.cpp
     InjectedBundle/atspi/AccessibilityUIElementAtspi.cpp
 
+    InjectedBundle/empty/AccessibilityControllerEmpty.cpp
+    InjectedBundle/empty/AccessibilityUIElementEmpty.cpp
+
     InjectedBundle/wpe/ActivateFontsWPE.cpp
     InjectedBundle/wpe/InjectedBundleWPE.cpp
     InjectedBundle/wpe/TestRunnerWPE.cpp
