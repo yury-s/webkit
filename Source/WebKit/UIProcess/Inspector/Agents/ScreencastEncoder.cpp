@@ -266,7 +266,7 @@ RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const S
 {
     vpx_codec_iface_t* codec_interface = vpx_codec_vp8_cx();
     if (!codec_interface) {
-        errorString = "Codec not found.";
+        errorString = "Codec not found."_s;
         return nullptr;
     }
 

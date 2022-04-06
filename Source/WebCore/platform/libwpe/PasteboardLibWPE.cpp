@@ -134,18 +134,12 @@ void Pasteboard::read(PasteboardFileReader&, std::optional<size_t>)
 
 void Pasteboard::write(const PasteboardURL& url)
 {
-<<<<<<< HEAD
-    platformStrategies()->pasteboardStrategy()->writeToPasteboard("text/plain;charset=utf-8"_s, url.url.string());
-||||||| constructed merge base
-    platformStrategies()->pasteboardStrategy()->writeToPasteboard("text/plain;charset=utf-8", url.url.string());
-=======
     if (m_selectionData) {
         m_selectionData->clearAll();
         m_selectionData->setURL(url.url, url.title);
     } else {
-        platformStrategies()->pasteboardStrategy()->writeToPasteboard("text/plain;charset=utf-8", url.url.string());
+        platformStrategies()->pasteboardStrategy()->writeToPasteboard("text/plain;charset=utf-8"_s, url.url.string());
     }
->>>>>>> chore(webkit): bootstrap build #1625
 }
 
 void Pasteboard::writeTrustworthyWebURLsPboardType(const PasteboardURL&)

@@ -56,8 +56,8 @@ public:
     virtual void connect(FrontendChannel::ConnectionType) = 0;
     virtual void disconnect() = 0;
     virtual void sendMessageToTargetBackend(const String&) = 0;
-    virtual void activate(String& error) { error = "Target cannot be activated"; }
-    virtual void close(String& error, bool /* runBeforeUnload */) { error = "Target cannot be closed"; }
+    virtual void activate(String& error) { error = "Target cannot be activated"_s; }
+    virtual void close(String& error, bool /* runBeforeUnload */) { error = "Target cannot be closed"_s; }
 
 private:
     virtual void willResume() { }

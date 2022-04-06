@@ -1775,10 +1775,10 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::scrollIntoViewIfNeeded(const St
     bool insideFixed;
     LayoutRect absoluteBounds = renderer->absoluteBoundingBoxRect(true, &insideFixed);
     if (rect) {
-        std::optional<double> x = rect->getDouble("x");
-        std::optional<double> y = rect->getDouble("y");
-        std::optional<double> width = rect->getDouble("width");
-        std::optional<double> height = rect->getDouble("height");
+        std::optional<double> x = rect->getDouble("x"_s);
+        std::optional<double> y = rect->getDouble("y"_s);
+        std::optional<double> width = rect->getDouble("width"_s);
+        std::optional<double> height = rect->getDouble("height"_s);
         if (!x || !y || !width || !height)
             return makeUnexpected("Malformed rect"_s);
 
@@ -3155,7 +3155,7 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::setInputFiles(const String& obj
             String name;
             String type;
             String data;
-            if (!obj->getString("name", name) || !obj->getString("type", type) || !obj->getString("data", data))
+            if (!obj->getString("name"_s, name) || !obj->getString("type"_s, type) || !obj->getString("data"_s, data))
                 return makeUnexpected("Invalid file payload format"_s);
 
             std::optional<Vector<uint8_t>> buffer = base64Decode(data);

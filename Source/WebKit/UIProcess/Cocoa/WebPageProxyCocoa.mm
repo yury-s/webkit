@@ -292,7 +292,7 @@ void WebPageProxy::releaseInspectorDragPasteboard() {
     if (!m_overrideDragPasteboardName.isEmpty()) {
         NSPasteboard *pasteboard = [NSPasteboard pasteboardWithUniqueName];
         [pasteboard releaseGlobally];
-        m_overrideDragPasteboardName = "";
+        m_overrideDragPasteboardName = ""_s;
     }
 }
 
@@ -306,7 +306,7 @@ void WebPageProxy::setInterceptDrags(bool shouldIntercept) {
         }
         send(Messages::WebPage::SetDragPasteboardName(m_overrideDragPasteboardName));
     } else {
-        send(Messages::WebPage::SetDragPasteboardName(""));
+        send(Messages::WebPage::SetDragPasteboardName(""_s));
     }
 }
 

@@ -154,5 +154,5 @@ WebKitBrowserInspector* webkit_browser_inspector_get_default(void)
  */
 void webkit_browser_inspector_initialize_pipe(const char* defaultProxyURI, const char* const* ignoreHosts)
 {
-    WebKit::initializeBrowserInspectorPipe(makeUnique<WebKit::InspectorPlaywrightAgentClientGlib>(defaultProxyURI, ignoreHosts));
+    WebKit::initializeBrowserInspectorPipe(makeUnique<WebKit::InspectorPlaywrightAgentClientGlib>(String::fromUTF8(defaultProxyURI), ignoreHosts));
 }

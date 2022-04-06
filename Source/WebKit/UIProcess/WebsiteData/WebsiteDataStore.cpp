@@ -2022,14 +2022,11 @@ void WebsiteDataStore::renameOriginInWebsiteData(URL&& oldName, URL&& newName, O
     networkProcess().renameOriginInWebsiteData(m_sessionID, oldName, newName, dataTypes, WTFMove(completionHandler));
 }
 
-<<<<<<< HEAD
 void WebsiteDataStore::originDirectoryForTesting(URL&& origin, URL&& topOrigin, WebsiteDataType type, CompletionHandler<void(const String&)>&& completionHandler)
 {
     networkProcess().websiteDataOriginDirectoryForTesting(m_sessionID, WTFMove(origin), WTFMove(topOrigin), type, WTFMove(completionHandler));
 }
 
-||||||| constructed merge base
-=======
 void WebsiteDataStore::setLanguagesForAutomation(Vector<String>&& languages)
 {
     m_languagesForAutomation = WTFMove(languages);
@@ -2041,7 +2038,6 @@ void WebsiteDataStore::setDownloadForAutomation(std::optional<bool> allow, const
     m_downloadPathForAutomation = downloadPath;
 }
 
->>>>>>> chore(webkit): bootstrap build #1625
 #if ENABLE(APP_BOUND_DOMAINS)
 void WebsiteDataStore::hasAppBoundSession(CompletionHandler<void(bool)>&& completionHandler) const
 {

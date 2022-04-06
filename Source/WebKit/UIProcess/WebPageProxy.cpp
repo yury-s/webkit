@@ -3027,7 +3027,7 @@ void WebPageProxy::processNextQueuedMouseEvent()
                 SandboxExtension::Handle sandboxExtensionHandle;
                 Vector<SandboxExtension::Handle> sandboxExtensionsForUpload;
 
-                performDragOperation(dragData, "", WTFMove(sandboxExtensionHandle), WTFMove(sandboxExtensionsForUpload));
+                performDragOperation(dragData, ""_s, WTFMove(sandboxExtensionHandle), WTFMove(sandboxExtensionsForUpload));
             }
             m_dragSelectionData = std::nullopt;
             dragEnded(event.position(), event.globalPosition(), m_dragSourceOperationMask);
@@ -8868,9 +8868,9 @@ void WebPageProxy::requestGeolocationPermissionForFrame(GeolocationIdentifier ge
     auto securityOrigin = frameInfo.securityOrigin.securityOrigin();
     auto permissions = m_permissionsForAutomation.find(securityOrigin->toString());
     if (permissions == m_permissionsForAutomation.end())
-      permissions = m_permissionsForAutomation.find("*");
+      permissions = m_permissionsForAutomation.find("*"_s);
     if (permissions != m_permissionsForAutomation.end()) {
-        completionHandler(permissions->value.contains("geolocation"));
+        completionHandler(permissions->value.contains("geolocation"_s));
         return;
     }
 

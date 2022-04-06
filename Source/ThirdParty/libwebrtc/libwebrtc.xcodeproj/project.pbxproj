@@ -6,6 +6,20 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		F31720AC27FE215900EEE407 /* Copy libvpx headers */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = F31720B027FE215900EEE407 /* Build configuration list for PBXAggregateTarget "Copy libvpx headers" */;
+			buildPhases = (
+				F31720B127FE216400EEE407 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "Copy libvpx headers";
+			productName = "Copy libvpx headers";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		410091CF242CFD6500C5EDA2 /* internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A391FA1EFC493000C4516A /* internal.h */; };
 		410091D2242CFF6F00C5EDA2 /* gcm_nohw.c in Sources */ = {isa = PBXBuildFile; fileRef = 410091D0242CFD8200C5EDA2 /* gcm_nohw.c */; };
@@ -3808,7 +3822,6 @@
 		CDFD2FCC24C4DAF70048DAC3 /* reader.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEBB40524C0191A00ADBD44 /* reader.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDFD2FCD24C4DAF70048DAC3 /* status.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEBB40624C0191A00ADBD44 /* status.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDFD2FCE24C4DAF70048DAC3 /* webm_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEBB40824C0191A00ADBD44 /* webm_parser.h */; settings = {ATTRIBUTES = (Public, ); }; };
-<<<<<<< HEAD
 		DD2E767427C6B61400F2A74C /* algorithm.h in Headers */ = {isa = PBXBuildFile; fileRef = 413AD1A121265B0F003F7263 /* algorithm.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DD2E767527C6B61400F2A74C /* container.h in Headers */ = {isa = PBXBuildFile; fileRef = 413AD1A221265B0F003F7263 /* container.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DD2E767627C6B61400F2A74C /* atomic_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = DDF3090327C56D25006A526F /* atomic_hook.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -4528,12 +4541,9 @@
 		DDF30D9127C5C725006A526F /* receive_side_congestion_controller.h in Headers */ = {isa = PBXBuildFile; fileRef = DDF30D9027C5C725006A526F /* receive_side_congestion_controller.h */; };
 		DDF30D9527C5C756006A526F /* bwe_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = DDF30D9327C5C756006A526F /* bwe_defines.h */; };
 		DDF30D9627C5C756006A526F /* remote_bitrate_estimator.h in Headers */ = {isa = PBXBuildFile; fileRef = DDF30D9427C5C756006A526F /* remote_bitrate_estimator.h */; };
-||||||| constructed merge base
-=======
 		F3B7819924C7CC5200FCB122 /* mkvmuxerutil.cc in Sources */ = {isa = PBXBuildFile; fileRef = F3B7819624C7CC5100FCB122 /* mkvmuxerutil.cc */; };
 		F3B7819A24C7CC5200FCB122 /* mkvmuxer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F3B7819724C7CC5200FCB122 /* mkvmuxer.cc */; };
 		F3B7819B24C7CC5200FCB122 /* mkvwriter.cc in Sources */ = {isa = PBXBuildFile; fileRef = F3B7819824C7CC5200FCB122 /* mkvwriter.cc */; };
->>>>>>> chore(webkit): bootstrap build #1625
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -4783,6 +4793,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = DDF30D0527C5C003006A526F;
 			remoteInfo = absl;
+		};
+		F31720B327FE273100EEE407 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FB39D0701200ED9200088E69 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F31720AC27FE215900EEE407;
+			remoteInfo = "Copy libvpx headers";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -9088,7 +9105,6 @@
 		CDEBB49D24C0191A00ADBD44 /* master_parser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = master_parser.h; sourceTree = "<group>"; };
 		CDFD2F9624C4B2F90048DAC3 /* vp9_header_parser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vp9_header_parser.h; sourceTree = "<group>"; };
 		CDFD2F9A24C4B2F90048DAC3 /* vp9_header_parser.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vp9_header_parser.cc; sourceTree = "<group>"; };
-<<<<<<< HEAD
 		DD77DAE427F66AC700DC90C0 /* utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utility.h; sourceTree = "<group>"; };
 		DD77DAEA27F6731100DC90C0 /* cleanup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cleanup.h; sourceTree = "<group>"; };
 		DD77DAF227F6731100DC90C0 /* bind_front.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bind_front.h; sourceTree = "<group>"; };
@@ -9562,12 +9578,9 @@
 		DDF30D9027C5C725006A526F /* receive_side_congestion_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = receive_side_congestion_controller.h; sourceTree = "<group>"; };
 		DDF30D9327C5C756006A526F /* bwe_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bwe_defines.h; sourceTree = "<group>"; };
 		DDF30D9427C5C756006A526F /* remote_bitrate_estimator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = remote_bitrate_estimator.h; sourceTree = "<group>"; };
-||||||| constructed merge base
-=======
 		F3B7819624C7CC5100FCB122 /* mkvmuxerutil.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mkvmuxerutil.cc; path = mkvmuxer/mkvmuxerutil.cc; sourceTree = "<group>"; };
 		F3B7819724C7CC5200FCB122 /* mkvmuxer.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mkvmuxer.cc; path = mkvmuxer/mkvmuxer.cc; sourceTree = "<group>"; };
 		F3B7819824C7CC5200FCB122 /* mkvwriter.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mkvwriter.cc; path = mkvmuxer/mkvwriter.cc; sourceTree = "<group>"; };
->>>>>>> chore(webkit): bootstrap build #1625
 		FB39D0D11200F0E300088E69 /* libwebrtc.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libwebrtc.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -17019,23 +17032,7 @@
 			path = common;
 			sourceTree = "<group>";
 		};
-<<<<<<< HEAD
 		DD77DAE027F66AC700DC90C0 /* utility */ = {
-||||||| constructed merge base
-		FB39D06E1200ED9200088E69 = {
-=======
-		F3B7819524C7CC1300FCB122 /* mkvmuxer */ = {
-			isa = PBXGroup;
-			children = (
-				F3B7819724C7CC5200FCB122 /* mkvmuxer.cc */,
-				F3B7819624C7CC5100FCB122 /* mkvmuxerutil.cc */,
-				F3B7819824C7CC5200FCB122 /* mkvwriter.cc */,
-			);
-			name = mkvmuxer;
-			sourceTree = "<group>";
-		};
-		FB39D06E1200ED9200088E69 = {
->>>>>>> chore(webkit): bootstrap build #1625
 			isa = PBXGroup;
 			children = (
 				DD77DAE427F66AC700DC90C0 /* utility.h */,
@@ -17366,6 +17363,16 @@
 				DDF30D9427C5C756006A526F /* remote_bitrate_estimator.h */,
 			);
 			path = include;
+			sourceTree = "<group>";
+		};
+		F3B7819524C7CC1300FCB122 /* mkvmuxer */ = {
+			isa = PBXGroup;
+			children = (
+				F3B7819724C7CC5200FCB122 /* mkvmuxer.cc */,
+				F3B7819624C7CC5100FCB122 /* mkvmuxerutil.cc */,
+				F3B7819824C7CC5200FCB122 /* mkvwriter.cc */,
+			);
+			name = mkvmuxer;
 			sourceTree = "<group>";
 		};
 		FB39D06E1200ED9200088E69 = {
@@ -20054,6 +20061,7 @@
 				DDF30CFA27C5A98F006A526F /* PBXBuildRule */,
 			);
 			dependencies = (
+				F31720B427FE273100EEE407 /* PBXTargetDependency */,
 				DD2E76E827C6B69A00F2A74C /* PBXTargetDependency */,
 				CDEBB4CC24C01AB400ADBD44 /* PBXTargetDependency */,
 				411ED040212E0811004320BA /* PBXTargetDependency */,
@@ -20115,6 +20123,7 @@
 				41F77D15215BE45E00E72967 /* yasm */,
 				CDEBB11824C0187400ADBD44 /* webm */,
 				DDF30D0527C5C003006A526F /* absl */,
+				F31720AC27FE215900EEE407 /* Copy libvpx headers */,
 			);
 		};
 /* End PBXProject section */
@@ -20139,36 +20148,6 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../../Tools/Scripts/check-for-inappropriate-objc-class-names ]; then\n    ../../../Tools/Scripts/check-for-inappropriate-objc-class-names WK_RTC || exit $?\nfi\n";
 		};
-<<<<<<< HEAD
-||||||| constructed merge base
-		5C63F6661E414ABA002CA531 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "PRIVATE_HEADERS_FOLDER_PATH=usr/local/include\n\nif [[ \"${DEPLOYMENT_LOCATION}\" == \"NO\" ]]; then\n    PRIVATE_HEADERS_PATH=\"${TARGET_BUILD_DIR%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nelse\n    PRIVATE_HEADERS_PATH=\"${DSTROOT}${INSTALL_PATH_PREFIX%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nfi;\n\necho \"#### PRIVATE_HEADERS_PATH = ${PRIVATE_HEADERS_PATH}\"\necho\n\nmkdir -p \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/webrtc\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/abseil-cpp/absl\" \"${PRIVATE_HEADERS_PATH}\"\n";
-		};
-=======
-		5C63F6661E414ABA002CA531 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "PRIVATE_HEADERS_FOLDER_PATH=usr/local/include\n\nif [[ \"${DEPLOYMENT_LOCATION}\" == \"NO\" ]]; then\n    PRIVATE_HEADERS_PATH=\"${TARGET_BUILD_DIR%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nelse\n    PRIVATE_HEADERS_PATH=\"${DSTROOT}${INSTALL_PATH_PREFIX%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nfi;\n\necho \"#### PRIVATE_HEADERS_PATH = ${PRIVATE_HEADERS_PATH}\"\necho\n\nmkdir -p \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/webrtc\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/abseil-cpp/absl\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libyuv/include/\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --exclude \"src\" --exclude \"internal\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libvpx/source/libvpx/vpx\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libwebm/\" \"${PRIVATE_HEADERS_PATH}\"\n";
-		};
->>>>>>> chore(webkit): bootstrap build #1625
 		5CD286461E6E154E0094FDC8 /* Check for Weak VTables and Externals */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -20277,6 +20256,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "[ \"${WK_USE_NEW_BUILD_SYSTEM}\" = YES ] && exit 0\nxcodebuild -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" installhdrs SYMROOT=\"${TARGET_TEMP_DIR}/LegacyNestHeaders-build\" DSTROOT=\"${BUILT_PRODUCTS_DIR}\" SDKROOT=\"${SDKROOT}\" -UseNewBuildSystem=YES\n";
+		};
+		F31720B127FE216400EEE407 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PRIVATE_HEADERS_FOLDER_PATH=usr/local/include\n\nif [[ \"${DEPLOYMENT_LOCATION}\" == \"NO\" ]]; then\n    PRIVATE_HEADERS_PATH=\"${TARGET_BUILD_DIR%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nelse\n    PRIVATE_HEADERS_PATH=\"${DSTROOT}${INSTALL_PATH_PREFIX%/}/${PRIVATE_HEADERS_FOLDER_PATH}\"\nfi;\n\necho \"#### PRIVATE_HEADERS_PATH = ${PRIVATE_HEADERS_PATH}\"\necho\n\nmkdir -p \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libyuv/include/\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --exclude \"src\" --exclude \"internal\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libvpx/source/libvpx/vpx\" \"${PRIVATE_HEADERS_PATH}\"\n\nrsync -av --no-owner --no-group --prune-empty-dirs --exclude \".svn\" --exclude \"usr\" --include \"*/\" --include \"*.h\" --exclude \"*\" \"${SRCROOT}/Source/third_party/libwebm/\" \"${PRIVATE_HEADERS_PATH}\"\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -22533,6 +22529,11 @@
 			target = DDF30D0527C5C003006A526F /* absl */;
 			targetProxy = DD2E76E727C6B69A00F2A74C /* PBXContainerItemProxy */;
 		};
+		F31720B427FE273100EEE407 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F31720AC27FE215900EEE407 /* Copy libvpx headers */;
+			targetProxy = F31720B327FE273100EEE407 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -22781,6 +22782,27 @@
 			};
 			name = Production;
 		};
+		F31720AD27FE215900EEE407 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		F31720AE27FE215900EEE407 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		F31720AF27FE215900EEE407 /* Production */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Production;
+		};
 		FB39D0711200ED9200088E69 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5D7C59C71208C68B001C873E /* DebugRelease.xcconfig */;
@@ -22909,6 +22931,16 @@
 				DDF30D0827C5C003006A526F /* Debug */,
 				DDF30D0927C5C003006A526F /* Release */,
 				DDF30D0A27C5C003006A526F /* Production */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Production;
+		};
+		F31720B027FE215900EEE407 /* Build configuration list for PBXAggregateTarget "Copy libvpx headers" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F31720AD27FE215900EEE407 /* Debug */,
+				F31720AE27FE215900EEE407 /* Release */,
+				F31720AF27FE215900EEE407 /* Production */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Production;

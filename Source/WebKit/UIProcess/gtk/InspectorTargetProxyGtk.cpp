@@ -38,7 +38,7 @@ void InspectorTargetProxy::platformActivate(String& error) const
     if (WebCore::widgetIsOnscreenToplevelWindow(parent))
         gtk_window_present(GTK_WINDOW(parent));
     else
-        error = "The view is not on screen";
+        error = "The view is not on screen"_s;
 }
 
 } // namespace WebKit

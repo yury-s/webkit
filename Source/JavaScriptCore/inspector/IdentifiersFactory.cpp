@@ -32,14 +32,8 @@
 namespace Inspector {
 
 namespace {
-<<<<<<< HEAD
-static unsigned long s_lastUsedIdentifier = 0;
-||||||| constructed merge base
-static long s_lastUsedIdentifier = 0;
-=======
 static uint64_t s_processID = 0;
-static long s_lastUsedIdentifier = 0;
->>>>>>> chore(webkit): bootstrap build #1625
+static unsigned long s_lastUsedIdentifier = 0;
 }
 
 static String addPrefixToIdentifier(unsigned long identifier)

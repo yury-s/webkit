@@ -190,25 +190,25 @@ static Ref<JSON::ArrayOf<String>> getEnabledWindowFeatures(const WebCore::Window
   if (features.height)
     result->addItem("height=" + String::number(*features.height));
   if (features.menuBarVisible)
-    result->addItem("menubar");
+    result->addItem("menubar"_s);
   if (features.toolBarVisible)
-    result->addItem("toolbar");
+    result->addItem("toolbar"_s);
   if (features.statusBarVisible)
-    result->addItem("status");
+    result->addItem("status"_s);
   if (features.locationBarVisible)
-    result->addItem("location");
+    result->addItem("location"_s);
   if (features.scrollbarsVisible)
-    result->addItem("scrollbars");
+    result->addItem("scrollbars"_s);
   if (features.resizable)
-    result->addItem("resizable");
+    result->addItem("resizable"_s);
   if (features.fullscreen)
-    result->addItem("fullscreen");
+    result->addItem("fullscreen"_s);
   if (features.dialog)
-    result->addItem("dialog");
+    result->addItem("dialog"_s);
   if (features.noopener)
-    result->addItem("noopener");
+    result->addItem("noopener"_s);
   if (features.noreferrer)
-    result->addItem("noreferrer");
+    result->addItem("noreferrer"_s);
   for (const auto& additionalFeature : features.additionalFeatures)
     result->addItem(additionalFeature);
   return result;
@@ -552,7 +552,7 @@ void InspectorPlaywrightAgent::closeImpl(Function<void(String)>&& callback)
 
     m_defaultContext->dataStore->syncLocalStorage([this, callback = WTFMove(callback)] () {
         if (m_client == nullptr) {
-            callback("no platform delegate to close browser");
+            callback("no platform delegate to close browser"_s);
         } else {
             m_client->closeBrowser();
             callback(String());
@@ -621,7 +621,7 @@ Inspector::Protocol::ErrorStringOr<String /* pageProxyID */> InspectorPlaywright
 
 WebFrameProxy* InspectorPlaywrightAgent::frameForID(const String& frameID, String& error)
 {
-    size_t dotPos = frameID.find(".");
+    size_t dotPos = frameID.find("."_s);
     if (dotPos == notFound) {
         error = "Invalid frame id"_s;
         return nullptr;
@@ -776,26 +776,26 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
         }
 
         WebCore::Cookie cookie;
-        cookie.name = obj->getString("name");
-        cookie.value = obj->getString("value");
-        cookie.domain = obj->getString("domain");
-        cookie.path = obj->getString("path");
+        cookie.name = obj->getString("name"_s);
+        cookie.value = obj->getString("value"_s);
+        cookie.domain = obj->getString("domain"_s);
+        cookie.path = obj->getString("path"_s);
         if (!cookie.name || !cookie.value || !cookie.domain || !cookie.path) {
             callback->sendFailure("Invalid file payload format"_s);
             return;
         }
 
-        std::optional<double> expires = obj->getDouble("expires");
+        std::optional<double> expires = obj->getDouble("expires"_s);
         if (expires && *expires != -1)
             cookie.expires = *expires;
-        if (std::optional<bool> value = obj->getBoolean("httpOnly"))
+        if (std::optional<bool> value = obj->getBoolean("httpOnly"_s))
             cookie.httpOnly = *value;
-        if (std::optional<bool> value = obj->getBoolean("secure"))
+        if (std::optional<bool> value = obj->getBoolean("secure"_s))
             cookie.secure = *value;
-        if (std::optional<bool> value = obj->getBoolean("session"))
+        if (std::optional<bool> value = obj->getBoolean("session"_s))
             cookie.session = *value;
         String sameSite;
-        if (obj->getString("sameSite", sameSite)) {
+        if (obj->getString("sameSite"_s, sameSite)) {
             if (sameSite == "None")
                 cookie.sameSite = WebCore::Cookie::SameSitePolicy::None;
             if (sameSite == "Lax")
@@ -888,10 +888,10 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setGeolocatio
         return makeUnexpected("Internal error: geolocation manager is not available."_s);
 
     if (geolocation) {
-        std::optional<double> timestamp = geolocation->getDouble("timestamp");
-        std::optional<double> latitude = geolocation->getDouble("latitude");
-        std::optional<double> longitude = geolocation->getDouble("longitude");
-        std::optional<double> accuracy = geolocation->getDouble("accuracy");
+        std::optional<double> timestamp = geolocation->getDouble("timestamp"_s);
+        std::optional<double> latitude = geolocation->getDouble("latitude"_s);
+        std::optional<double> longitude = geolocation->getDouble("longitude"_s);
+        std::optional<double> accuracy = geolocation->getDouble("accuracy"_s);
         if (!timestamp || !latitude || !longitude || !accuracy)
             return makeUnexpected("Invalid geolocation format"_s);
 

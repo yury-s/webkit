@@ -49,7 +49,7 @@ public:
     ~CallbackList()
     {
         for (const auto& callback : m_callbacks)
-            callback->sendFailure("Page closed");
+            callback->sendFailure("Page closed"_s);
     }
 
     void append(Ref<T>&& callback)
@@ -123,23 +123,23 @@ static String keyIdentifierForKey(const String& key)
     if (key.length() == 1)
         return makeString("U+", hex(toASCIIUpper(key.characterAt(0)), 4));
     if (key == "Delete")
-        return "U+007F";
+        return "U+007F"_s;
     if (key == "Backspace")
-        return "U+0008";
+        return "U+0008"_s;
     if (key == "ArrowUp")
-        return "Up";
+        return "Up"_s;
     if (key == "ArrowDown")
-        return "Down";
+        return "Down"_s;
     if (key == "ArrowLeft")
-        return "Left";
+        return "Left"_s;
     if (key == "ArrowRight")
-        return "Right";
+        return "Right"_s;
     if (key == "Tab")
-        return "U+0009";
+        return "U+0009"_s;
     if (key == "Pause")
-        return "Pause";
+        return "Pause"_s;
     if (key == "ScrollLock")
-        return "Scroll";
+        return "Scroll"_s;
     return key;
 }
 
@@ -151,7 +151,7 @@ void WebPageInspectorInputAgent::dispatchKeyEvent(const String& type, std::optio
     } else if (type == "keyUp") {
         eventType = WebKit::WebEvent::KeyUp;
     } else {
-        callback->sendFailure("Unsupported event type.");
+        callback->sendFailure("Unsupported event type."_s);
         return;
     }
     OptionSet<WebEvent::Modifier> eventModifiers;
@@ -168,7 +168,7 @@ void WebPageInspectorInputAgent::dispatchKeyEvent(const String& type, std::optio
       for (const auto& value : *commands) {
         String command;
         if (!value->asString(command)) {
-          callback->sendFailure("Command must be string");
+          callback->sendFailure("Command must be string"_s);
           return;
         }
         eventCommands.append(command);
@@ -222,7 +222,7 @@ void WebPageInspectorInputAgent::dispatchMouseEvent(const String& type, int x, i
     else if (type == "move")
         eventType = WebEvent::MouseMove;
     else {
-        callback->sendFailure("Unsupported event type");
+        callback->sendFailure("Unsupported event type"_s);
         return;
     }
 
@@ -241,7 +241,7 @@ void WebPageInspectorInputAgent::dispatchMouseEvent(const String& type, int x, i
         else if (button == "none")
             eventButton = WebMouseEvent::NoButton;
         else {
-            callback->sendFailure("Unsupported eventButton");
+            callback->sendFailure("Unsupported eventButton"_s);
             return;
         }
     }

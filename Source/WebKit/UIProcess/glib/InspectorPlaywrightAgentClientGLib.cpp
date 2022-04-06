@@ -80,19 +80,19 @@ RefPtr<WebPageProxy> InspectorPlaywrightAgentClientGlib::createPage(WTF::String&
     WebKitWebContext* context = m_idToContext.get(sessionID);
     if (!context && !browserContext.dataStore->isPersistent()) {
         ASSERT_NOT_REACHED();
-        error = "Context with provided id not found";
+        error = "Context with provided id not found"_s;
         return nullptr;
     }
 
     RefPtr<WebPageProxy> page = webkitBrowserInspectorCreateNewPageInContext(context);
     if (page == nullptr) {
-        error = "Failed to create new page in the context";
+        error = "Failed to create new page in the context"_s;
         return nullptr;
     }
 
     if (context == nullptr && sessionID != page->sessionID()) {
         ASSERT_NOT_REACHED();
-        error = " Failed to create new page in default context";
+        error = " Failed to create new page in default context"_s;
         return nullptr;
     }
 
@@ -119,7 +119,7 @@ std::unique_ptr<BrowserContext> InspectorPlaywrightAgentClientGlib::createBrowse
     GRefPtr<WebKitWebsiteDataManager> data_manager = adoptGRef(webkit_website_data_manager_new_ephemeral());
     GRefPtr<WebKitWebContext> context = adoptGRef(WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", data_manager.get(), "process-swap-on-cross-site-navigation-enabled", true, nullptr)));
     if (!context) {
-        error = "Failed to create GLib ephemeral context";
+        error = "Failed to create GLib ephemeral context"_s;
         return nullptr;
     }
     auto browserContext = std::make_unique<BrowserContext>();
