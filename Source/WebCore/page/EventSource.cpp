@@ -36,6 +36,7 @@
 #include "CachedResourceRequestInitiators.h"
 #include "ContentSecurityPolicy.h"
 #include "EventNames.h"
+#include "InspectorNetworkAgent.h"
 #include "MessageEvent.h"
 #include "ResourceError.h"
 #include "ResourceRequest.h"
@@ -95,9 +96,20 @@ void EventSource::connect()
     ASSERT(!m_requestInFlight);
 
     ResourceRequest request { m_url };
+<<<<<<< HEAD
     request.setHTTPMethod("GET"_s);
     request.setHTTPHeaderField(HTTPHeaderName::Accept, "text/event-stream"_s);
     request.setHTTPHeaderField(HTTPHeaderName::CacheControl, "no-cache"_s);
+||||||| constructed merge base
+    request.setHTTPMethod("GET");
+    request.setHTTPHeaderField(HTTPHeaderName::Accept, "text/event-stream");
+    request.setHTTPHeaderField(HTTPHeaderName::CacheControl, "no-cache");
+=======
+    request.setInitiatorIdentifier(InspectorNetworkAgent::initiatorIdentifierForEventSource());
+    request.setHTTPMethod("GET");
+    request.setHTTPHeaderField(HTTPHeaderName::Accept, "text/event-stream");
+    request.setHTTPHeaderField(HTTPHeaderName::CacheControl, "no-cache");
+>>>>>>> chore(webkit): bootstrap build #1625
     if (!m_lastEventId.isEmpty())
         request.setHTTPHeaderField(HTTPHeaderName::LastEventID, m_lastEventId);
 

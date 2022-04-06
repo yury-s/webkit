@@ -54,7 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)audioSamplesAvailable:(CMSampleBufferRef)sampleBuffer
 {
     UNUSED_PARAM(sampleBuffer);
-    
+
     if (!_hasSentSpeechStart) {
         _hasSentSpeechStart = true;
         _delegateCallback(WebCore::SpeechRecognitionUpdate::create(_identifier, WebCore::SpeechRecognitionUpdateType::SpeechStart));

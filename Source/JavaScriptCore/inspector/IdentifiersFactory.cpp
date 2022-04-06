@@ -32,13 +32,26 @@
 namespace Inspector {
 
 namespace {
+<<<<<<< HEAD
 static unsigned long s_lastUsedIdentifier = 0;
+||||||| constructed merge base
+static long s_lastUsedIdentifier = 0;
+=======
+static uint64_t s_processID = 0;
+static long s_lastUsedIdentifier = 0;
+>>>>>>> chore(webkit): bootstrap build #1625
 }
 
 static String addPrefixToIdentifier(unsigned long identifier)
 {
-    return makeString("0.", identifier);
+    return makeString(s_processID, ".", identifier);
 }
+
+void IdentifiersFactory::initializeWithProcessID(uint64_t processID) {
+    ASSERT(!s_processID);
+    s_processID = processID;
+}
+
 
 String IdentifiersFactory::createIdentifier()
 {
