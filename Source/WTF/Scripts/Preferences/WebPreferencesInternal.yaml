@@ -979,7 +979,7 @@ UseGPUProcessForCanvasRenderingEnabled:
   defaultValue:
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT)": true
-      "PLATFORM(WIN)": false;
+      "PLATFORM(WIN)": false
       default: false
 
 UseGPUProcessForMediaEnabled:

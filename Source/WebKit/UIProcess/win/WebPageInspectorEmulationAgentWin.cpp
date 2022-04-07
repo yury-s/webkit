@@ -37,11 +37,11 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
     RECT windowRect;
 
     if (!windowHwnd || !GetWindowRect(windowHwnd, &windowRect)) {
-        callback("Could not retrieve window size");
+        callback("Could not retrieve window size"_s);
         return;
     }
     if (!GetWindowRect(viewHwnd, &viewRect)) {
-        callback("Could retrieve view size");
+        callback("Could retrieve view size"_s);
         return;
     }
 
@@ -49,7 +49,7 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
     height += windowRect.bottom - windowRect.top - viewRect.bottom + viewRect.top;
 
     if (!SetWindowPos(windowHwnd, 0, 0, 0, width, height, SWP_NOCOPYBITS | SWP_NOSENDCHANGING | SWP_NOMOVE)) {
-        callback("Could not resize window");
+        callback("Could not resize window"_s);
         return;
     }
     callback(String());
