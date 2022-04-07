@@ -33,6 +33,7 @@
 #include "NotImplemented.h"
 #include "Pasteboard.h"
 #include "Settings.h"
+#include "WebContentReader.h"
 #include "markup.h"
 
 namespace WebCore {
@@ -96,6 +97,14 @@ void Editor::platformCopyFont()
 
 void Editor::platformPasteFont()
 {
+}
+
+RefPtr<DocumentFragment> Editor::webContentFromPasteboard(Pasteboard& pasteboard, const SimpleRange& context, bool allowPlainText, bool& chosePlainText)
+{
+    WebContentReader reader(*m_document.frame(), context, allowPlainText);
+    pasteboard.read(reader);
+    chosePlainText = reader.madeFragmentFromPlainText;
+    return WTFMove(reader.fragment);
 }
 
 } // namespace WebCore
