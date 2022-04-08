@@ -1002,7 +1002,7 @@ UseGeneralDirectoryForStorage:
   exposed: [ WebKit ]
   defaultValue:
     WebKit:
-      default: true
+      default: false
 
 UseSceneKitForModel:
   type: bool
