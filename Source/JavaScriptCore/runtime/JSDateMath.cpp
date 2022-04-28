@@ -90,6 +90,7 @@
 #undef U_SHOW_CPLUSPLUS_API
 #define U_SHOW_CPLUSPLUS_API 1
 #include <unicode/basictz.h>
+#include <unicode/locid.h>
 #include <unicode/timezone.h>
 #include <unicode/unistr.h>
 #undef U_SHOW_CPLUSPLUS_API
@@ -370,16 +371,32 @@ StringView DateCache::timeZoneDisplayName(bool isDST)
 #if HAVE(ICU_C_TIMEZONE_API)
         auto& timeZoneCache = *this->timeZoneCache();
         String language = defaultLanguage();
-        Vector<UChar, 32> standardDisplayNameBuffer;
-        auto status = callBufferProducingFunction(ucal_getTimeZoneDisplayName, timeZoneCache.m_calendar.get(), UCAL_STANDARD, language.utf8().data(), standardDisplayNameBuffer);
-        if (U_SUCCESS(status))
-            m_timeZoneStandardDisplayNameCache = String::adopt(WTFMove(standardDisplayNameBuffer));
-        Vector<UChar, 32> dstDisplayNameBuffer;
-        status = callBufferProducingFunction(ucal_getTimeZoneDisplayName, timeZoneCache.m_calendar.get(), UCAL_DST, language.utf8().data(), dstDisplayNameBuffer);
-        if (U_SUCCESS(status))
-            m_timeZoneDSTDisplayNameCache = String::adopt(WTFMove(dstDisplayNameBuffer));
+        {
+            Vector<UChar, 32> standardDisplayNameBuffer;
+            auto status = callBufferProducingFunction(ucal_getTimeZoneDisplayName, timeZoneCache.m_calendar.get(), UCAL_STANDARD, language.utf8().data(), standardDisplayNameBuffer);
+            if (U_SUCCESS(status))
+                m_timeZoneStandardDisplayNameCache = String::adopt(WTFMove(standardDisplayNameBuffer));
+        }
+        {
+            Vector<UChar, 32> dstDisplayNameBuffer;
+            auto status = callBufferProducingFunction(ucal_getTimeZoneDisplayName, timeZoneCache.m_calendar.get(), UCAL_DST, language.utf8().data(), dstDisplayNameBuffer);
+            if (U_SUCCESS(status))
+                m_timeZoneDSTDisplayNameCache = String::adopt(WTFMove(dstDisplayNameBuffer));
+        }
 #else
-todo;
+        auto& timeZoneCache = *toICUTimeZone(this->timeZoneCache());
+        String language = defaultLanguage();
+        icu::Locale locale(language.utf8().data());
+        {
+            icu::UnicodeString standardDisplayName;
+            timeZoneCache.getDisplayName(false /* inDaylight */, icu::TimeZone::LONG, locale, standardDisplayName);
+            m_timeZoneStandardDisplayNameCache = String(standardDisplayName.getBuffer(), standardDisplayName.length());
+        }
+        {
+            icu::UnicodeString dstDisplayName;
+            timeZoneCache.getDisplayName(true /* inDaylight */, icu::TimeZone::LONG, locale, dstDisplayName);
+            m_timeZoneDSTDisplayNameCache = String(dstDisplayName.getBuffer(), dstDisplayName.length());
+        }
 #endif
     }
     if (isDST)
