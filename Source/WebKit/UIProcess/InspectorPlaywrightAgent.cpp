@@ -856,7 +856,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setLanguages(
         items.append(language);
     }
 
-    browserContext->dataStore->setLanguagesForAutomation(WTFMove(items));
+    browserContext->processPool->configuration().setOverrideLanguages(WTFMove(items));
     return { };
 }
 

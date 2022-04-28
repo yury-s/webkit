@@ -374,8 +374,6 @@ public:
     static constexpr uint64_t defaultPerOriginQuota() { return 1000 * MB; }
     static bool defaultShouldUseCustomStoragePaths();
 
-    void setLanguagesForAutomation(Vector<String>&&);
-    Vector<String>& languagesForAutomation() { return m_languagesForAutomation; };
     void setDownloadForAutomation(std::optional<bool> allow, const String& downloadPath);
     std::optional<bool> allowDownloadForAutomation() { return m_allowDownloadForAutomation; };
     String downloadPathForAutomation() { return m_downloadPathForAutomation; };
@@ -508,7 +506,6 @@ private:
     RefPtr<API::HTTPCookieStore> m_cookieStore;
     RefPtr<NetworkProcessProxy> m_networkProcess;
 
-    Vector<String> m_languagesForAutomation;
     std::optional<bool> m_allowDownloadForAutomation;
     String m_downloadPathForAutomation;
     DownloadInstrumentation* m_downloadInstrumentation { nullptr };

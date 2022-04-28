@@ -851,12 +851,8 @@ void WebProcessPool::initializeNewWebProcess(WebProcessProxy& process, WebsiteDa
 #endif
 
     parameters.cacheModel = LegacyGlobalSettings::singleton().cacheModel();
-    if (websiteDataStore && websiteDataStore->languagesForAutomation().size())
-        parameters.overrideLanguages = websiteDataStore->languagesForAutomation();
-    else {
-        parameters.overrideLanguages = configuration().overrideLanguages();
-        LOG_WITH_STREAM(Language, stream << "WebProcessPool is initializing a new web process with overrideLanguages: " << parameters.overrideLanguages);
-    }
+    parameters.overrideLanguages = configuration().overrideLanguages();
+    LOG_WITH_STREAM(Language, stream << "WebProcessPool is initializing a new web process with overrideLanguages: " << parameters.overrideLanguages);
 
     parameters.urlSchemesRegisteredAsEmptyDocument = copyToVector(m_schemesToRegisterAsEmptyDocument);
     parameters.urlSchemesRegisteredAsSecure = copyToVector(LegacyGlobalSettings::singleton().schemesToRegisterAsSecure());
