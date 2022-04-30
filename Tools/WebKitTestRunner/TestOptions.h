@@ -87,6 +87,7 @@ public:
     std::string jscOptions() const { return stringTestRunnerFeatureValue("jscOptions"); }
     std::string standaloneWebApplicationURL() const { return stringTestRunnerFeatureValue("standaloneWebApplicationURL"); }
     std::vector<std::string> overrideLanguages() const { return stringVectorTestRunnerFeatureValue("language"); }
+    std::string overrideTimeZone() const { return stringTestRunnerFeatureValue("timeZone"); }
 
     bool shouldEnableProcessSwapOnNavigation() const
     {

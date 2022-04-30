@@ -190,6 +190,7 @@ const TestFeatures& TestOptions::defaults()
             { "dragInteractionPolicy", { } },
             { "jscOptions", { } },
             { "standaloneWebApplicationURL", { } },
+            { "timeZone", { } },
         };
         features.stringVectorTestRunnerFeatures = {
             { "language", { "en-US" } },
@@ -245,6 +246,7 @@ const std::unordered_map<std::string, TestHeaderKeyType>& TestOptions::keyTypeMa
         { "standaloneWebApplicationURL", TestHeaderKeyType::StringURLTestRunner },
 
         { "language", TestHeaderKeyType::StringVectorTestRunner },
+        { "timeZone", TestHeaderKeyType::StringTestRunner },
     };
 
     return map;

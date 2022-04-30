@@ -994,7 +994,7 @@ static void testMemoryPressureSettings(MemoryPressureTest* test, gconstpointer)
 static void testWebContextTimeZoneOverride(WebViewTest* test, gconstpointer)
 {
     GUniqueOutPtr<GError> error;
-    WebKitJavascriptResult* javascriptResult = test->runJavaScriptAndWaitUntilFinished("let now = new Date(); now.getTimezoneOffset()", &error.outPtr());
+    WebKitJavascriptResult* javascriptResult = test->runJavaScriptAndWaitUntilFinished("const date = new Date(1651511226050); date.getTimezoneOffset()", &error.outPtr());
     g_assert_nonnull(javascriptResult);
     g_assert_no_error(error.get());
     // By default the test harness uses the Pacific/Los_Angeles timezone which is 7 hours (420 minutes) compared to GMT.
@@ -1005,7 +1005,7 @@ static void testWebContextTimeZoneOverride(WebViewTest* test, gconstpointer)
         "time-zone-override", "Europe/Berlin", nullptr)));
     g_assert_cmpstr(webkit_web_context_get_time_zone_override(webContext.get()), ==, "Europe/Berlin");
     auto webView = Test::adoptView(Test::createWebView(webContext.get()));
-    javascriptResult = test->runJavaScriptAndWaitUntilFinished("let now = new Date(); now.getTimezoneOffset()", &error.outPtr(), webView.get());
+    javascriptResult = test->runJavaScriptAndWaitUntilFinished("const date = new Date(1651511226050); date.getTimezoneOffset()", &error.outPtr(), webView.get());
     g_assert_nonnull(javascriptResult);
     g_assert_no_error(error.get());
     g_assert_cmpint(WebViewTest::javascriptResultToNumber(javascriptResult), ==, -120);
@@ -1026,7 +1026,7 @@ static void testWebContextTimeZoneOverrideInWorker(WebViewTest* test, gconstpoin
     auto webView = Test::adoptView(Test::createWebView(webContext.get()));
 
     test->runJavaScriptAndWaitUntilFinished(
-        "window.results = [];"
+        "window.results = [Intl.DateTimeFormat().resolvedOptions().timeZone];"
         "for (let i = 0; i < 3; i++) {"
         "  const worker = new Worker('data:text/javascript,self.postMessage(Intl.DateTimeFormat().resolvedOptions().timeZone)');"
         "  worker.onmessage = message => results.push(message.data);"
@@ -1035,12 +1035,12 @@ static void testWebContextTimeZoneOverrideInWorker(WebViewTest* test, gconstpoin
         javascriptResult = test->runJavaScriptAndWaitUntilFinished("results.length", &error.outPtr(), webView.get());
         g_assert_nonnull(javascriptResult);
         g_assert_no_error(error.get());
-    } while (WebViewTest::javascriptResultToNumber(javascriptResult) < 3);
+    } while (WebViewTest::javascriptResultToNumber(javascriptResult) < 4);
 
     javascriptResult = test->runJavaScriptAndWaitUntilFinished("results.join(', ')", &error.outPtr(), webView.get());
     g_assert_nonnull(javascriptResult);
     g_assert_no_error(error.get());
-    g_assert_cmpstr(WebViewTest::javascriptResultToCString(javascriptResult), ==, "Europe/Berlin, Europe/Berlin, Europe/Berlin");
+    g_assert_cmpstr(WebViewTest::javascriptResultToCString(javascriptResult), ==, "Europe/Berlin, Europe/Berlin, Europe/Berlin, Europe/Berlin");
 }
 
 void beforeAll()

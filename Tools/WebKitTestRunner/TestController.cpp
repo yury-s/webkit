@@ -601,6 +601,10 @@ WKRetainPtr<WKContextConfigurationRef> TestController::generateContextConfigurat
         WKArrayAppendItem(overrideLanguages.get(), toWK(language).get());
     WKContextConfigurationSetOverrideLanguages(configuration.get(), overrideLanguages.get());
 
+
+    if (auto override = options.overrideTimeZone(); !override.empty())
+        WKContextConfigurationSetTimeZoneOverride(configuration.get(), toWK(override).get());
+
     if (options.shouldEnableProcessSwapOnNavigation()) {
         WKContextConfigurationSetProcessSwapsOnNavigation(configuration.get(), true);
         if (options.enableProcessSwapOnWindowOpen())

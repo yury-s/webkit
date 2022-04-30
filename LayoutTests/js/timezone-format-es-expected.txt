@@ -1,0 +1,6 @@
+FAIL date1.toString() should be Fri Apr 29 2022 13:10:43 GMT-0700 (hora de verano del PacÃ­fico). Was Fri Apr 29 2022 13:10:43 GMT-0700 (hora de verano del Pacífico).
+FAIL date1.toTimeString() should be 13:10:43 GMT-0700 (hora de verano del PacÃ­fico). Was 13:10:43 GMT-0700 (hora de verano del Pacífico).
+PASS successfullyParsed is true
+
+TEST COMPLETE
+
