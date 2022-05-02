@@ -1755,7 +1755,7 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::scrollIntoViewIfNeeded(const St
     }
     ScrollAlignment alignment = ScrollAlignment::alignCenterIfNeeded;
     alignment.m_enableLegacyHorizontalVisibilityThreshold = false; // Disable RenderLayer minium horizontal scroll threshold.
-    renderer->scrollRectToVisible(absoluteBounds, insideFixed, { SelectionRevealMode::Reveal, alignment, alignment, ShouldAllowCrossOriginScrolling::Yes });
+    renderer->scrollRectToVisible(absoluteBounds, insideFixed, { SelectionRevealMode::Reveal, alignment, alignment, ShouldAllowCrossOriginScrolling::Yes, ScrollBehavior::Instant });
     return { };
 }
 
