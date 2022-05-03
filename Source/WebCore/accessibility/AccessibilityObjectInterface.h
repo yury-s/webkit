@@ -57,7 +57,7 @@ typedef const struct __AXTextMarkerRange* AXTextMarkerRangeRef;
 #elif USE(ATSPI)
 typedef WebCore::AccessibilityObjectAtspi AccessibilityObjectWrapper;
 #else
-class AccessibilityObjectWrapper;
+class AccessibilityObjectWrapper : public RefCounted<AccessibilityObjectWrapper> {};
 #endif
 
 namespace PAL {
@@ -1528,6 +1528,8 @@ private:
     COMPtr<AccessibilityObjectWrapper> m_wrapper;
 #elif USE(ATSPI)
     RefPtr<AccessibilityObjectAtspi> m_wrapper;
+#else
+    RefPtr<AccessibilityObjectWrapper> m_wrapper;
 #endif
     virtual void detachPlatformWrapper(AccessibilityDetachmentType) = 0;
 };

@@ -37,6 +37,9 @@ accessibility/atspi/AccessibilityObjectValueAtspi.cpp
 accessibility/atspi/AccessibilityRootAtspi.cpp
 accessibility/atspi/AXObjectCacheAtspi.cpp
 
+accessibility/empty/AXObjectCacheEmpty.cpp
+accessibility/empty/AccessibilityObjectEmpty.cpp
+
 editing/atspi/FrameSelectionAtspi.cpp
 
 editing/gtk/EditorGtk.cpp
@@ -134,3 +137,10 @@ platform/xdg/MIMETypeRegistryXdg.cpp
 
 rendering/RenderThemeAdwaita.cpp
 rendering/RenderThemeGtk.cpp
+
+// Playwright: begin.
+JSSpeechSynthesisErrorCode.cpp
+JSSpeechSynthesisErrorEvent.cpp
+JSSpeechSynthesisErrorEventInit.cpp
+JSSpeechSynthesisEventInit.cpp
+// Playwright: end.
