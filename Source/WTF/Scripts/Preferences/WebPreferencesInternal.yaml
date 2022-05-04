@@ -931,6 +931,7 @@ UseCGDisplayListsForDOMRendering:
     WebKit:
       default: true
 
+# Playwright: force-disable on Windows
 UseGPUProcessForCanvasRenderingEnabled:
   type: bool
   humanReadableName: "GPU Process: Canvas Rendering"
@@ -941,7 +942,7 @@ UseGPUProcessForCanvasRenderingEnabled:
   defaultValue:
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT)": true
-      "PLATFORM(WIN)": true
+      "PLATFORM(WIN)": false
       default: false
 
 UseGPUProcessForMediaEnabled:
