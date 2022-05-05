@@ -58,7 +58,6 @@ public:
     void targetDestroyed(InspectorTarget&);
     void targetCrashed(InspectorTarget&);
     void didCommitProvisionalTarget(const String& oldTargetID, const String& committedTargetID);
-    void ensureConnected(const String& targetID);
 
     // Target messages.
     void sendMessageFromTargetToFrontend(const String& targetId, const String& message);

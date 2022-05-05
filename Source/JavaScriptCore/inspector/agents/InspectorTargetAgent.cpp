@@ -197,18 +197,6 @@ void InspectorTargetAgent::didCommitProvisionalTarget(const String& oldTargetID,
     m_frontendDispatcher->didCommitProvisionalTarget(oldTargetID, committedTargetID);
 }
 
-void InspectorTargetAgent::ensureConnected(const String& targetID)
-{
-    if (!m_isConnected)
-        return;
-
-    auto* target = m_targets.get(targetID);
-    if (!target)
-        return;
-
-    target->connect(connectionType());
-}
-
 FrontendChannel::ConnectionType InspectorTargetAgent::connectionType() const
 {
     return m_router.hasLocalFrontend() ? Inspector::FrontendChannel::ConnectionType::Local : Inspector::FrontendChannel::ConnectionType::Remote;
