@@ -77,6 +77,7 @@
 #include <limits>
 #include <wtf/Language.h>
 #include <wtf/unicode/icu/ICUHelpers.h>
+#include <wtf/DateMath.h>
 
 #if U_ICU_VERSION_MAJOR_NUM >= 69 || (U_ICU_VERSION_MAJOR_NUM == 68 && USE(APPLE_INTERNAL_SDK))
 #define HAVE_ICU_C_TIMEZONE_API 1
