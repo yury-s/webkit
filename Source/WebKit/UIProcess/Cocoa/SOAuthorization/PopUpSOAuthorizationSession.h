@@ -27,10 +27,9 @@
 
 #if HAVE(APP_SSO)
 
-#include <wtf/Forward.h>
-#include <wtf/CompletionHandler.h>
 #include "SOAuthorizationSession.h"
 #include <wtf/CompletionHandler.h>
+#include <wtf/Forward.h>
 
 OBJC_CLASS WKSOSecretDelegate;
 OBJC_CLASS WKWebView;

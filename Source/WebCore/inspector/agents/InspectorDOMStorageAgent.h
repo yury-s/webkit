@@ -40,7 +40,6 @@ class DOMStorageFrontendDispatcher;
 
 namespace WebCore {
 
-class Color;
 class Frame;
 class Page;
 class SecurityOrigin;

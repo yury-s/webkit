@@ -37,8 +37,6 @@
 #include <WebCore/WebAudioBufferList.h>
 #endif
 
-using namespace WebCore;
-
 namespace WebKit {
 
 Ref<WebCore::RealtimeMediaSource> SpeechRecognitionRemoteRealtimeMediaSource::create(SpeechRecognitionRemoteRealtimeMediaSourceManager& manager, const WebCore::CaptureDevice& captureDevice, WebCore::PageIdentifier pageIdentifier)
