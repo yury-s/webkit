@@ -467,7 +467,7 @@ CrossOriginOpenerPolicyEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
       default: false
 
@@ -844,9 +844,9 @@ MaskWebGLStringsEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 # FIXME: This is on by default in WebKit2. Perhaps we should consider turning it on for WebKitLegacy as well.
 MediaCapabilitiesExtensionsEnabled:
@@ -1354,7 +1354,7 @@ SpeechRecognitionEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "HAVE(SPEECHRECOGNIZER) && ENABLE(MEDIA_STREAM)": true
+      "ENABLE(MEDIA_STREAM)": true
       default: false
     WebCore:
       default: false
@@ -1469,6 +1469,7 @@ UseGPUProcessForDisplayCapture:
     WebKit:
       default: false
 
+# Playwright: force-disable on Windows
 UseGPUProcessForWebGLEnabled:
   type: bool
   humanReadableName: "GPU Process: WebGL"
@@ -1479,7 +1480,7 @@ UseGPUProcessForWebGLEnabled:
   defaultValue:
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT) && PLATFORM(IOS_FAMILY) && !HAVE(UIKIT_WEBKIT_INTERNALS)": true
-      "PLATFORM(WIN)": true
+      "PLATFORM(WIN)": false
       default: false
 
 UseScreenCaptureKit:

@@ -25,6 +25,7 @@ list(APPEND WebKitTestRunner_LIBRARIES
     ${GLIB_LIBRARIES}
     Cairo::Cairo
     GTK::GTK
+    stdc++fs
 )
 
 list(APPEND WebKitTestRunnerInjectedBundle_LIBRARIES
@@ -41,6 +42,9 @@ list(APPEND WebKitTestRunnerInjectedBundle_SOURCES
     InjectedBundle/atspi/AccessibilityControllerAtspi.cpp
     InjectedBundle/atspi/AccessibilityNotificationHandler.cpp
     InjectedBundle/atspi/AccessibilityUIElementAtspi.cpp
+
+    InjectedBundle/empty/AccessibilityControllerEmpty.cpp
+    InjectedBundle/empty/AccessibilityUIElementEmpty.cpp 
 
     InjectedBundle/gtk/ActivateFontsGtk.cpp
     InjectedBundle/gtk/InjectedBundleGtk.cpp
