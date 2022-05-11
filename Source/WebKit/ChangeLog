@@ -1,3 +1,22 @@
+2022-05-10  Yury Semikhatsky  <yurys@chromium.org>
+
+        [WinCairo] Support file downloads
+        https://bugs.webkit.org/show_bug.cgi?id=240293
+
+        Reviewed by NOBODY (OOPS!).
+
+        Hooked up Curl calls to Download callbacks. Added basix support for
+        file downloads in Curl.
+
+        * NetworkProcess/curl/NetworkDataTaskCurl.cpp:
+        (WebKit::NetworkDataTaskCurl::cancel):
+        (WebKit::NetworkDataTaskCurl::curlDidReceiveData):
+        (WebKit::NetworkDataTaskCurl::curlDidComplete):
+        (WebKit::NetworkDataTaskCurl::deleteDownloadFile):
+        (WebKit::NetworkDataTaskCurl::curlDidFailWithError):
+        (WebKit::NetworkDataTaskCurl::invokeDidReceiveResponse):
+        * NetworkProcess/curl/NetworkDataTaskCurl.h:
+
 2022-05-09  Ben Nham  <nham@apple.com>
 
         Allow log streaming from webpushd
