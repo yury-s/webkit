@@ -204,9 +204,6 @@ public:
 
     void addWebsiteDataStore(WebsiteDataStoreParameters&&);
 
-    void getAllCookies(PAL::SessionID, CompletionHandler<void(Vector<WebCore::Cookie>&&)>&&);
-    void setCookies(PAL::SessionID, Vector<WebCore::Cookie>, CompletionHandler<void(bool)>&&);
-    void deleteAllCookies(PAL::SessionID, CompletionHandler<void(bool)>&&);
     void setIgnoreCertificateErrors(PAL::SessionID, bool);
 
 #if ENABLE(INTELLIGENT_TRACKING_PREVENTION)
