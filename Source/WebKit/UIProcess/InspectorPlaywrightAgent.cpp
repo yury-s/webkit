@@ -39,6 +39,7 @@
 #include "SandboxExtension.h"
 #include "StorageNamespaceIdentifier.h"
 #include "WebAutomationSession.h"
+#include "WebCookieManagerProxy.h"
 #include "WebGeolocationManagerProxy.h"
 #include "WebGeolocationPosition.h"
 #include "WebInspectorUtilities.h"
@@ -744,7 +745,7 @@ void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref
 
     PAL::SessionID sessionID = browserContext->dataStore->sessionID();
     NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
-    networkProcess.sendWithAsyncReply(Messages::NetworkProcess::GetAllCookies(sessionID),
+    networkProcess.cookieManager().getAllCookies(sessionID,
         [callback = WTFMove(callback)](Vector<WebCore::Cookie> allCookies) {
             if (!callback->isActive())
                 return;
@@ -752,7 +753,7 @@ void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref
             for (const auto& cookie : allCookies)
                 cookies->addItem(buildObjectForCookie(cookie));
             callback->sendSuccess(WTFMove(cookies));
-        }, 0);
+        });
 }
 
 void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JSON::Array>&& in_cookies, Ref<SetCookiesCallback>&& callback) {
@@ -806,17 +807,12 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
         cookies.append(WTFMove(cookie));
     }
 
-    networkProcess.sendWithAsyncReply(Messages::NetworkProcess::SetCookies(sessionID, WTFMove(cookies)),
-        [callback = WTFMove(callback)](bool success) {
+    networkProcess.cookieManager().setCookies(sessionID, WTFMove(cookies), URL(), URL(),
+        [callback = WTFMove(callback)]() {
             if (!callback->isActive())
                 return;
-
-            if (success)
-                callback->sendSuccess();
-            else
-                callback->sendFailure("Internal error: no network storage"_s);
             callback->sendSuccess();
-        }, 0);
+        });
 }
 
 void InspectorPlaywrightAgent::deleteAllCookies(const String& browserContextID, Ref<DeleteAllCookiesCallback>&& callback) {
@@ -829,15 +825,12 @@ void InspectorPlaywrightAgent::deleteAllCookies(const String& browserContextID, 
 
     NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
     PAL::SessionID sessionID = browserContext->dataStore->sessionID();
-    networkProcess.sendWithAsyncReply(Messages::NetworkProcess::DeleteAllCookies(sessionID),
-        [callback = WTFMove(callback)](bool success) {
+    networkProcess.cookieManager().deleteAllCookies(sessionID,
+        [callback = WTFMove(callback)]() {
             if (!callback->isActive())
                 return;
-            if (success)
-                callback->sendSuccess();
-            else
-                callback->sendFailure("Internal error: no network storage"_s);
-        }, 0);
+            callback->sendSuccess();
+        });
 }
 
 Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setLanguages(Ref<JSON::Array>&& languages, const String& browserContextID)
