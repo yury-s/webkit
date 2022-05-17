@@ -807,7 +807,7 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
         cookies.append(WTFMove(cookie));
     }
 
-    networkProcess.cookieManager().setCookies(sessionID, WTFMove(cookies), URL(), URL(),
+    networkProcess.cookieManager().setCookies(sessionID, WTFMove(cookies),
         [callback = WTFMove(callback)]() {
             if (!callback->isActive())
                 return;
