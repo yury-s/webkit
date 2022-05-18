@@ -117,7 +117,12 @@ static PAL::SessionID sessionIDFromContext(WebKitWebContext* context)
 std::unique_ptr<BrowserContext> InspectorPlaywrightAgentClientGlib::createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList)
 {
     GRefPtr<WebKitWebsiteDataManager> data_manager = adoptGRef(webkit_website_data_manager_new_ephemeral());
-    GRefPtr<WebKitWebContext> context = adoptGRef(WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", data_manager.get(), "process-swap-on-cross-site-navigation-enabled", true, nullptr)));
+    GRefPtr<WebKitWebContext> context = adoptGRef(WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", data_manager.get(),
+    // WPE has PSON enabled by default and doesn't have such parameter.
+#if PLATFORM(GTK)
+        "process-swap-on-cross-site-navigation-enabled", true,
+#endif
+        nullptr)));
     if (!context) {
         error = "Failed to create GLib ephemeral context"_s;
         return nullptr;
