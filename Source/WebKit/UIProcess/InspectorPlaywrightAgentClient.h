@@ -33,6 +33,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/RefCounted.h>
+#include <wtf/WeakPtr.h>
 
 namespace WebKit {
 
@@ -51,7 +52,7 @@ public:
     RefPtr<WebsiteDataStore> dataStore;
     RefPtr<WebProcessPool> processPool;
     HashSet<WebPageProxy*> pages;
-    OverridenGeolocationProvider* geolocationProvider { nullptr };
+    WeakPtr<OverridenGeolocationProvider> geolocationProvider;
 };
 
 class InspectorPlaywrightAgentClient {

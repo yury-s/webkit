@@ -125,17 +125,12 @@ private:
     WebPageProxy& m_page;
 };
 
-class OverridenGeolocationProvider final : public API::GeolocationProvider {
+class OverridenGeolocationProvider final : public API::GeolocationProvider, public CanMakeWeakPtr<OverridenGeolocationProvider> {
+     WTF_MAKE_NONCOPYABLE(OverridenGeolocationProvider);
 public:
-    explicit OverridenGeolocationProvider(BrowserContext* browserContext)
+    OverridenGeolocationProvider()
         : m_position(WebGeolocationPosition::create(WebCore::GeolocationPositionData()))
-        , m_browserContext(browserContext)
     {
-        m_browserContext->geolocationProvider = this;
-    }
-
-    ~OverridenGeolocationProvider() override {
-        m_browserContext->geolocationProvider = nullptr;
     }
 
     void setPosition(const Ref<WebGeolocationPosition>& position) {
@@ -157,14 +152,15 @@ private:
     }
 
     Ref<WebGeolocationPosition> m_position;
-    BrowserContext* m_browserContext;
 };
 
 namespace {
 
 void setGeolocationProvider(BrowserContext* browserContext) {
+    auto provider = makeUnique<OverridenGeolocationProvider>();
+    browserContext->geolocationProvider = *provider;
     auto* geoManager = browserContext->processPool->supplement<WebGeolocationManagerProxy>();
-    geoManager->setProvider(makeUnique<OverridenGeolocationProvider>(browserContext));
+    geoManager->setProvider(WTFMove(provider));
 }
 
 String toBrowserContextIDProtocolString(const PAL::SessionID& sessionID)
