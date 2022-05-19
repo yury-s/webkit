@@ -833,3 +833,70 @@ TEST(WKHTTPCookieStore, CookiesForURL)
     }];
     TestWebKitAPI::Util::run(&done);
 }
+
+TEST(WKHTTPCookieStore, DeleteAllCookies)
+{
+    Vector<char> request;
+    TestWebKitAPI::HTTPServer server([&request] (const TestWebKitAPI::Connection& connection) {
+        connection.receiveHTTPRequest([&request, connection] (Vector<char>&& firstRequest) {
+            request = WTFMove(firstRequest);
+            NSString* firstResponse =
+                @"HTTP/1.1 200 OK\r\n"
+                "Content-Length: 5\r\n\r\n"
+                "Hello";
+            connection.send(firstResponse);
+        });
+    });
+
+    RetainPtr<WKWebsiteDataStore> ephemeralStoreWithCookies = [WKWebsiteDataStore nonPersistentDataStore];
+    auto configuration = adoptNS([WKWebViewConfiguration new]);
+    configuration.get().websiteDataStore = ephemeralStoreWithCookies.get();
+
+    RetainPtr<NSHTTPCookie> cookie1 = [NSHTTPCookie cookieWithProperties:@{
+        NSHTTPCookiePath: @"/",
+        NSHTTPCookieName: @"One",
+        NSHTTPCookieValue: @"Uno",
+        NSHTTPCookieOriginURL: server.origin(),
+    }];
+    RetainPtr<NSHTTPCookie> cookie2 = [NSHTTPCookie cookieWithProperties:@{
+        NSHTTPCookiePath: @"/",
+        NSHTTPCookieName: @"Two",
+        NSHTTPCookieValue: @"Dos",
+        NSHTTPCookieOriginURL: server.origin(),
+    }];
+
+    auto webView = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
+    [webView synchronouslyLoadHTMLString:@"start network process"];
+    auto cookieStore = webView.get().configuration.websiteDataStore.httpCookieStore;
+    __block bool setCookies = false;
+    [cookieStore setCookie:cookie1.get() completionHandler:^{
+        [cookieStore setCookie:cookie2.get() completionHandler:^{
+            setCookies = true;
+        }];
+    }];
+    TestWebKitAPI::Util::run(&setCookies);
+
+    auto delegate = adoptNS([TestNavigationDelegate new]);
+    delegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^decisionHandler)(WKNavigationActionPolicy)) {
+        [cookieStore deleteAllCookies:^{
+            decisionHandler(WKNavigationActionPolicyAllow);
+        }];
+    };
+    [webView setNavigationDelegate:delegate.get()];
+    [webView loadRequest:server.request()];
+    [delegate waitForDidFinishNavigation];
+    while (request.isEmpty())
+        TestWebKitAPI::Util::spinRunLoop();
+
+    EXPECT_FALSE(StringView(request.data(), request.size()).containsIgnoringASCIICase("Cookie"));
+
+    gotFlag = false;
+    RetainPtr<NSArray<NSHTTPCookie *>> cookies;
+    [cookieStore getAllCookies:[&](NSArray<NSHTTPCookie *> *nsCookies) {
+        cookies = nsCookies;
+        gotFlag = true;
+    }];
+    TestWebKitAPI::Util::run(&gotFlag);
+    EXPECT_EQ([cookies count], 0u);
+}
+
