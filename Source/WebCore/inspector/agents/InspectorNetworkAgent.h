@@ -78,7 +78,6 @@ public:
     static Ref<TextResourceDecoder> createTextDecoder(const String& mimeType, const String& textEncodingName);
     static std::optional<String> textContentForCachedResource(CachedResource&);
     static bool cachedResourceContent(CachedResource&, String* result, bool* base64Encoded);
-    static String initiatorIdentifierForEventSource();
 
     // InspectorAgentBase
     void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) final;

@@ -495,13 +495,9 @@ static InspectorPageAgent::ResourceType resourceTypeForLoadType(InspectorInstrum
 void InspectorNetworkAgent::willSendRequest(ResourceLoaderIdentifier identifier, DocumentLoader* loader, ResourceRequest& request, const ResourceResponse& redirectResponse, const CachedResource* cachedResource)
 {
     InspectorPageAgent::ResourceType resourceType;
-    if (request.initiatorIdentifier() == initiatorIdentifierForEventSource()) {
-        resourceType = InspectorPageAgent::EventSourceResource;
-    } else {
-        if (!cachedResource && loader)
-            cachedResource = InspectorPageAgent::cachedResource(loader->frame(), request.url());
-        resourceType = resourceTypeForCachedResource(cachedResource);
-    }
+    if (!cachedResource && loader)
+        cachedResource = InspectorPageAgent::cachedResource(loader->frame(), request.url());
+    resourceType = resourceTypeForCachedResource(cachedResource);
     willSendRequest(identifier, loader, request, redirectResponse, resourceType);
 }
 
@@ -1416,12 +1412,6 @@ std::optional<String> InspectorNetworkAgent::textContentForCachedResource(Cached
     }
 
     return std::nullopt;
-}
-
-// static
-String InspectorNetworkAgent::initiatorIdentifierForEventSource()
-{
-    return "InspectorNetworkAgent: eventSource"_s;
 }
 
 bool InspectorNetworkAgent::cachedResourceContent(CachedResource& resource, String* result, bool* base64Encoded)
