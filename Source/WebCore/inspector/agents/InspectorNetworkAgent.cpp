@@ -494,11 +494,9 @@ static InspectorPageAgent::ResourceType resourceTypeForLoadType(InspectorInstrum
 
 void InspectorNetworkAgent::willSendRequest(ResourceLoaderIdentifier identifier, DocumentLoader* loader, ResourceRequest& request, const ResourceResponse& redirectResponse, const CachedResource* cachedResource)
 {
-    InspectorPageAgent::ResourceType resourceType;
     if (!cachedResource && loader)
         cachedResource = InspectorPageAgent::cachedResource(loader->frame(), request.url());
-    resourceType = resourceTypeForCachedResource(cachedResource);
-    willSendRequest(identifier, loader, request, redirectResponse, resourceType);
+    willSendRequest(identifier, loader, request, redirectResponse, resourceTypeForCachedResource(cachedResource));
 }
 
 void InspectorNetworkAgent::willSendRequestOfType(ResourceLoaderIdentifier identifier, DocumentLoader* loader, ResourceRequest& request, InspectorInstrumentation::LoadType loadType)
