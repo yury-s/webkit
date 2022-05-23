@@ -87,6 +87,7 @@ private:
 
     void appendCookieHeader(WebCore::ResourceRequest&);
     void handleCookieHeaders(const WebCore::ResourceRequest&, const WebCore::CurlResponse&);
+    String suggestedFilename() const override;
 
     bool isThirdPartyRequest(const WebCore::ResourceRequest&);
     bool shouldBlockCookies(const WebCore::ResourceRequest&);

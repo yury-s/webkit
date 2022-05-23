@@ -36,6 +36,7 @@
 #include "CachedResourceRequestInitiators.h"
 #include "ContentSecurityPolicy.h"
 #include "EventNames.h"
+#include "InspectorNetworkAgent.h"
 #include "MessageEvent.h"
 #include "ResourceError.h"
 #include "ResourceRequest.h"
