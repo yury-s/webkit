@@ -132,6 +132,8 @@ namespace WebCore {
     macro(DataTransferItem) \
     macro(DataTransferItemList) \
     macro(DelayNode) \
+    macro(DeviceMotionEvent) \
+    macro(DeviceOrientationEvent) \
     macro(DocumentTimeline) \
     macro(DynamicsCompressorNode) \
     macro(ExtendableEvent) \
