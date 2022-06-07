@@ -230,7 +230,7 @@ void ReplacementFragment::removeContentsWithSideEffects()
     auto end = descendantsOfType<Element>(*m_fragment).end();
     while (it != end) {
         Ref element = *it;
-        if (isScriptElement(element) || (is<HTMLStyleElement>(element) && element->getAttribute(classAttr) != WebKitMSOListQuirksStyle)
+        if (isScriptElement(element) || (is<HTMLStyleElement>(element) && element->getAttribute(classAttr) != AtomString(WebKitMSOListQuirksStyle))
             || is<HTMLBaseElement>(element) || is<HTMLLinkElement>(element) || is<HTMLMetaElement>(element) || is<HTMLTitleElement>(element)) {
             elementsToRemove.append(WTFMove(element));
             it.traverseNextSkippingChildren();
