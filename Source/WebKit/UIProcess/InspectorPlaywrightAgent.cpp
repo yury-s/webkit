@@ -739,7 +739,6 @@ void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref
         return;
     }
 
-    NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
     browserContext->dataStore->cookieStore().cookies(
         [callback = WTFMove(callback)](const Vector<WebCore::Cookie>& allCookies) {
             if (!callback->isActive())
