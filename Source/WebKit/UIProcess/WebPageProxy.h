@@ -411,7 +411,6 @@ struct EditingRange;
 struct EditorState;
 struct FrameTreeNodeData;
 struct FocusedElementInformation;
-struct FontInfo;
 struct FrameInfoData;
 struct InputMethodState;
 struct InsertTextOptions;
