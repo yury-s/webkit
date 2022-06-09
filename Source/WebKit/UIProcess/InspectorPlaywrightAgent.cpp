@@ -29,6 +29,7 @@
 #if ENABLE(REMOTE_INSPECTOR)
 
 #include "APIGeolocationProvider.h"
+#include "APIHTTPCookieStore.h"
 #include "APIPageConfiguration.h"
 #include "FrameInfoData.h"
 #include "InspectorPlaywrightAgentClient.h"
@@ -39,7 +40,6 @@
 #include "SandboxExtension.h"
 #include "StorageNamespaceIdentifier.h"
 #include "WebAutomationSession.h"
-#include "WebCookieManagerProxy.h"
 #include "WebGeolocationManagerProxy.h"
 #include "WebGeolocationPosition.h"
 #include "WebInspectorUtilities.h"
@@ -739,10 +739,9 @@ void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref
         return;
     }
 
-    PAL::SessionID sessionID = browserContext->dataStore->sessionID();
     NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
-    networkProcess.cookieManager().getAllCookies(sessionID,
-        [callback = WTFMove(callback)](Vector<WebCore::Cookie> allCookies) {
+    browserContext->dataStore->cookieStore().cookies(
+        [callback = WTFMove(callback)](const Vector<WebCore::Cookie>& allCookies) {
             if (!callback->isActive())
                 return;
             auto cookies = JSON::ArrayOf<Inspector::Protocol::Playwright::Cookie>::create();
@@ -759,9 +758,6 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
         callback->sendFailure(errorString);
         return;
     }
-
-    NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
-    PAL::SessionID sessionID = browserContext->dataStore->sessionID();
 
     Vector<WebCore::Cookie> cookies;
     for (unsigned i = 0; i < in_cookies->length(); ++i) {
@@ -803,7 +799,7 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
         cookies.append(WTFMove(cookie));
     }
 
-    networkProcess.cookieManager().setCookies(sessionID, WTFMove(cookies),
+    browserContext->dataStore->cookieStore().setCookies(WTFMove(cookies),
         [callback = WTFMove(callback)]() {
             if (!callback->isActive())
                 return;
@@ -819,9 +815,7 @@ void InspectorPlaywrightAgent::deleteAllCookies(const String& browserContextID, 
         return;
     }
 
-    NetworkProcessProxy& networkProcess = browserContext->dataStore->networkProcess();
-    PAL::SessionID sessionID = browserContext->dataStore->sessionID();
-    networkProcess.cookieManager().deleteAllCookies(sessionID,
+    browserContext->dataStore->cookieStore().deleteAllCookies(
         [callback = WTFMove(callback)]() {
             if (!callback->isActive())
                 return;
