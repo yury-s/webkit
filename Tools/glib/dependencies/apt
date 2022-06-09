@@ -45,9 +45,11 @@ PACKAGES=(
     libwayland-dev
     libwebp-dev
     libwoff-dev
+    libxcb-glx0-dev
     libxslt1-dev
     ninja-build
     patch
+    patchelf
     ruby
 
     # These are dependencies necessary for running tests.
@@ -58,7 +60,6 @@ PACKAGES=(
     libcgi-pm-perl
     psmisc
     pulseaudio-utils
-    python-gi
     ruby-highline
     ruby-json
 
