@@ -258,17 +258,19 @@ void InspectorScreencastAgent::encodeFrame()
         WebCore::IntSize displaySize = imageSize;
         displaySize.contract(0, m_screencastToolbarHeight);
         double scale = std::min(m_screencastWidth / displaySize.width(), m_screencastHeight / displaySize.height());
-        RetainPtr<CGImageRef> scaledImageRef;
+        RetainPtr<CGImageRef> transformedImageRef;
         if (scale < 1 || m_screencastToolbarHeight) {
             WebCore::IntSize screencastSize = displaySize;
-            screencastSize.scale(scale);
             WebCore::IntSize scaledImageSize = imageSize;
-            scaledImageSize.scale(scale);
+            if (scale < 1) {
+                screencastSize.scale(scale);
+                scaledImageSize.scale(scale);
+            }
             auto colorSpace = adoptCF(CGColorSpaceCreateDeviceRGB());
             auto context = adoptCF(CGBitmapContextCreate(nullptr, screencastSize.width(), screencastSize.height(), 8, 4 * screencastSize.width(), colorSpace.get(), (CGBitmapInfo)kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host));
             CGContextDrawImage(context.get(), CGRectMake(0, 0, scaledImageSize.width(), scaledImageSize.height()), imagePtr);
-            scaledImageRef = adoptCF(CGBitmapContextCreateImage(context.get()));
-            imagePtr = scaledImageRef.get();
+            transformedImageRef = adoptCF(CGBitmapContextCreateImage(context.get()));
+            imagePtr = transformedImageRef.get();
         }
         auto data = WebCore::data(imagePtr, WebCore::jpegUTI(), m_screencastQuality * 0.1);
 
