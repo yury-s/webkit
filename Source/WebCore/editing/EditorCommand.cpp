@@ -902,15 +902,19 @@ static bool executeToggleOverwrite(Frame& frame, Event*, EditorCommandSource, co
 
 static bool executePaste(Frame& frame, Event*, EditorCommandSource source, const String&)
 {
+    fprintf(stderr, "executePaste \n");
     if (source == CommandFromMenuOrKeyBinding) {
+        fprintf(stderr, "   executePaste 1\n");
         UserTypingGestureIndicator typingGestureIndicator(frame);
         frame.editor().paste(Editor::FromMenuOrKeyBinding::Yes);
         return true;
     }
+    fprintf(stderr, "   executePaste 2\n");
 
     if (!frame.requestDOMPasteAccess())
         return false;
 
+    fprintf(stderr, "   executePaste 3\n");
     frame.editor().paste();
     return true;
 }
@@ -1841,7 +1845,9 @@ static const CommandMap& createCommandMap()
 static const EditorInternalCommand* internalCommand(const String& commandName)
 {
     static const CommandMap& commandMap = createCommandMap();
-    return commandName.isEmpty() ? 0 : commandMap.get(commandName);
+    auto* result = commandName.isEmpty() ? 0 : commandMap.get(commandName);
+    fprintf(stderr, "internalCommand %s => %p\n", commandName.ascii().data(), result);
+    return result;
 }
 
 Editor::Command Editor::command(const String& commandName)

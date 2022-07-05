@@ -87,12 +87,12 @@ void Editor::showColorPanel()
 void Editor::pasteWithPasteboard(Pasteboard* pasteboard, OptionSet<PasteOption> options)
 {
     auto range = selectedRange();
-
     // FIXME: How can this hard-coded pasteboard name be right, given that the passed-in pasteboard has a name?
     client()->setInsertionPasteboard(NSPasteboardNameGeneral);
 
     bool chosePlainText;
     RefPtr<DocumentFragment> fragment = webContentFromPasteboard(*pasteboard, *range, options.contains(PasteOption::AllowPlainText), chosePlainText);
+    fprintf(stderr, "pasteWithPasteboard %d options.contains(PasteOption::AllowPlainText) = %d\n", !!fragment, options.contains(PasteOption::AllowPlainText));
 
     if (fragment && options.contains(PasteOption::AsQuotation))
         quoteFragmentForPasting(*fragment);

@@ -33,6 +33,7 @@
 #include "WebPageProxy.h"
 #include <wtf/MathExtras.h>
 #include <wtf/HexNumber.h>
+#include <WebCore/DOMPasteAccess.h>
 
 #include "WebPageMessages.h"
 

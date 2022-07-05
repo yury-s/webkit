@@ -632,9 +632,11 @@ void Editor::clearText()
 
 void Editor::pasteAsPlainText(const String& pastingText, bool smartReplace)
 {
+    fprintf(stderr, "pasteAsPlainText = %s\n", pastingText.ascii().data());
     auto target = findEventTargetFromSelection();
     if (!target)
         return;
+    fprintf(stderr, "    2 pasteAsPlainText = %s\n", pastingText.ascii().data());
     target->dispatchEvent(TextEvent::createForPlainTextPaste(document().windowProxy(), pastingText, smartReplace));
 }
 
@@ -657,6 +659,7 @@ void Editor::pasteAsPlainTextBypassingDHTML()
 void Editor::pasteAsPlainTextWithPasteboard(Pasteboard& pasteboard)
 {
     String text = readPlainTextFromPasteboard(pasteboard);
+    fprintf(stderr, "pasteAsPlainTextWithPasteboard = %s\n", text.ascii().data());
     if (client() && client()->shouldInsertText(text, selectedRange(), EditorInsertAction::Pasted))
         pasteAsPlainText(text, canSmartReplaceWithPasteboard(pasteboard));
 }
@@ -1502,6 +1505,7 @@ void Editor::performCutOrCopy(EditorActionSpecifier action)
 
 void Editor::paste(FromMenuOrKeyBinding fromMenuOrKeyBinding)
 {
+    fprintf(stderr, "paste pageID = %llu\n", m_document.pageID()->toUInt64());
     paste(*Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(m_document.pageID())), fromMenuOrKeyBinding);
 }
 
@@ -1515,6 +1519,10 @@ void Editor::paste(Pasteboard& pasteboard, FromMenuOrKeyBinding fromMenuOrKeyBin
         return;
     updateMarkersForWordsAffectedByEditing(false);
     ResourceCacheValidationSuppressor validationSuppressor(document().cachedResourceLoader());
+    fprintf(stderr, "isContentRichlyEditable = %d\n", m_document.selection().selection().isContentRichlyEditable());
+    String text = readPlainTextFromPasteboard(pasteboard);
+    fprintf(stderr, "    text = %s pasteboard = %p\n", text.ascii().data(), &pasteboard);
+    // WTFReportBacktrace();
     if (m_document.selection().selection().isContentRichlyEditable())
         pasteWithPasteboard(&pasteboard, { PasteOption::AllowPlainText });
     else

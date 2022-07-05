@@ -455,6 +455,9 @@ void Pasteboard::read(PasteboardWebContentReader& reader, WebContentReadingPolic
         if (auto allItems = strategy.allPasteboardItemInfo(m_pasteboardName, m_changeCount, context()))
             nonTranscodedTypes = platformTypesFromItems(*allItems);
     }
+    fprintf(stderr, "types idx ?= %d:\n", !!itemIndex);
+    for (auto& t : types)
+        fprintf(stderr, "    t = %s\n", t.ascii().data());
 
     reader.contentOrigin = readOrigin();
 
