@@ -99,11 +99,13 @@ void WebPageInspectorInputAgent::platformDispatchKeyEvent(WebKeyboardEvent::Type
 {
     Vector<WebCore::KeypressCommand> macCommands;
     for (const String& command : commands) {
-      m_page.registerKeypressCommandName(command);
-      macCommands.append(WebCore::KeypressCommand(command));
+        m_page.registerKeypressCommandName(command);
+        macCommands.append(WebCore::KeypressCommand(command));
     }
     if (text.length() > 0 && macCommands.size() == 0)
-      macCommands.append(WebCore::KeypressCommand("insertText:"_s, text));
+        macCommands.append(WebCore::KeypressCommand("insertText:"_s, text));
+    if (!macCommands.isEmpty())
+        m_page.grantAccessToCurrentPasteboardData(NSPasteboardNameGeneral);
     NativeWebKeyboardEvent event(
         type,
         text,
