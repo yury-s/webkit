@@ -268,6 +268,7 @@ public:
     static void stopProfiling(Page&, JSC::JSGlobalObject*, const String& title);
     static void consoleStartRecordingCanvas(CanvasRenderingContext&, JSC::JSGlobalObject&, JSC::JSObject* options);
     static void consoleStopRecordingCanvas(CanvasRenderingContext&);
+    static void bindingCalled(Page& , JSC::JSGlobalObject*, const String& name, const String& arg);
 
     static void didRequestAnimationFrame(Document&, int callbackId);
     static void didCancelAnimationFrame(Document&, int callbackId);
@@ -481,6 +482,7 @@ private:
     static void stopProfilingImpl(InstrumentingAgents&, JSC::JSGlobalObject*, const String& title);
     static void consoleStartRecordingCanvasImpl(InstrumentingAgents&, CanvasRenderingContext&, JSC::JSGlobalObject&, JSC::JSObject* options);
     static void consoleStopRecordingCanvasImpl(InstrumentingAgents&, CanvasRenderingContext&);
+    static void bindingCalledImpl(InstrumentingAgents&, JSC::JSGlobalObject*, const String& name, const String& arg);
 
     static void didRequestAnimationFrameImpl(InstrumentingAgents&, int callbackId, Document&);
     static void didCancelAnimationFrameImpl(InstrumentingAgents&, int callbackId, Document&);
@@ -1673,6 +1675,11 @@ inline void InspectorInstrumentation::consoleStopRecordingCanvas(CanvasRendering
 {
     if (auto* agents = instrumentingAgents(context.canvasBase().scriptExecutionContext()))
         consoleStopRecordingCanvasImpl(*agents, context);
+}
+
+inline void InspectorInstrumentation::bindingCalled(Page& page, JSC::JSGlobalObject* globalObject, const String& name, const String& arg)
+{
+    bindingCalledImpl(instrumentingAgents(page), globalObject, name, arg);
 }
 
 inline void InspectorInstrumentation::didRequestAnimationFrame(Document& document, int callbackId)

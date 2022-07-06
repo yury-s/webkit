@@ -87,6 +87,8 @@ Protocol::ErrorStringOr<void> PageRuntimeAgent::disable()
 {
     m_instrumentingAgents.setEnabledPageRuntimeAgent(nullptr);
 
+    m_bindingNames.clear();
+
     return InspectorRuntimeAgent::disable();
 }
 
@@ -96,8 +98,66 @@ void PageRuntimeAgent::frameNavigated(Frame& frame)
     mainWorldGlobalObject(frame);
 }
 
+static JSC_DECLARE_HOST_FUNCTION(bindingCallback);
+
+JSC_DEFINE_HOST_FUNCTION(bindingCallback, (JSC::JSGlobalObject * globalObject, JSC::CallFrame* callFrame))
+{
+    auto result = JSC::JSValue::encode(JSC::jsUndefined());
+    if (!callFrame->jsCallee())
+        return result;
+    String bindingName;
+    if (auto* function = JSC::jsDynamicCast<JSC::JSFunction*>(callFrame->jsCallee()))
+        bindingName = function->name(globalObject->vm());
+    auto client = globalObject->consoleClient();
+    if (!client)
+        return result;
+    if (callFrame->argumentCount() < 1)
+        return result;
+    auto value = callFrame->argument(0);
+    if (value.isUndefined())
+        return result;
+    String stringArg = value.toWTFString(globalObject);
+    client->bindingCalled(globalObject, bindingName, stringArg);
+    return result;
+}
+
+static void addBindingToFrame(Frame& frame, const String& name)
+{
+    JSC::JSGlobalObject* globalObject = frame.script().globalObject(mainThreadNormalWorld());
+    auto& vm = globalObject->vm();
+    globalObject->putDirectNativeFunction(vm, globalObject, JSC::Identifier::fromString(vm, name), 1, bindingCallback, JSC::NoIntrinsic, JSC::attributesForStructure(static_cast<unsigned>(JSC::PropertyAttribute::Function)));
+}
+
+Protocol::ErrorStringOr<void> PageRuntimeAgent::addBinding(const String& name)
+{
+    if (!m_bindingNames.add(name).isNewEntry)
+        return {};
+
+    m_inspectedPage.forEachFrame([&](Frame& frame) {
+        if (!frame.script().canExecuteScripts(NotAboutToExecuteScript))
+            return;
+
+        addBindingToFrame(frame, name);
+    });
+
+    return {};
+}
+
+void PageRuntimeAgent::bindingCalled(JSC::JSGlobalObject* globalObject, const String& name, const String& arg)
+{
+    auto injectedScript = injectedScriptManager().injectedScriptFor(globalObject);
+    if (injectedScript.hasNoValue())
+        return;
+    m_frontendDispatcher->bindingCalled(injectedScriptManager().injectedScriptIdFor(globalObject), name, arg);
+}
+
 void PageRuntimeAgent::didClearWindowObjectInWorld(Frame& frame, DOMWrapperWorld& world)
 {
+    if (world.isNormal()) {
+        for (const auto& name : m_bindingNames)
+            addBindingToFrame(frame, name);
+    }
+
     auto* pageAgent = m_instrumentingAgents.enabledPageAgent();
     if (!pageAgent)
         return;

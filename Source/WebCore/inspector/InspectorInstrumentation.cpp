@@ -1011,6 +1011,12 @@ void InspectorInstrumentation::consoleStopRecordingCanvasImpl(InstrumentingAgent
         canvasAgent->consoleStopRecordingCanvas(context);
 }
 
+void InspectorInstrumentation::bindingCalledImpl(InstrumentingAgents& instrumentingAgents, JSC::JSGlobalObject* globalObject, const String& name, const String& arg)
+{
+    if (auto* pageRuntimeAgent = instrumentingAgents.enabledPageRuntimeAgent())
+        pageRuntimeAgent->bindingCalled(globalObject, name, arg);
+}
+
 void InspectorInstrumentation::didOpenDatabaseImpl(InstrumentingAgents& instrumentingAgents, Database& database)
 {
     if (auto* databaseAgent = instrumentingAgents.enabledDatabaseAgent())
