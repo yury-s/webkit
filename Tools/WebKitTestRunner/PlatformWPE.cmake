@@ -30,6 +30,7 @@ list(APPEND WebKitTestRunner_LIBRARIES
     ${WPEBACKEND_FDO_LIBRARIES}
     Cairo::Cairo
     WebKit::WPEToolingBackends
+    stdc++fs
 )
 
 list(APPEND WebKitTestRunnerInjectedBundle_LIBRARIES
@@ -42,6 +43,9 @@ list(APPEND WebKitTestRunnerInjectedBundle_SOURCES
     InjectedBundle/atspi/AccessibilityControllerAtspi.cpp
     InjectedBundle/atspi/AccessibilityNotificationHandler.cpp
     InjectedBundle/atspi/AccessibilityUIElementAtspi.cpp
+
+    InjectedBundle/empty/AccessibilityControllerEmpty.cpp
+    InjectedBundle/empty/AccessibilityUIElementEmpty.cpp
 
     InjectedBundle/wpe/ActivateFontsWPE.cpp
     InjectedBundle/wpe/InjectedBundleWPE.cpp
