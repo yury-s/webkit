@@ -79,7 +79,11 @@ DeprecatedGlobalSettings& DeprecatedGlobalSettings::shared()
 #if ENABLE(TOUCH_EVENTS)
 bool DeprecatedGlobalSettings::touchEventsEnabled()
 {
-    return shared().m_touchEventsEnabled.value_or(screenHasTouchDevice());
+    return shared().m_touchEventsEnabled.value_or(platformScreenHasTouchDevice());
+}
+bool DeprecatedGlobalSettings::isTouchPrimaryInputDevice()
+{
+    return shared().m_touchEventsEnabled.value_or(platformScreenIsTouchPrimaryInputDevice());
 }
 #endif
 
