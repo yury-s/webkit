@@ -216,6 +216,7 @@ public:
     static void setMouseEventsSimulationEnabled(bool isEnabled) { shared().m_mouseEventsSimulationEnabled = isEnabled; }
     static bool touchEventsEnabled();
     static void setTouchEventsEnabled(bool isEnabled) { shared().m_touchEventsEnabled = isEnabled; }
+    static bool isTouchPrimaryInputDevice();
 #endif
 
     static bool pageAtRuleSupportEnabled() { return shared().m_pageAtRuleSupportEnabled; }

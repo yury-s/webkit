@@ -285,6 +285,8 @@ void InspectorController::disconnectFrontend(FrontendChannel& frontendChannel)
 
         // Unplug all instrumentations since they aren't needed now.
         InspectorInstrumentation::unregisterInstrumentingAgents(m_instrumentingAgents.get());
+
+        m_pauseWhenShown = false;
     }
 
     m_inspectorClient->frontendCountChanged(m_frontendRouter->frontendCount());
@@ -303,6 +305,8 @@ void InspectorController::disconnectAllFrontends()
 
     // The frontend should call setInspectorFrontendClient(nullptr) under closeWindow().
     ASSERT(!m_inspectorFrontendClient);
+
+    m_pauseWhenShown = false;
 
     if (!m_frontendRouter->hasFrontends())
         return;
@@ -392,8 +396,8 @@ void InspectorController::inspect(Node* node)
     if (!enabled())
         return;
 
-    if (!hasRemoteFrontend())
-        show();
+    // HACK: Always attempt to show inspector even if there is a remote connection.
+    show();
 
     ensureDOMAgent().inspect(node);
 }
@@ -532,6 +536,26 @@ void InspectorController::willComposite(Frame& frame)
 void InspectorController::didComposite(Frame& frame)
 {
     InspectorInstrumentation::didComposite(frame);
+}
+
+void InspectorController::pauseWhenShown()
+{
+    m_pauseWhenShown = true;
+}
+
+void InspectorController::resumeIfPausedInNewWindow()
+{
+    m_pauseWhenShown = false;
+}
+
+void InspectorController::didShowNewWindow()
+{
+    if (!m_pauseWhenShown)
+        return;
+    while (m_pauseWhenShown) {
+        if (RunLoop::cycle() == RunLoop::CycleResult::Stop)
+            break;
+    }
 }
 
 } // namespace WebCore
