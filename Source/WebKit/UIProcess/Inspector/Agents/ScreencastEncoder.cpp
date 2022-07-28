@@ -49,6 +49,18 @@ namespace WebKit {
 
 namespace {
 
+struct VpxCodecDeleter {
+  void operator()(vpx_codec_ctx_t* codec) {
+    if (codec) {
+        vpx_codec_err_t ret = vpx_codec_destroy(codec);
+        if (ret != VPX_CODEC_OK)
+            fprintf(stderr, "Failed to encode frame: %s\n", vpx_codec_error(codec));
+    }
+  }
+};
+
+using ScopedVpxCodec = std::unique_ptr<vpx_codec_ctx_t, VpxCodecDeleter>;
+
 // Number of timebase unints per one frame.
 constexpr int timeScale = 1000;
 
@@ -169,9 +181,9 @@ private:
 
 class ScreencastEncoder::VPXCodec {
 public:
-    VPXCodec(vpx_codec_ctx_t codec, vpx_codec_enc_cfg_t cfg, FILE* file)
+    VPXCodec(ScopedVpxCodec codec, vpx_codec_enc_cfg_t cfg, FILE* file)
         : m_encoderQueue(WorkQueue::create("Screencast encoder"))
-        , m_codec(codec)
+        , m_codec(WTFMove(codec))
         , m_cfg(cfg)
         , m_file(file)
         , m_writer(new WebMFileWriter(file, &m_cfg))
@@ -207,14 +219,14 @@ private:
         vpx_codec_iter_t iter = nullptr;
         const vpx_codec_cx_pkt_t *pkt = nullptr;
         int flags = 0;
-        const vpx_codec_err_t res = vpx_codec_encode(&m_codec, img, m_pts, duration, flags, VPX_DL_REALTIME);
+        const vpx_codec_err_t res = vpx_codec_encode(m_codec.get(), img, m_pts, duration, flags, VPX_DL_REALTIME);
         if (res != VPX_CODEC_OK) {
-            fprintf(stderr, "Failed to encode frame: %s\n", vpx_codec_error(&m_codec));
+            fprintf(stderr, "Failed to encode frame: %s\n", vpx_codec_error(m_codec.get()));
             return false;
         }
 
         bool gotPkts = false;
-        while ((pkt = vpx_codec_get_cx_data(&m_codec, &iter)) != nullptr) {
+        while ((pkt = vpx_codec_get_cx_data(m_codec.get(), &iter)) != nullptr) {
             gotPkts = true;
 
             if (pkt->kind == VPX_CODEC_CX_FRAME_PKT) {
@@ -241,7 +253,7 @@ private:
     }
 
     Ref<WorkQueue> m_encoderQueue;
-    vpx_codec_ctx_t m_codec;
+    ScopedVpxCodec m_codec;
     vpx_codec_enc_cfg_t m_cfg;
     FILE* m_file { nullptr };
     std::unique_ptr<WebMFileWriter> m_writer;
@@ -289,9 +301,9 @@ RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const S
     cfg.g_timebase.den = fps * timeScale;
     cfg.g_error_resilient = VPX_ERROR_RESILIENT_DEFAULT;
 
-    vpx_codec_ctx_t codec;
-    if (vpx_codec_enc_init(&codec, codec_interface, &cfg, 0)) {
-        errorString = makeString("Failed to initialize encoder: "_s, vpx_codec_error(&codec));
+    ScopedVpxCodec codec(new vpx_codec_ctx_t);
+    if (vpx_codec_enc_init(codec.get(), codec_interface, &cfg, 0)) {
+        errorString = makeString("Failed to initialize encoder: "_s, vpx_codec_error(codec.get()));
         return nullptr;
     }
 
@@ -301,7 +313,7 @@ RefPtr<ScreencastEncoder> ScreencastEncoder::create(String& errorString, const S
         return nullptr;
     }
 
-    std::unique_ptr<VPXCodec> vpxCodec(new VPXCodec(codec, cfg, file));
+    std::unique_ptr<VPXCodec> vpxCodec(new VPXCodec(WTFMove(codec), cfg, file));
     return adoptRef(new ScreencastEncoder(WTFMove(vpxCodec), size));
 }
 
