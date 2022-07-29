@@ -349,6 +349,7 @@ __ZN8mkvmuxer7SegmentC1Ev
 __ZN8mkvmuxer7SegmentD1Ev
 __ZN8mkvmuxer9MkvWriterC1EP7__sFILE
 _ARGBToI420
+_vpx_codec_destroy
 _vpx_codec_enc_config_default
 _vpx_codec_enc_init_ver
 _vpx_codec_encode
