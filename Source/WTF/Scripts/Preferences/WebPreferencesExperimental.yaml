@@ -836,6 +836,7 @@ IsThirdPartyCookieBlockingDisabled:
     WebCore:
       default: false
 
+# Playwright: disable loading=lazy
 LazyIframeLoadingEnabled:
   type: bool
   humanReadableName: "Lazy iframe loading"
@@ -844,9 +845,9 @@ LazyIframeLoadingEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 LazyImageLoadingEnabled:
   type: bool
