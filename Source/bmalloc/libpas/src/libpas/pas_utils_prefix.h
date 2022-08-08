@@ -58,7 +58,12 @@ __PAS_BEGIN_EXTERN_C;
 #if defined(PAS_LIBMALLOC) && PAS_LIBMALLOC
 #define __PAS_API __attribute__((visibility("hidden")))
 #else
+// Playwright: Linkage fails in Ubuntu 18.04.
+#if defined(__GNUC__) && __GNUC__ == 8
+#define __PAS_API
+#else
 #define __PAS_API __attribute__((visibility("default")))
+#endif
 #endif
 
 #if defined(PAS_BMALLOC) && PAS_BMALLOC
