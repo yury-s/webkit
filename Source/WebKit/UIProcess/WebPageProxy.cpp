@@ -1796,6 +1796,10 @@ void WebPageProxy::stopLoading()
 RefPtr<API::Navigation> WebPageProxy::reload(OptionSet<WebCore::ReloadOption> options)
 {
     WEBPAGEPROXY_RELEASE_LOG(Loading, "reload:");
+    fprintf(stderr, "WebPageProxy::reload\n");
+    for (WebCore::ReloadOption opt: options)
+      fprintf(stderr, "  o = %hhu\n", opt);
+    fprintf(stderr, "   end of opts\n");
 
     // Make sure the Network & GPU processes are still responsive. This is so that reload() gets us out of the bad state if one of these
     // processes is hung.

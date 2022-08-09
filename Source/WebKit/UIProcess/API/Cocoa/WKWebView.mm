@@ -888,8 +888,11 @@ static void hardwareKeyboardAvailabilityChangedCallback(CFNotificationCenterRef,
 {
     THROW_IF_SUSPENDED;
     OptionSet<WebCore::ReloadOption> reloadOptions;
-    if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::ExpiredOnlyReloadBehavior))
+    if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::ExpiredOnlyReloadBehavior)) {
+        fprintf(stderr, "ExpiredOnlyReloadBehavior\n");
         reloadOptions.add(WebCore::ReloadOption::ExpiredOnly);
+    }
+    fprintf(stderr, "(WKNavigation *)reload\n");
 
     return wrapper(_page->reload(reloadOptions));
 }

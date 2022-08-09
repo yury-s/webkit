@@ -650,6 +650,18 @@ WebFrameProxy* InspectorPlaywrightAgent::frameForID(const String& frameID, Strin
     return frame;
 }
 
+void InspectorPlaywrightAgent::reload(const String& pageProxyID, Ref<ReloadCallback>&& callback)
+{
+    auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
+    if (!pageProxyChannel) {
+        callback->sendFailure("Cannot find page proxy with provided 'pageProxyId'"_s);
+        return;
+    }
+
+    pageProxyChannel->page().reload(WebCore::ReloadOption::ExpiredOnly);
+    callback->sendSuccess();
+}
+
 void InspectorPlaywrightAgent::navigate(const String& url, const String& pageProxyID, const String& frameID, const String& referrer, Ref<NavigateCallback>&& callback)
 {
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);

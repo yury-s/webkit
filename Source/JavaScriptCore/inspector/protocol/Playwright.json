@@ -135,6 +135,14 @@
             ]
         },
         {
+            "name": "reload",
+            "async": true,
+            "description": "Reloads current page.",
+            "parameters": [
+                { "name": "pageProxyId", "$ref": "PageProxyID", "description": "Unique identifier of the page proxy." }
+            ]
+        },
+        {
             "name": "grantFileReadAccess",
             "description": "Grants read access for the specified files to the web process of the page.",
             "parameters": [

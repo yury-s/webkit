@@ -85,6 +85,7 @@ private:
     Inspector::Protocol::ErrorStringOr<String /* browserContextID */> createContext(const String& proxyServer, const String& proxyBypassList) override;
     void deleteContext(const String& browserContextID, Ref<DeleteContextCallback>&& callback) override;
     Inspector::Protocol::ErrorStringOr<String /* pageProxyID */> createPage(const String& browserContextID) override;
+    void reload(const String& pageProxyID, Ref<ReloadCallback>&& callback) override;
     void navigate(const String& url, const String& pageProxyID, const String& frameId, const String& referrer, Ref<NavigateCallback>&&) override;
     Inspector::Protocol::ErrorStringOr<void> grantFileReadAccess(const String& pageProxyID, Ref<JSON::Array>&& paths) override;
     Inspector::Protocol::ErrorStringOr<void> setIgnoreCertificateErrors(const String& browserContextID, bool ignore) override;
