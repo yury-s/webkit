@@ -191,8 +191,8 @@ Frame::Frame(Page& page, HTMLFrameOwnerElement* ownerElement, UniqueRef<FrameLoa
 
 void Frame::init()
 {
-    m_loader->init();
     InspectorInstrumentation::frameAttached(this);
+    m_loader->init();
 }
 
 Ref<Frame> Frame::create(Page* page, HTMLFrameOwnerElement* ownerElement, UniqueRef<FrameLoaderClient>&& client)
