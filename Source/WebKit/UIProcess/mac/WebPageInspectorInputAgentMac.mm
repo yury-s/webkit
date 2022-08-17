@@ -56,9 +56,9 @@ void WebPageInspectorInputAgent::platformDispatchMouseEvent(const String& type, 
     NSWindow *window = m_page.platformWindow();
     NSInteger windowNumber = window.windowNumber;
 
-    NSEventType downEventType = (NSEventType)0;
-    NSEventType dragEventType = (NSEventType)0;
-    NSEventType upEventType = (NSEventType)0;
+    NSEventType downEventType;
+    NSEventType dragEventType;
+    NSEventType upEventType;
 
     if (!button || button == "none"_s) {
         downEventType = NSEventTypeMouseMoved;
@@ -74,25 +74,28 @@ void WebPageInspectorInputAgent::platformDispatchMouseEvent(const String& type, 
         upEventType = NSEventTypeOtherMouseUp;
     } else if (button == "right"_s) {
         downEventType = NSEventTypeRightMouseDown;
+        dragEventType = NSEventTypeRightMouseDragged;
         upEventType = NSEventTypeRightMouseUp;
+    } else {
+        return;
     }
 
     NSInteger eventNumber = 0;
 
-    NSEvent* event = nil;
+    NSEvent* event;
     if (type == "move"_s) {
         event = [NSEvent mouseEventWithType:dragEventType location:locationInWindow modifierFlags:modifiers timestamp:timestamp windowNumber:windowNumber context:nil eventNumber:eventNumber clickCount:clickCount pressure:0.0f];
     } else if (type == "down"_s) {
         event = [NSEvent mouseEventWithType:downEventType location:locationInWindow modifierFlags:modifiers timestamp:timestamp windowNumber:windowNumber context:nil eventNumber:eventNumber clickCount:clickCount pressure:WebCore::ForceAtClick];
     } else if (type == "up"_s) {
         event = [NSEvent mouseEventWithType:upEventType location:locationInWindow modifierFlags:modifiers timestamp:timestamp windowNumber:windowNumber context:nil eventNumber:eventNumber clickCount:clickCount pressure:0.0f];
+    } else {
+        return;
     }
 
-    if (event) {
-        NativeWebMouseEvent nativeEvent(event, nil, [window contentView]);
-        nativeEvent.playwrightSetButtons(buttons);
-        m_page.handleMouseEvent(nativeEvent);
-    }
+    NativeWebMouseEvent nativeEvent(event, nil, [window contentView]);
+    nativeEvent.playwrightSetButtons(buttons);
+    m_page.handleMouseEvent(nativeEvent);
 }
 
 void WebPageInspectorInputAgent::platformDispatchKeyEvent(WebKeyboardEvent::Type type, const String& text, const String& unmodifiedText, const String& key, const String& code, const String& keyIdentifier, int windowsVirtualKeyCode, int nativeVirtualKeyCode, bool isAutoRepeat, bool isKeypad, bool isSystemKey, OptionSet<WebEvent::Modifier> modifiers, Vector<String>& commands, WallTime timestamp)
