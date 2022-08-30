@@ -494,6 +494,9 @@ list(APPEND WebKit_SYSTEM_INCLUDE_DIRECTORIES
     ${GSTREAMER_PBUTILS_INCLUDE_DIRS}
     ${GTK_INCLUDE_DIRS}
     ${LIBSOUP_INCLUDE_DIRS}
+# Playwright begin
+    ${LIBVPX_INCLUDE_DIRS}
+# Playwright end
 )
 
 if (USE_WPE_RENDERER)
@@ -535,6 +538,9 @@ if (USE_LIBWEBRTC)
     list(APPEND WebKit_SYSTEM_INCLUDE_DIRECTORIES
         "${THIRDPARTY_DIR}/libwebrtc/Source/"
         "${THIRDPARTY_DIR}/libwebrtc/Source/webrtc"
+# Playwright begin
+        "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libyuv/include"
+# Playwright end
     )
 endif ()
 
@@ -564,6 +570,12 @@ GENERATE_API_HEADERS(WebKit2WebExtension_HEADER_TEMPLATES
     "-DPLATFORM(WPE)=0"
     "-DUSE(GTK4)=$<BOOL:${USE_GTK4}>"
 )
+
+# Playwright begin
+list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
+    "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm"
+)
+# Playwright end
 
 # To generate WebKitEnumTypes.h we want to use all installed headers, except WebKitEnumTypes.h itself.
 set(WebKit2GTK_ENUM_GENERATION_HEADERS ${WebKit2GTK_INSTALLED_HEADERS})

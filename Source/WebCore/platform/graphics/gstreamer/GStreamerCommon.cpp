@@ -108,6 +108,55 @@ void webkitGstVideoFormatInfoComponent(const GstVideoFormatInfo* info, guint pla
 }
 #endif
 
+#if !GST_CHECK_VERSION(1, 18, 0)
+GstClockTime gst_element_get_current_clock_time(GstElement * element)
+{
+  GstClock *clock = NULL;
+  GstClockTime ret;
+
+  g_return_val_if_fail (GST_IS_ELEMENT (element), GST_CLOCK_TIME_NONE);
+
+  clock = gst_element_get_clock (element);
+
+  if (!clock) {
+    GST_DEBUG_OBJECT (element, "Element has no clock");
+    return GST_CLOCK_TIME_NONE;
+  }
+
+  ret = gst_clock_get_time (clock);
+  gst_object_unref (clock);
+
+  return ret;
+}
+
+GstClockTime webkitGstElementGetCurrentRunningTime(GstElement * element)
+{
+  GstClockTime base_time, clock_time;
+
+  g_return_val_if_fail (GST_IS_ELEMENT (element), GST_CLOCK_TIME_NONE);
+
+  base_time = gst_element_get_base_time (element);
+
+  if (!GST_CLOCK_TIME_IS_VALID (base_time)) {
+    GST_DEBUG_OBJECT (element, "Could not determine base time");
+    return GST_CLOCK_TIME_NONE;
+  }
+
+  clock_time = gst_element_get_current_clock_time (element);
+
+  if (!GST_CLOCK_TIME_IS_VALID (clock_time)) {
+    return GST_CLOCK_TIME_NONE;
+  }
+
+  if (clock_time < base_time) {
+    GST_DEBUG_OBJECT (element, "Got negative current running time");
+    return GST_CLOCK_TIME_NONE;
+  }
+
+  return clock_time - base_time;
+}
+#endif
+
 #if ENABLE(VIDEO)
 bool getVideoSizeAndFormatFromCaps(const GstCaps* caps, WebCore::IntSize& size, GstVideoFormat& format, int& pixelAspectRatioNumerator, int& pixelAspectRatioDenominator, int& stride)
 {

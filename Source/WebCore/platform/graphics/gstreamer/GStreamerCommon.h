@@ -60,8 +60,10 @@ inline bool webkitGstCheckVersion(guint major, guint minor, guint micro)
 #if !GST_CHECK_VERSION(1, 18, 0)
 #define GST_VIDEO_MAX_COMPONENTS 4
 void webkitGstVideoFormatInfoComponent(const GstVideoFormatInfo*, guint, gint components[GST_VIDEO_MAX_COMPONENTS]);
+GstClockTime webkitGstElementGetCurrentRunningTime(GstElement * element);
 
 #define gst_video_format_info_component webkitGstVideoFormatInfoComponent
+#define gst_element_get_current_running_time webkitGstElementGetCurrentRunningTime
 #endif
 
 #define GST_VIDEO_CAPS_TYPE_PREFIX  "video/"
