@@ -35,6 +35,7 @@ PACKAGES+=(
     nasm
     unifdef
     xfonts-utils
+    $(aptIfElse libenchant-dev libenchant-2-dev)
 
     # These are dependencies necessary for running tests.
     cups-daemon
