@@ -31,8 +31,8 @@
 #define WebKitBrowserInspector_h
 
 #include <glib-object.h>
-#include <webkit2/WebKitDefines.h>
-#include <webkit2/WebKitWebView.h>
+#include <webkit/WebKitDefines.h>
+#include <webkit/WebKitWebView.h>
 
 G_BEGIN_DECLS
 
