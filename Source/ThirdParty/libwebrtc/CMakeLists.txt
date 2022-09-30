@@ -551,6 +551,11 @@ set(webrtc_SOURCES
     Source/third_party/boringssl/src/util/fipstools/cavp/cavp_main.cc
     Source/third_party/boringssl/src/util/fipstools/cavp/cavp_test_util.cc
     Source/third_party/boringssl/src/util/fipstools/cavp/test_fips.c
+# Playwright begin
+    Source/third_party/libwebm/mkvmuxer/mkvmuxer.cc
+    Source/third_party/libwebm/mkvmuxer/mkvmuxerutil.cc
+    Source/third_party/libwebm/mkvmuxer/mkvwriter.cc
+# Playwright end
     Source/third_party/libyuv/source/compare.cc
     Source/third_party/libyuv/source/compare_common.cc
     Source/third_party/libyuv/source/compare_gcc.cc
@@ -786,14 +791,12 @@ set(webrtc_SOURCES
     Source/webrtc/common_audio/channel_buffer.cc
     Source/webrtc/common_audio/fir_filter_c.cc
     Source/webrtc/common_audio/fir_filter_factory.cc
-    Source/webrtc/common_audio/fir_filter_sse.cc
     Source/webrtc/common_audio/real_fourier.cc
     Source/webrtc/common_audio/real_fourier_ooura.cc
     Source/webrtc/common_audio/resampler/push_resampler.cc
     Source/webrtc/common_audio/resampler/push_sinc_resampler.cc
     Source/webrtc/common_audio/resampler/resampler.cc
     Source/webrtc/common_audio/resampler/sinc_resampler.cc
-    Source/webrtc/common_audio/resampler/sinc_resampler_sse.cc
     Source/webrtc/common_audio/resampler/sinusoidal_linear_chirp_source.cc
     Source/webrtc/common_audio/signal_processing/dot_product_with_scale.cc
     Source/webrtc/common_audio/signal_processing/auto_corr_to_refl_coef.c
@@ -831,7 +834,6 @@ set(webrtc_SOURCES
     Source/webrtc/common_audio/ring_buffer.c
     Source/webrtc/common_audio/smoothing_filter.cc
     Source/webrtc/common_audio/third_party/ooura/fft_size_128/ooura_fft.cc
-    Source/webrtc/common_audio/third_party/ooura/fft_size_128/ooura_fft_sse2.cc
     Source/webrtc/common_audio/third_party/ooura/fft_size_256/fft4g.cc
     Source/webrtc/common_audio/third_party/spl_sqrt_floor/spl_sqrt_floor.c
     Source/webrtc/common_audio/vad/vad.cc
@@ -1565,7 +1567,6 @@ set(webrtc_SOURCES
     Source/webrtc/modules/video_coding/video_receiver.cc
     Source/webrtc/modules/video_processing/util/denoiser_filter.cc
     Source/webrtc/modules/video_processing/util/denoiser_filter_c.cc
-    Source/webrtc/modules/video_processing/util/denoiser_filter_sse2.cc
     Source/webrtc/modules/video_processing/util/noise_estimation.cc
     Source/webrtc/modules/video_processing/util/skin_detection.cc
     Source/webrtc/modules/video_processing/video_denoiser.cc
@@ -1869,6 +1870,26 @@ if (WTF_CPU_X86_64 OR WTF_CPU_X86)
         Source/webrtc/common_audio/third_party/ooura/fft_size_128/ooura_fft_sse2.cc
         Source/webrtc/modules/video_processing/util/denoiser_filter_sse2.cc
     )
+endif()
+
+if (WTF_CPU_ARM64)
+    list(APPEND webrtc_SOURCES
+        Source/webrtc/common_audio/fir_filter_neon.cc
+        Source/webrtc/common_audio/resampler/sinc_resampler_neon.cc
+        Source/webrtc/common_audio/signal_processing/cross_correlation_neon.c
+        Source/webrtc/common_audio/signal_processing/downsample_fast_neon.c
+        Source/webrtc/common_audio/signal_processing/min_max_operations_neon.c
+        Source/webrtc/common_audio/third_party/ooura/fft_size_128/ooura_fft_neon.cc
+        Source/webrtc/modules/audio_coding/codecs/isac/fix/source/entropy_coding_neon.c
+        Source/webrtc/modules/audio_coding/codecs/isac/fix/source/filterbanks_neon.c
+        Source/webrtc/modules/audio_coding/codecs/isac/fix/source/filters_neon.c
+        Source/webrtc/modules/audio_coding/codecs/isac/fix/source/lattice_neon.c
+        Source/webrtc/modules/audio_coding/codecs/isac/fix/source/transform_neon.c
+        Source/webrtc/modules/audio_processing/aecm/aecm_core_neon.cc
+        Source/webrtc/modules/video_processing/util/denoiser_filter_neon.cc
+    )
+    add_definitions(-DWEBRTC_ARCH_ARM64)
+    add_definitions(-DWEBRTC_HAS_NEON)
 endif()
 
 if (APPLE)
@@ -2195,6 +2216,10 @@ set(webrtc_INCLUDE_DIRECTORIES PRIVATE
     Source/third_party/libsrtp/config
     Source/third_party/libsrtp/crypto/include
     Source/third_party/libsrtp/include
+# Playwright begin
+    Source/third_party/libwebm
+    Source/third_party/libvpx/source/libvpx
+# Playwright end
     Source/third_party/libyuv/include
     Source/third_party/opus/src/celt
     Source/third_party/opus/src/include
