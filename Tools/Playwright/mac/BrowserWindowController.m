@@ -682,6 +682,12 @@ static BOOL areEssentiallyEqual(double a, double b)
     }];
 }
 
+// Always automatically accept requestStorageAccess dialog.
+- (void)_webView:(WKWebView *)webView requestStorageAccessPanelForDomain:(NSString *)requestingDomain underCurrentDomain:(NSString *)currentDomain completionHandler:(void (^)(BOOL result))completionHandler
+{
+    completionHandler(true);
+}
+
 - (WKDragDestinationAction)_webView:(WKWebView *)webView dragDestinationActionMaskForDraggingInfo:(id)draggingInfo
 {
     return WKDragDestinationActionAny;
