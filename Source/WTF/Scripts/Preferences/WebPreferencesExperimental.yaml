@@ -565,7 +565,7 @@ CrossOriginOpenerPolicyEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
       default: false
 
@@ -948,6 +948,7 @@ IsThirdPartyCookieBlockingDisabled:
     WebCore:
       default: false
 
+# Playwright: disable loading=lazy
 LazyIframeLoadingEnabled:
   type: bool
   humanReadableName: "Lazy iframe loading"
@@ -956,9 +957,9 @@ LazyIframeLoadingEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 LazyImageLoadingEnabled:
   type: bool
@@ -1017,9 +1018,9 @@ MaskWebGLStringsEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 # FIXME: This is on by default in WebKit2. Perhaps we should consider turning it on for WebKitLegacy as well.
 MediaCapabilitiesExtensionsEnabled:
@@ -1540,7 +1541,7 @@ SpeechRecognitionEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "HAVE(SPEECHRECOGNIZER) && ENABLE(MEDIA_STREAM)": true
+      "ENABLE(MEDIA_STREAM)": true
       default: false
     WebCore:
       default: false
@@ -1655,6 +1656,7 @@ UseGPUProcessForDisplayCapture:
     WebKit:
       default: true
 
+# Playwright: force-disable on Windows
 UseGPUProcessForWebGLEnabled:
   type: bool
   humanReadableName: "GPU Process: WebGL"
@@ -1665,7 +1667,7 @@ UseGPUProcessForWebGLEnabled:
       default: false
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT) && PLATFORM(IOS_FAMILY) && !HAVE(UIKIT_WEBKIT_INTERNALS)": true
-      "PLATFORM(WIN)": true
+      "PLATFORM(WIN)": false
       default: false
     WebCore:
       "ENABLE(GPU_PROCESS_BY_DEFAULT) && PLATFORM(IOS_FAMILY) && !HAVE(UIKIT_WEBKIT_INTERNALS)": true
