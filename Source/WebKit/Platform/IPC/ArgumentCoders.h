@@ -142,8 +142,11 @@ struct ArgumentCoder<ArrayReferenceTuple<Types...>> {
     {
         constexpr size_t Index = sizeof...(DataPointerTypes);
         static_assert(Index <= sizeof...(Types));
+        // Must be a separate variable, as otherwise
+        // the Visual Studio C++ compiler gets confused
+        constexpr bool Recurse = Index < sizeof...(Types);
 
-        if constexpr (Index < sizeof...(Types)) {
+        if constexpr (Recurse) {
             using ElementType = ArrayReferenceTupleElementType<Index>;
             auto dataSize = CheckedSize { size } * sizeof(ElementType);
             if (UNLIKELY(dataSize.hasOverflowed()))
@@ -330,8 +333,11 @@ template<typename... Elements> struct ArgumentCoder<std::tuple<Elements...>> {
     {
         constexpr size_t Index = sizeof...(Indices);
         static_assert(Index == std::tuple_size_v<OptionalTuple>);
+        // Must be a separate variable, as otherwise
+        // the Visual Studio C++ compiler gets confused
+        constexpr bool Recurse = Index < sizeof...(Elements);
 
-        if constexpr (Index < sizeof...(Elements)) {
+        if constexpr (Recurse) {
             auto optional = decoder.template decode<std::tuple_element_t<Index, std::tuple<Elements...>>>();
             if (!optional)
                 return std::nullopt;

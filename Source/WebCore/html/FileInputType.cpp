@@ -38,6 +38,7 @@
 #include "HTMLNames.h"
 #include "Icon.h"
 #include "InputTypeNames.h"
+#include "InspectorInstrumentation.h"
 #include "LocalizedStrings.h"
 #include "MIMETypeRegistry.h"
 #include "RenderFileUploadControl.h"
@@ -203,6 +204,11 @@ void FileInputType::handleDOMActivateEvent(Event& event)
     auto& input = *element();
 
     if (input.isDisabledFormControl())
+        return;
+
+    bool intercept = false;
+    InspectorInstrumentation::runOpenPanel(input.document().frame(), element(), &intercept);
+    if (intercept)
         return;
 
     if (!UserGestureIndicator::processingUserGesture())

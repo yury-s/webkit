@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include "PlatformScreen.h"
+#include "DeprecatedGlobalSettings.h"
 
 #if PLATFORM(COCOA)
 
@@ -72,3 +73,16 @@ const ScreenData* screenData(PlatformDisplayID screenDisplayID)
 } // namespace WebCore
 
 #endif // PLATFORM(COCOA)
+
+#if ENABLE(TOUCH_EVENTS)
+namespace WebCore {
+
+bool screenHasTouchDevice() {
+    return DeprecatedGlobalSettings::touchEventsEnabled();
+}
+bool screenIsTouchPrimaryInputDevice() {
+    return DeprecatedGlobalSettings::isTouchPrimaryInputDevice();
+}
+
+} // namespace WebCore
+#endif
