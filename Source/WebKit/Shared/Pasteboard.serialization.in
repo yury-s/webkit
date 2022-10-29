@@ -56,13 +56,9 @@ header: <WebCore/Pasteboard.h>
     Vector<String> clientTypes;
     Vector<RefPtr<WebCore::SharedBuffer>> clientData;
 #endif
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || PLATFORM(WPE)
     String contentOrigin;
     bool canSmartCopyOrDelete;
-    String text;
-    String markup;
-#endif
-#if USE(LIBWPE)
     String text;
     String markup;
 #endif

@@ -84,6 +84,8 @@ NetworkDataTaskCurl::NetworkDataTaskCurl(NetworkSession& session, NetworkDataTas
         m_curlRequest->setUserPass(m_initialCredential.user(), m_initialCredential.password());
         m_curlRequest->setAuthenticationScheme(ProtectionSpace::AuthenticationScheme::HTTPBasic);
     }
+    if (m_session->ignoreCertificateErrors())
+        m_curlRequest->disableServerTrustEvaluation();
     m_curlRequest->start();
 }
 
@@ -160,6 +162,7 @@ void NetworkDataTaskCurl::curlDidReceiveResponse(CurlRequest& request, CurlRespo
     m_response = ResourceResponse(receivedResponse);
     m_response.setCertificateInfo(WTFMove(receivedResponse.certificateInfo));
     m_response.setDeprecatedNetworkLoadMetrics(Box<NetworkLoadMetrics>::create(WTFMove(receivedResponse.networkLoadMetrics)));
+    m_response.m_httpRequestHeaderFields = request.resourceRequest().httpHeaderFields();
 
     handleCookieHeaders(request.resourceRequest(), receivedResponse);
 
@@ -386,6 +389,8 @@ void NetworkDataTaskCurl::willPerformHTTPRedirection()
             m_curlRequest->setUserPass(m_initialCredential.user(), m_initialCredential.password());
             m_curlRequest->setAuthenticationScheme(ProtectionSpace::AuthenticationScheme::HTTPBasic);
         }
+        if (m_session->ignoreCertificateErrors())
+            m_curlRequest->disableServerTrustEvaluation();
         m_curlRequest->start();
 
         if (m_state != State::Suspended) {
