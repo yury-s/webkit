@@ -90,9 +90,13 @@ struct PasteboardWebContent {
     Vector<String> clientTypes;
     Vector<RefPtr<SharedBuffer>> clientData;
 #endif
-#if PLATFORM(GTK) || PLATFORM(WPE)
+#if PLATFORM(GTK)
     String contentOrigin;
     bool canSmartCopyOrDelete;
+    String text;
+    String markup;
+#endif
+#if USE(LIBWPE)
     String text;
     String markup;
 #endif

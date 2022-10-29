@@ -169,7 +169,6 @@ void Pasteboard::write(const PasteboardWebContent& content)
         m_selectionData->clearAll();
         m_selectionData->setText(content.text);
         m_selectionData->setMarkup(content.markup);
-        m_selectionData->setCanSmartReplace(content.canSmartCopyOrDelete);
     } else {
         platformStrategies()->pasteboardStrategy()->writeToPasteboard(content);
     }
