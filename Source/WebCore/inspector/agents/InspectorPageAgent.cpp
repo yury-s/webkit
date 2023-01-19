@@ -66,6 +66,7 @@
 #include "MemoryCache.h"
 #include "Page.h"
 #include "PageRuntimeAgent.h"
+#include "PlatformScreen.h"
 #include "RenderObject.h"
 #include "RenderTheme.h"
 #include "DeprecatedGlobalSettings.h"
@@ -1412,6 +1413,7 @@ Protocol::ErrorStringOr<void> InspectorPageAgent::setTimeZone(const String& time
 
 Protocol::ErrorStringOr<void> InspectorPageAgent::setTouchEmulationEnabled(bool enabled)
 {
+  setScreenHasTouchDeviceOverride(enabled);
   m_inspectedPage.settings().setTouchEventsEnabled(enabled);
   return { };
 }
