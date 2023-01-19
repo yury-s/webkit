@@ -155,8 +155,11 @@ struct ArgumentCoder<ArrayReferenceTuple<Types...>> {
     {
         constexpr size_t Index = sizeof...(DataPointerTypes);
         static_assert(Index <= sizeof...(Types));
+        // Must be a separate variable, as otherwise
+        // the Visual Studio C++ compiler gets confused
+        constexpr bool Recurse = Index < sizeof...(Types);
 
-        if constexpr (Index < sizeof...(Types)) {
+        if constexpr (Recurse) {
             using ElementType = ArrayReferenceTupleElementType<Index>;
             auto dataSize = CheckedSize { size } * sizeof(ElementType);
             if (UNLIKELY(dataSize.hasOverflowed()))
