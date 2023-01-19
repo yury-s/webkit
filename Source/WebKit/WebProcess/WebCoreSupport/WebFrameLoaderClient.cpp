@@ -1627,13 +1627,6 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     if (webPage->scrollPinningBehavior() != DoNotPin)
         view->setScrollPinningBehavior(webPage->scrollPinningBehavior());
 
-#if USE(COORDINATED_GRAPHICS)
-    if (shouldUseFixedLayout) {
-        view->setDelegatedScrollingMode(shouldUseFixedLayout ? DelegatedScrollingMode::DelegatedToNativeScrollView : DelegatedScrollingMode::NotDelegated);
-        view->setPaintsEntireContents(shouldUseFixedLayout);
-        return;
-    }
-#endif
 }
 
 void WebFrameLoaderClient::didRestoreFromBackForwardCache()

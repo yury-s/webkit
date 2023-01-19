@@ -60,6 +60,7 @@ else ()
     )
 endif ()
 
+WEBKIT_ADD_PRECOMPILED_HEADER("DumpRenderTreePrefix.h" "win/DumpRenderTreePrefix.cpp" DumpRenderTree_SOURCES)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MSVC_RUNTIME_LINKER_FLAGS}")
 
 WEBKIT_WRAP_EXECUTABLE(DumpRenderTree
@@ -67,6 +68,3 @@ WEBKIT_WRAP_EXECUTABLE(DumpRenderTree
     LIBRARIES shlwapi
 )
 target_compile_definitions(DumpRenderTree PRIVATE ${wrapper_DEFINITIONS})
-
-# Add precompiled headers to wrapper library
-target_precompile_headers(DumpRenderTreeLib PRIVATE DumpRenderTreePrefix.h)
