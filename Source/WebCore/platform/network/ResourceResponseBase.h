@@ -263,8 +263,6 @@ public:
     
     WEBCORE_EXPORT std::optional<ResponseData> getResponseData() const;
 
-    HTTPHeaderMap m_httpRequestHeaderFields;
-
 protected:
     enum InitLevel {
         Uninitialized,
@@ -297,6 +295,7 @@ protected:
     AtomString m_httpStatusText;
     AtomString m_httpVersion;
     HTTPHeaderMap m_httpHeaderFields;
+    HTTPHeaderMap m_httpRequestHeaderFields;
     Box<NetworkLoadMetrics> m_networkLoadMetrics;
 
     mutable std::optional<CertificateInfo> m_certificateInfo;
