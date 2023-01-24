@@ -234,6 +234,8 @@ const NSActivityOptions ActivityOptions =
         configuration.preferences._developerExtrasEnabled = YES;
         configuration.preferences._mediaDevicesEnabled = YES;
         configuration.preferences._mockCaptureDevicesEnabled = YES;
+        // Enable WebM support.
+        configuration.preferences._alternateWebMPlayerEnabled = YES;
         configuration.preferences._hiddenPageDOMTimerThrottlingEnabled = NO;
         configuration.preferences._hiddenPageDOMTimerThrottlingAutoIncreases = NO;
         configuration.preferences._pageVisibilityBasedProcessSuppressionEnabled = NO;
