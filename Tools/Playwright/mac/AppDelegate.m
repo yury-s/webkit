@@ -477,6 +477,12 @@ const NSActivityOptions ActivityOptions =
       decisionHandler(WKNavigationResponsePolicyAllow);
       return;
     }
+
+    if (!navigationResponse.canShowMIMEType) {
+        decisionHandler(WKNavigationResponsePolicyDownload);
+        return;
+    }
+
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)navigationResponse.response;
 
     NSString *disposition = [[httpResponse allHeaderFields] objectForKey:@"Content-Disposition"];
