@@ -23,16 +23,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(HAVE_CONFIG_H) && HAVE_CONFIG_H && defined(BUILDING_WITH_CMAKE)
-#include "cmakeconfig.h"
-#endif
-
-#if defined(__APPLE__)
 #ifdef __cplusplus
 #define NULL __null
 #else
 #define NULL ((void *)0)
-#endif
 #endif
 
 #include <ctype.h>
@@ -42,19 +36,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
-#if defined(__APPLE__)
 #include <strings.h>
+#include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/timeb.h>
 #include <sys/types.h>
-#endif
 
 #ifdef __cplusplus
+
 #include <list>
 #include <typeinfo>
+
 #endif
 
 #ifdef __cplusplus
@@ -62,11 +55,7 @@
 #define delete ("if you use new/delete make sure to include config.h at the top of the file"()) 
 #endif
 
-/* When C++ exceptions are disabled, the C++ library defines |try| and |catch|
- * to allow C++ code that expects exceptions to build. These definitions
- * interfere with Objective-C++ uses of Objective-C exception handlers, which
- * use |@try| and |@catch|. As a workaround, undefine these macros. */
-#ifdef __OBJC__
+/* Work around bug with C++ library that screws up Objective-C++ when exception support is disabled. */
 #undef try
 #undef catch
-#endif
+

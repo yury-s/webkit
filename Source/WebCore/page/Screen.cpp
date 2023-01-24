@@ -104,6 +104,8 @@ int Screen::availLeft() const
         return 0;
     if (frame->settings().webAPIStatisticsEnabled())
         ResourceLoadObserver::shared().logScreenAPIAccessed(*frame->document(), ScreenAPIsAccessed::AvailLeft);
+    if (frame->hasScreenSizeOverride())
+        return 0;
     return static_cast<int>(screenAvailableRect(frame->view()).x());
 }
 
@@ -114,6 +116,8 @@ int Screen::availTop() const
         return 0;
     if (frame->settings().webAPIStatisticsEnabled())
         ResourceLoadObserver::shared().logScreenAPIAccessed(*frame->document(), ScreenAPIsAccessed::AvailTop);
+    if (frame->hasScreenSizeOverride())
+        return 0;
     return static_cast<int>(screenAvailableRect(frame->view()).y());
 }
 
@@ -124,6 +128,8 @@ unsigned Screen::availHeight() const
         return 0;
     if (frame->settings().webAPIStatisticsEnabled())
         ResourceLoadObserver::shared().logScreenAPIAccessed(*frame->document(), ScreenAPIsAccessed::AvailHeight);
+    if (frame->hasScreenSizeOverride())
+        return static_cast<unsigned>(frame->screenSize().height());
     return static_cast<unsigned>(screenAvailableRect(frame->view()).height());
 }
 
@@ -134,6 +140,8 @@ unsigned Screen::availWidth() const
         return 0;
     if (frame->settings().webAPIStatisticsEnabled())
         ResourceLoadObserver::shared().logScreenAPIAccessed(*frame->document(), ScreenAPIsAccessed::AvailWidth);
+    if (frame->hasScreenSizeOverride())
+        return static_cast<unsigned>(frame->screenSize().width());
     return static_cast<unsigned>(screenAvailableRect(frame->view()).width());
 }
 
