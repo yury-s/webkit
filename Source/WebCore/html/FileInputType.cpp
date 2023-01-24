@@ -380,7 +380,9 @@ void FileInputType::setFiles(RefPtr<FileList>&& files, RequestIcon shouldRequest
         pathsChanged = true;
     else {
         for (unsigned i = 0; i < length; ++i) {
-            if (files->file(i).path() != m_fileList->file(i).path() || !FileSystem::fileIDsAreEqual(files->file(i).fileID(), m_fileList->file(i).fileID())) {
+            if (files->file(i).path() != m_fileList->file(i).path() || !FileSystem::fileIDsAreEqual(files->file(i).fileID(), m_fileList->file(i).fileID()) ||
+                // Files created from Blob have empty path.
+                (files->file(i).path().isEmpty() && files->file(i).name() != m_fileList->file(i).name())) {
                 pathsChanged = true;
                 break;
             }
