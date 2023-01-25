@@ -404,7 +404,8 @@ void WebKitBrowserWindow::decidePolicyForNavigationAction(WKPageRef page, WKFram
 
 void WebKitBrowserWindow::decidePolicyForResponse(WKPageRef page, WKFrameRef frame, WKURLResponseRef response, WKURLRequestRef request, bool canShowMIMEType, WKFramePolicyListenerRef listener, WKTypeRef userData, const void* clientInfo)
 {
-    if (!canShowMIMEType || WKURLResponseIsAttachment(response))
+    // Safari renders resources without content-type as text.
+    if (WKURLResponseIsAttachment(response) || (!WKStringIsEmpty(WKURLResponseCopyMIMEType(response)) && !canShowMIMEType))
         WKFramePolicyListenerDownload(listener);
     else
         WKFramePolicyListenerUse(listener);
