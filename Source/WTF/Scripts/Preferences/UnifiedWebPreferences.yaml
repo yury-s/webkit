@@ -545,6 +545,7 @@ AspectRatioOfImgFromWidthAndHeightEnabled:
       default: true
 
 # FIXME: This is on by default in WebKit2 PLATFORM(COCOA). Perhaps we should consider turning it on for WebKitLegacy as well.
+# Playwright: enable on all platforms to align with Safari.
 AsyncClipboardAPIEnabled:
   type: bool
   status: stable
@@ -555,7 +556,7 @@ AsyncClipboardAPIEnabled:
       default: false
     WebKit:
       "PLATFORM(COCOA)" : true
-      default: false
+      default: true
     WebCore:
       default: false
 
@@ -1589,6 +1590,7 @@ DOMAudioSessionFullEnabled:
     WebCore:
       default: false
 
+# Playwright: enable on all platforms to align with Safari.
 DOMPasteAccessRequestsEnabled:
   type: bool
   status: internal
@@ -1599,7 +1601,7 @@ DOMPasteAccessRequestsEnabled:
       default: false
     WebKit:
       "PLATFORM(IOS) || PLATFORM(MAC)": true
-      default: false
+      default: true
     WebCore:
       default: false
 
