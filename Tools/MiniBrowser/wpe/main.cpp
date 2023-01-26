@@ -241,13 +241,16 @@ static gboolean webViewDecidePolicy(WebKitWebView *webView, WebKitPolicyDecision
 {
     if (decisionType == WEBKIT_POLICY_DECISION_TYPE_RESPONSE) {
         WebKitResponsePolicyDecision *responseDecision = WEBKIT_RESPONSE_POLICY_DECISION(decision);
-        if (webkit_response_policy_decision_is_mime_type_supported(responseDecision))
-            return FALSE;
-
         if (!webkit_response_policy_decision_is_main_frame_main_resource(responseDecision))
             return FALSE;
 
-        webkit_policy_decision_download(decision);
+        const gchar* mimeType = webkit_uri_response_get_mime_type(webkit_response_policy_decision_get_response(responseDecision));
+        if (!webkit_response_policy_decision_is_mime_type_supported(responseDecision) && mimeType && mimeType[0] != '\0') {
+            webkit_policy_decision_download(decision);
+            return TRUE;
+        }
+
+        webkit_policy_decision_use(decision);
         return TRUE;
     }
 

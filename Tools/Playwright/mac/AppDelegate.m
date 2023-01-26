@@ -480,12 +480,13 @@ const NSActivityOptions ActivityOptions =
       return;
     }
 
-    if (!navigationResponse.canShowMIMEType) {
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)navigationResponse.response;
+
+    NSString *contentType = [httpResponse valueForHTTPHeaderField:@"Content-Type"];
+    if (!navigationResponse.canShowMIMEType && (contentType && [contentType length] > 0)) {
         decisionHandler(WKNavigationResponsePolicyDownload);
         return;
     }
-
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)navigationResponse.response;
 
     NSString *disposition = [[httpResponse allHeaderFields] objectForKey:@"Content-Disposition"];
     if (disposition && [disposition hasPrefix:@"attachment"]) {
