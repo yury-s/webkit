@@ -245,7 +245,7 @@ PlatformKeyboardEvent::PlatformKeyboardEvent(HWND, WPARAM code, LPARAM keyData, 
 void PlatformKeyboardEvent::disambiguateKeyDownEvent(Type type, bool backwardsCompatibility)
 {
     m_type = type;
-    if (type == PlatformEvent::RawKeyDown) {
+    if (type == PlatformEvent::Type::RawKeyDown) {
         m_text = String();
         m_unmodifiedText = String();
     } else {
