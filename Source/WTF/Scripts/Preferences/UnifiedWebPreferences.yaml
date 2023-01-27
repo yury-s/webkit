@@ -545,6 +545,7 @@ AspectRatioOfImgFromWidthAndHeightEnabled:
       default: true
 
 # FIXME: This is on by default in WebKit2 PLATFORM(COCOA). Perhaps we should consider turning it on for WebKitLegacy as well.
+# Playwright: enable on all platforms to align with Safari.
 AsyncClipboardAPIEnabled:
   type: bool
   status: stable
@@ -555,7 +556,7 @@ AsyncClipboardAPIEnabled:
       default: false
     WebKit:
       "PLATFORM(COCOA)" : true
-      default: false
+      default: true
     WebCore:
       default: false
 
@@ -1506,6 +1507,7 @@ CrossOriginEmbedderPolicyEnabled:
     WebCore:
       default: false
 
+# Playwright: disable setting.
 CrossOriginOpenerPolicyEnabled:
   type: bool
   status: stable
@@ -1515,7 +1517,7 @@ CrossOriginOpenerPolicyEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
       default: false
 
@@ -1588,6 +1590,7 @@ DOMAudioSessionFullEnabled:
     WebCore:
       default: false
 
+# Playwright: enable on all platforms to align with Safari.
 DOMPasteAccessRequestsEnabled:
   type: bool
   status: internal
@@ -1598,7 +1601,7 @@ DOMPasteAccessRequestsEnabled:
       default: false
     WebKit:
       "PLATFORM(IOS) || PLATFORM(MAC)": true
-      default: false
+      default: true
     WebCore:
       default: false
 
@@ -2888,6 +2891,7 @@ InspectorAttachmentSide:
     WebKit:
       default: 0
 
+# Playwright: disable setting.
 InspectorStartsAttached:
   type: bool
   status: embedder
@@ -2895,7 +2899,7 @@ InspectorStartsAttached:
   exposed: [ WebKit ]
   defaultValue:
     WebKit:
-      default: true
+      default: false
 
 InspectorWindowFrame:
   type: String
@@ -3271,6 +3275,7 @@ LayoutViewportHeightExpansionFactor:
     WebCore:
       default: 0
 
+# Playwright: disable setting.
 LazyIframeLoadingEnabled:
   type: bool
   status: stable
@@ -3280,10 +3285,11 @@ LazyIframeLoadingEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
+# Playwright: disable setting.
 LazyImageLoadingEnabled:
   type: bool
   status: stable
@@ -3293,7 +3299,7 @@ LazyImageLoadingEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
       default: false
 
@@ -4533,6 +4539,19 @@ PluginsEnabled:
       default: false
     WebCore:
       default: false
+
+# Playwright: add preference 'PointerLockEnabled'.
+PointerLockEnabled:
+  type: bool
+  status: embedder
+  condition: ENABLE(POINTER_LOCK)
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
 
 PreferFasterClickOverDoubleTap:
   type: bool
@@ -6040,6 +6059,7 @@ UseCGDisplayListsForDOMRendering:
     WebKit:
       default: true
 
+# Playwright: force-disable on Windows.
 UseGPUProcessForCanvasRenderingEnabled:
   type: bool
   status: preview
@@ -6051,7 +6071,7 @@ UseGPUProcessForCanvasRenderingEnabled:
   defaultValue:
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT)": true
-      "PLATFORM(WIN)": true
+      "PLATFORM(WIN)": false
       default: false
 
 UseGPUProcessForDOMRenderingEnabled:
@@ -6093,6 +6113,7 @@ UseGPUProcessForMediaEnabled:
       "ENABLE(GPU_PROCESS_BY_DEFAULT)": true
       default: false
 
+# Playwright: force-disable on Windows.
 UseGPUProcessForWebGLEnabled:
   type: bool
   status: internal
@@ -6104,7 +6125,7 @@ UseGPUProcessForWebGLEnabled:
       default: false
     WebKit:
       "ENABLE(GPU_PROCESS_BY_DEFAULT) && ENABLE(GPU_PROCESS_WEBGL_BY_DEFAULT)": true
-      "PLATFORM(WIN)": true
+      "PLATFORM(WIN)": false
       default: false
     WebCore:
       "ENABLE(GPU_PROCESS_BY_DEFAULT) && ENABLE(GPU_PROCESS_WEBGL_BY_DEFAULT)": true
