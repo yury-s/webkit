@@ -568,7 +568,8 @@
             "targetTypes": ["page"],
             "parameters": [
                 { "name": "frameId", "$ref": "Network.FrameId", "description": "Id of the frame that has scheduled a navigation." },
-                { "name": "delay", "type": "number", "description": "Delay (in seconds) until the navigation is scheduled to begin. The navigation is not guaranteed to start." }
+                { "name": "delay", "type": "number", "description": "Delay (in seconds) until the navigation is scheduled to begin. The navigation is not guaranteed to start." },
+                { "name": "targetIsCurrentFrame", "type": "boolean", "description": "Whether the naviation will happen in the same frame." }
             ]
         },
         {

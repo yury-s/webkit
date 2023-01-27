@@ -154,7 +154,7 @@ public:
     void frameDetached(Frame&);
     void frameStartedLoading(Frame&);
     void frameStoppedLoading(Frame&);
-    void frameScheduledNavigation(Frame&, Seconds delay);
+    void frameScheduledNavigation(Frame&, Seconds delay, bool targetIsCurrentFrame);
     void frameClearedScheduledNavigation(Frame&);
     void accessibilitySettingsDidChange();
     void defaultUserPreferencesDidChange();

@@ -1068,9 +1068,9 @@ void InspectorPageAgent::frameStoppedLoading(Frame& frame)
     m_frontendDispatcher->frameStoppedLoading(frameId(&frame));
 }
 
-void InspectorPageAgent::frameScheduledNavigation(Frame& frame, Seconds delay)
+void InspectorPageAgent::frameScheduledNavigation(Frame& frame, Seconds delay, bool targetIsCurrentFrame)
 {
-    m_frontendDispatcher->frameScheduledNavigation(frameId(&frame), delay.value());
+    m_frontendDispatcher->frameScheduledNavigation(frameId(&frame), delay.value(), targetIsCurrentFrame);
 }
 
 void InspectorPageAgent::frameClearedScheduledNavigation(Frame& frame)

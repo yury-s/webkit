@@ -237,7 +237,7 @@ public:
     static void frameDocumentUpdated(Frame&);
     static void frameStartedLoading(Frame&);
     static void frameStoppedLoading(Frame&);
-    static void frameScheduledNavigation(Frame&, Seconds delay);
+    static void frameScheduledNavigation(Frame&, Seconds delay, bool targetIsCurrentFrame);
     static void frameClearedScheduledNavigation(Frame&);
     static void accessibilitySettingsDidChange(Page&);
     static void didNavigateWithinPage(Frame&);
@@ -459,7 +459,7 @@ private:
     static void frameDocumentUpdatedImpl(InstrumentingAgents&, Frame&);
     static void frameStartedLoadingImpl(InstrumentingAgents&, Frame&);
     static void frameStoppedLoadingImpl(InstrumentingAgents&, Frame&);
-    static void frameScheduledNavigationImpl(InstrumentingAgents&, Frame&, Seconds delay);
+    static void frameScheduledNavigationImpl(InstrumentingAgents&, Frame&, Seconds delay, bool targetIsCurrentFrame);
     static void frameClearedScheduledNavigationImpl(InstrumentingAgents&, Frame&);
     static void accessibilitySettingsDidChangeImpl(InstrumentingAgents&);
     static void didNavigateWithinPageImpl(InstrumentingAgents&, Frame&);
@@ -1304,11 +1304,11 @@ inline void InspectorInstrumentation::frameStoppedLoading(Frame& frame)
         frameStoppedLoadingImpl(*agents, frame);
 }
 
-inline void InspectorInstrumentation::frameScheduledNavigation(Frame& frame, Seconds delay)
+inline void InspectorInstrumentation::frameScheduledNavigation(Frame& frame, Seconds delay, bool targetIsCurrentFrame)
 {
     FAST_RETURN_IF_NO_FRONTENDS(void());
     if (auto* agents = instrumentingAgents(frame))
-        frameScheduledNavigationImpl(*agents, frame, delay);
+        frameScheduledNavigationImpl(*agents, frame, delay, targetIsCurrentFrame);
 }
 
 inline void InspectorInstrumentation::frameClearedScheduledNavigation(Frame& frame)
