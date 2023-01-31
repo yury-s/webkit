@@ -488,6 +488,11 @@ const NSActivityOptions ActivityOptions =
         return;
     }
 
+    if (contentType && ([contentType isEqualToString:@"application/pdf"] || [contentType isEqualToString:@"text/pdf"])) {
+        decisionHandler(WKNavigationResponsePolicyDownload);
+        return;
+    }
+
     NSString *disposition = [[httpResponse allHeaderFields] objectForKey:@"Content-Disposition"];
     if (disposition && [disposition hasPrefix:@"attachment"]) {
         decisionHandler(WKNavigationResponsePolicyDownload);
