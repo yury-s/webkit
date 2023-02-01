@@ -287,8 +287,8 @@ static WebKitWebView* createNewPage(WebKitBrowserInspector*, WebKitWebContext *w
 
 static void quitBroserApplication(WebKitBrowserInspector* browser_inspector, gpointer data)
 {
-    GMainLoop* mainLoop = static_cast<GMainLoop*>(data);
-    g_main_loop_quit(mainLoop);
+    GApplication* application = static_cast<GApplication*>(data);
+    g_application_quit(application);
 }
 
 static void configureBrowserInspector(GApplication* application)
@@ -302,6 +302,8 @@ static void configureBrowserInspector(GApplication* application)
 static void activate(GApplication* application, WPEToolingBackends::ViewBackend* backend)
 {
     g_application_hold(application);
+    if (noStartupWindow)
+        return;
 #if ENABLE_2022_GLIB_API
     WebKitNetworkSession* networkSession = nullptr;
     if (!automationMode) {
@@ -497,19 +499,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    GApplication* application = g_application_new("org.wpewebkit.MiniBrowser", G_APPLICATION_NON_UNIQUE);
-
-    if (inspectorPipe)
-        configureBrowserInspector(application);
-
-    openViews = g_hash_table_new_full(nullptr, nullptr, g_object_unref, nullptr);
-
-    if (noStartupWindow) {
-        g_application_run(application, 0, nullptr);
-        g_object_unref(application);
-        return 0;
-    }
-
     auto backend = createViewBackend(1280, 720);
     struct wpe_view_backend* wpeBackend = backend->backend();
     if (!wpeBackend) {
@@ -517,9 +506,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    openViews = g_hash_table_new_full(nullptr, nullptr, g_object_unref, nullptr);
+
+    GApplication* application = g_application_new("org.wpewebkit.MiniBrowser", G_APPLICATION_NON_UNIQUE);
     g_signal_connect(application, "activate", G_CALLBACK(activate), backend.release());
+
+    if (inspectorPipe)
+        configureBrowserInspector(application);
+
     g_application_run(application, 0, nullptr);
     g_object_unref(application);
+
+    g_hash_table_destroy(openViews);
 
     return 0;
 }
