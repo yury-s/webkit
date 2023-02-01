@@ -50,3 +50,4 @@ void webkitWebContextWillCloseAutomationSession(WebKitWebContext*);
 WebKitNetworkSession* webkitWebContextGetNetworkSessionForAutomation(WebKitWebContext*);
 #endif
 #endif
+int webkitWebContextExistingCount();
