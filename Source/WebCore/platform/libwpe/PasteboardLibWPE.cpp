@@ -56,9 +56,28 @@ bool Pasteboard::hasData()
     return !types.isEmpty();
 }
 
-Vector<String> Pasteboard::typesSafeForBindings(const String&)
+Vector<String> Pasteboard::typesSafeForBindings(const String& origin)
 {
-    notImplemented();
+    if (m_selectionData) {
+        ListHashSet<String> types;
+        if (auto* buffer = m_selectionData->customData()) {
+            auto customData = PasteboardCustomData::fromSharedBuffer(*buffer);
+            if (customData.origin() == origin) {
+                for (auto& type : customData.orderedTypes())
+                    types.add(type);
+            }
+        }
+
+        if (m_selectionData->hasText())
+            types.add("text/plain"_s);
+        if (m_selectionData->hasMarkup())
+            types.add("text/html"_s);
+        if (m_selectionData->hasURIList())
+            types.add("text/uri-list"_s);
+
+        return copyToVector(types);
+    }
+
     return { };
 }
 
@@ -71,7 +90,13 @@ Vector<String> Pasteboard::typesForLegacyUnsafeBindings()
 
 String Pasteboard::readOrigin()
 {
-    notImplemented(); // webkit.org/b/177633: [GTK] Move to new Pasteboard API
+    if (m_selectionData) {
+        if (auto* buffer = m_selectionData->customData())
+            return PasteboardCustomData::fromSharedBuffer(*buffer).origin();
+
+        return { };
+    }
+
     return { };
 }
 
@@ -90,8 +115,15 @@ String Pasteboard::readString(const String& type)
     return platformStrategies()->pasteboardStrategy()->readStringFromPasteboard(0, type, name(), context());
 }
 
-String Pasteboard::readStringInCustomData(const String&)
+String Pasteboard::readStringInCustomData(const String& type)
 {
+    if (m_selectionData) {
+        if (auto* buffer = m_selectionData->customData())
+            return PasteboardCustomData::fromSharedBuffer(*buffer).readStringInCustomData(type);
+
+        return { };
+    }
+
     notImplemented();
     return { };
 }
@@ -194,8 +226,19 @@ void Pasteboard::writePlainText(const String& text, SmartReplaceOption)
     writeString("text/plain;charset=utf-8"_s, text);
 }
 
-void Pasteboard::writeCustomData(const Vector<PasteboardCustomData>&)
+void Pasteboard::writeCustomData(const Vector<PasteboardCustomData>& data)
 {
+    if (m_selectionData) {
+        if (!data.isEmpty()) {
+            const auto& customData = data[0];
+            customData.forEachPlatformString([this] (auto& type, auto& string) {
+                writeString(type, string);
+            });
+            if (customData.hasSameOriginCustomData() || !customData.origin().isEmpty())
+                m_selectionData->setCustomData(customData.createSharedBuffer());
+        }
+        return;
+    }
 }
 
 void Pasteboard::write(const Color&)
