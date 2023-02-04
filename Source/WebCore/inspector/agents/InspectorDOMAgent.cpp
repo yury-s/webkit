@@ -1807,7 +1807,7 @@ Protocol::ErrorStringOr<void> InspectorDOMAgent::scrollIntoViewIfNeeded(const St
     if (!renderer)
         return makeUnexpected("Node does not have a layout object"_s);
 
-    bool insideFixed;
+    bool insideFixed = false;
     LayoutRect absoluteBounds = renderer->absoluteBoundingBoxRect(true, &insideFixed);
     if (rect) {
         std::optional<double> x = rect->getDouble("x"_s);
