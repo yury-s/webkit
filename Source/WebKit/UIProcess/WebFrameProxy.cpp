@@ -28,6 +28,7 @@
 
 #include "APINavigation.h"
 #include "Connection.h"
+#include "FormDataReference.h"
 #include "FrameTreeNodeData.h"
 #include "ProvisionalFrameProxy.h"
 #include "ProvisionalPageProxy.h"
@@ -35,6 +36,7 @@
 #include "WebFrameMessages.h"
 #include "WebFramePolicyListenerProxy.h"
 #include "WebFrameProxyMessages.h"
+#include "WebPageInspectorController.h"
 #include "WebPageMessages.h"
 #include "WebPageProxyMessages.h"
 #include "WebPasteboardProxy.h"
