@@ -25,7 +25,8 @@
             "description": "Credentials to use during HTTP authentication.",
             "parameters": [
                 { "name": "username", "type": "string", "optional": true },
-                { "name": "password", "type": "string", "optional": true }
+                { "name": "password", "type": "string", "optional": true },
+                { "name": "origin", "type": "string", "optional": true }
             ]
         },
         {

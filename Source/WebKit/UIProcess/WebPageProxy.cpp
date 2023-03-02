@@ -2043,9 +2043,10 @@ void WebPageProxy::setControlledByAutomation(bool controlled)
     websiteDataStore().networkProcess().send(Messages::NetworkProcess::SetSessionIsControlledByAutomation(m_websiteDataStore->sessionID(), m_controlledByAutomation), 0);
 }
 
-void WebPageProxy::setAuthCredentialsForAutomation(std::optional<WebCore::Credential>&& credentials)
+void WebPageProxy::setAuthCredentialsForAutomation(std::optional<WebCore::Credential>&& credentials, std::optional<URL>&& origin)
 {
     m_credentialsForAutomation = WTFMove(credentials);
+    m_authOriginForAutomation = WTFMove(origin);
 }
 
 void WebPageProxy::setPermissionsForAutomation(const HashMap<String, HashSet<String>>& permissions)
@@ -9138,10 +9139,37 @@ void WebPageProxy::gamepadActivity(const Vector<std::optional<GamepadData>>& gam
 
 #endif
 
+bool WebPageProxy::shouldSendAutomationCredentialsForProtectionSpace(const WebProtectionSpace& protectionSpace)
+{
+    if (m_authOriginForAutomation.has_value() && !m_authOriginForAutomation.value().isEmpty()) {
+        auto protocol = m_authOriginForAutomation.value().protocol();
+        switch (protectionSpace.serverType()) {
+            case WebCore::ProtectionSpace::ServerType::HTTP:
+                if (m_authOriginForAutomation.value().protocol() != "http"_s)
+                    return false;
+                break;
+            case WebCore::ProtectionSpace::ServerType::HTTPS:
+                if (m_authOriginForAutomation.value().protocol() != "https"_s)
+                    return false;
+                break;
+            default:
+                return false;
+        }
+
+        if (protectionSpace.host() != m_authOriginForAutomation.value().host())
+            return false;
+
+        if (protectionSpace.port() != m_authOriginForAutomation.value().port().value_or(0))
+            return false;
+    }
+    return true;
+}
+
 void WebPageProxy::didReceiveAuthenticationChallengeProxy(Ref<AuthenticationChallengeProxy>&& authenticationChallenge, NegotiatedLegacyTLS negotiatedLegacyTLS)
 {
     if (m_credentialsForAutomation.has_value()) {
-        if (m_credentialsForAutomation->isEmpty() || authenticationChallenge->core().previousFailureCount()) {
+        if (m_credentialsForAutomation->isEmpty() || authenticationChallenge->core().previousFailureCount() ||
+            !shouldSendAutomationCredentialsForProtectionSpace(*authenticationChallenge->protectionSpace())) {
             authenticationChallenge->listener().completeChallenge(AuthenticationChallengeDisposition::PerformDefaultHandling);
             return;
         }

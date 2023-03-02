@@ -691,7 +691,7 @@ public:
 
     void setPageLoadStateObserver(std::unique_ptr<PageLoadState::Observer>&&);
 
-    void setAuthCredentialsForAutomation(std::optional<WebCore::Credential>&&);
+    void setAuthCredentialsForAutomation(std::optional<WebCore::Credential>&&, std::optional<URL>&&);
     void setPermissionsForAutomation(const HashMap<String, HashSet<String>>&);
     void setActiveForAutomation(std::optional<bool> active);
     void logToStderr(const String& str);
@@ -1601,6 +1601,7 @@ public:
     void setViewportSizeForCSSViewportUnits(const WebCore::FloatSize&);
     WebCore::FloatSize viewportSizeForCSSViewportUnits() const { return valueOrDefault(m_viewportSizeForCSSViewportUnits); }
 
+    bool shouldSendAutomationCredentialsForProtectionSpace(const WebProtectionSpace&);
     void didReceiveAuthenticationChallengeProxy(Ref<AuthenticationChallengeProxy>&&, NegotiatedLegacyTLS);
     void negotiatedLegacyTLS();
     void didNegotiateModernTLS(const URL&);
@@ -3395,6 +3396,7 @@ private:
     };
     Vector<InjectedBundleMessage> m_pendingInjectedBundleMessages;
     std::optional<WebCore::Credential> m_credentialsForAutomation;
+    std::optional<URL> m_authOriginForAutomation;
     HashMap<String, HashSet<String>> m_permissionsForAutomation;
     std::optional<bool> m_activeForAutomation;
         

@@ -55,7 +55,7 @@ public:
 
     void setDeviceMetricsOverride(int width, int height, bool fixedlayout, std::optional<double>&& deviceScaleFactor, Ref<SetDeviceMetricsOverrideCallback>&&) override;
     Inspector::Protocol::ErrorStringOr<void> setJavaScriptEnabled(bool enabled) override;
-    Inspector::Protocol::ErrorStringOr<void> setAuthCredentials(const String&, const String&) override;
+    Inspector::Protocol::ErrorStringOr<void> setAuthCredentials(const String&, const String&, const String&) override;
     Inspector::Protocol::ErrorStringOr<void> setActiveAndFocused(std::optional<bool>&&) override;
     Inspector::Protocol::ErrorStringOr<void> grantPermissions(const String& origin, Ref<JSON::Array>&& permissions) override;
     Inspector::Protocol::ErrorStringOr<void> resetPermissions() override;
