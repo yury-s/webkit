@@ -394,8 +394,18 @@ RefPtr<Protocol::Network::Response> InspectorNetworkAgent::buildObjectForResourc
 
     responseObject->setRequestHeaders(buildObjectForHeaders(response.m_httpRequestHeaderFields));
 
+    fprintf(stderr, "build obj for response %d\n", !!resourceLoader);
     if (resourceLoader) {
         auto* metrics = response.deprecatedNetworkLoadMetricsOrNull();
+        if (metrics) {
+            fprintf(stderr, "    has metrics, has protocol = %d\n", !metrics->protocol.isNull());
+            if (auto* additionalMetrics = metrics->additionalNetworkLoadMetricsForWebInspector.get()) {
+                fprintf(stderr, "    has additionalMetrics\n");
+                fprintf(stderr, "    has remoteAddress = %d\n", !additionalMetrics->remoteAddress.isEmpty());
+                fprintf(stderr, "    has tlsProtocol = %d\n", !additionalMetrics->tlsProtocol.isEmpty());
+                fprintf(stderr, "    has tlsCipher = %d\n", !additionalMetrics->tlsCipher.isEmpty());
+            }
+        }
         responseObject->setTiming(buildObjectForTiming(metrics ? *metrics : NetworkLoadMetrics::emptyMetrics(), *resourceLoader));
     }
 
