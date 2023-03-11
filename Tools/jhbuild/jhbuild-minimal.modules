@@ -22,7 +22,6 @@
       <dep package="wpebackend-fdo"/>
       <dep package="icu"/>
       <dep package="libsoup"/>
-      <dep package="openxr"/>
       <dep package="libvpx"/>
       <dep package="glib"/>
       <dep package="glib-networking"/>
@@ -77,18 +76,18 @@
 <!-- In order to ensure its minimal, all the modules should have a pkg-config declaration line -->
 
   <cmake id="libwpe">
-    <branch module="libwpe-${version}.tar.xz" version="1.14.1"
+    <branch module="libwpe-${version}.tar.xz" version="1.8.0"
             repo="wpewebkit"
-            hash="b1d0cdcf0f8dbb494e65b0f7913e357106da9a0d57f4fbb7b9d1238a6dbe9ade"/>
+            hash="a6f00a7d091cbd4db57fe7ee3b4c12c6350921d654ed79812800a26c888481d2"/>
   </cmake>
 
   <meson id="wpebackend-fdo">
     <dependencies>
       <dep package="libwpe"/>
     </dependencies>
-    <branch module="wpebackend-fdo-${version}.tar.xz" version="1.14.0"
+    <branch module="wpebackend-fdo-${version}.tar.xz" version="1.8.0"
             repo="wpewebkit"
-            hash="e75b0cb2c7145448416e8696013d8883f675c66c11ed750e06865efec5809155">
+            hash="9652a99c75fe1c6eab0585b6395f4e104b2427e4d1f42969f1f77df29920d253">
     </branch>
   </meson>
 

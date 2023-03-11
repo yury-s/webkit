@@ -270,6 +270,8 @@ struct WebPageCreationParameters {
     
     bool httpsUpgradeEnabled { true };
 
+    bool shouldPauseInInspectorWhenShown { false };
+
 #if PLATFORM(IOS)
     bool allowsDeprecatedSynchronousXMLHttpRequestDuringUnload { false };
 #endif
