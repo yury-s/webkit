@@ -210,9 +210,6 @@ void PageRuntimeAgent::reportExecutionContextCreation()
         return;
 
     m_inspectedPage.forEachFrame([&](Frame& frame) {
-        if (!frame.script().canExecuteScripts(NotAboutToExecuteScript))
-            return;
-
         auto frameId = pageAgent->frameId(&frame);
 
         // Always send the main world first.
