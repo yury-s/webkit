@@ -4,8 +4,6 @@ set(NetworkProcess_OUTPUT_NAME WebKitNetworkProcess)
 set(GPUProcess_OUTPUT_NAME WebKitGPUProcess)
 set(PluginProcess_OUTPUT_NAME WebKitPluginProcess)
 
-set(WebKit_USE_PREFIX_HEADER ON)
-
 include(Headers.cmake)
 
 list(APPEND WebKit_SOURCES
@@ -191,7 +189,7 @@ list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm"
 )
 
-list(APPEND WebKit_SOURCES
+set(vpxutils_SOURCES
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm/mkvmuxer/mkvmuxer.cc"
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm/mkvmuxer/mkvmuxerutil.cc"
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm/mkvmuxer/mkvwriter.cc"
@@ -245,6 +243,15 @@ list(APPEND WebKit_SOURCES
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libyuv/source/scale_win.cc"
     "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libyuv/source/video_common.cc"
 )
+
+add_library(vpxutils STATIC ${vpxutils_SOURCES})
+
+target_include_directories(vpxutils PRIVATE
+    "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libyuv/include"
+    "${THIRDPARTY_DIR}/libwebrtc/Source/third_party/libwebm"
+)
+
+target_link_libraries(WebKit PRIVATE vpxutils)
 # Playwright end
 
 list(APPEND WebProcess_SOURCES
