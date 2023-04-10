@@ -632,7 +632,7 @@ WebFrameProxy* InspectorPlaywrightAgent::frameForID(const String& frameID, Strin
 
     String processIDString = frameID.left(dotPos);
     uint64_t pid = strtoull(processIDString.ascii().data(), 0, 10);
-    auto processID = makeObjectIdentifier<WebCore::ProcessIdentifierType>(pid);
+    auto processID = ObjectIdentifier<WebCore::ProcessIdentifierType>(pid);
     auto process = WebProcessProxy::processForIdentifier(processID);
     if (!process) {
         error = "Cannot find web process for the frame id"_s;
@@ -642,7 +642,7 @@ WebFrameProxy* InspectorPlaywrightAgent::frameForID(const String& frameID, Strin
     String frameIDString = frameID.substring(dotPos + 1);
     uint64_t frameIDNumber = strtoull(frameIDString.ascii().data(), 0, 10);
     auto frameIdentifier = WebCore::FrameIdentifier {
-       makeObjectIdentifier<WebCore::FrameIdentifierType>(frameIDNumber),
+       ObjectIdentifier<WebCore::FrameIdentifierType>(frameIDNumber),
        processID
     };
     WebFrameProxy* frame = WebFrameProxy::webFrame(frameIdentifier);
