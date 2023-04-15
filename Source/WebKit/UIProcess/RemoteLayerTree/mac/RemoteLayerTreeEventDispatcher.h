@@ -39,6 +39,11 @@
 #include <wtf/RunLoop.h>
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/threads/BinarySemaphore.h>
+#include <WebCore/PageIdentifier.h>
+#include <WebCore/RectEdges.h>
+
+#include "NativeWebWheelEvent.h"
+#include "WebPage.h"
 
 namespace WebCore {
 class PlatformWheelEvent;
@@ -84,18 +89,18 @@ public:
     void renderingUpdateComplete();
 
 private:
-    OptionSet<WheelEventProcessingSteps> determineWheelEventProcessing(const WebCore::PlatformWheelEvent&, WebCore::RectEdges<bool> rubberBandableEdges);
+    OptionSet<WebCore::WheelEventProcessingSteps> determineWheelEventProcessing(const WebCore::PlatformWheelEvent&, WebCore::RectEdges<bool> rubberBandableEdges);
 
-    void scrollingThreadHandleWheelEvent(const WebWheelEvent&, RectEdges<bool> rubberBandableEdges);
-    WebCore::WheelEventHandlingResult internalHandleWheelEvent(const WebCore::PlatformWheelEvent&, OptionSet<WheelEventProcessingSteps>);
+    void scrollingThreadHandleWheelEvent(const WebWheelEvent&, WebCore::RectEdges<bool> rubberBandableEdges);
+    WebCore::WheelEventHandlingResult internalHandleWheelEvent(const WebCore::PlatformWheelEvent&, OptionSet<WebCore::WheelEventProcessingSteps>);
 
     WebCore::PlatformWheelEvent filteredWheelEvent(const WebCore::PlatformWheelEvent&);
 
     void wheelEventHysteresisUpdated(PAL::HysteresisState);
 
     void willHandleWheelEvent(const WebWheelEvent&);
-    void continueWheelEventHandling(WheelEventHandlingResult);
-    void wheelEventWasHandledByScrollingThread(WheelEventHandlingResult);
+    void continueWheelEventHandling(WebCore::WheelEventHandlingResult);
+    void wheelEventWasHandledByScrollingThread(WebCore::WheelEventHandlingResult);
 
     DisplayLink* displayLink() const;
 
