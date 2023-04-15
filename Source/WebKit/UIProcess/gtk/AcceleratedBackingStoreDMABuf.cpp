@@ -343,7 +343,7 @@ cairo_surface_t* AcceleratedBackingStoreDMABuf::Surface::surfaceForScreencast()
     {
         RefPtr<cairo_t> cr = adoptRef(cairo_create(m_flippedSurface.get()));
         cairo_matrix_t transform;
-        cairo_matrix_init(&transform, 1, 0, 0, -1, 0, cairo_image_surface_get_height(m_surface.get()));
+        cairo_matrix_init(&transform, 1, 0, 0, -1, 0, cairo_image_surface_get_height(m_surface.get()) / m_deviceScaleFactor);
         cairo_transform(cr.get(), &transform);
         cairo_set_source_surface(cr.get(), m_surface.get(), 0, 0);
         cairo_paint(cr.get());
