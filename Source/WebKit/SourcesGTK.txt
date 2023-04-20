@@ -41,6 +41,7 @@ NetworkProcess/glib/DNSCache.cpp
 NetworkProcess/glib/WebKitCachedResolver.cpp
 NetworkProcess/glib/WebKitOverridingResolver.cpp
 
+NetworkProcess/NetworkDataTaskDataURL.cpp
 NetworkProcess/soup/NetworkDataTaskSoup.cpp
 NetworkProcess/soup/NetworkProcessMainSoup.cpp
 NetworkProcess/soup/NetworkProcessSoup.cpp

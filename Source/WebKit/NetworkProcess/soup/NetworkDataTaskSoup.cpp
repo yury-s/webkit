@@ -30,6 +30,7 @@
 #include "AuthenticationManager.h"
 #include "DataReference.h"
 #include "Download.h"
+#include "NetworkDataTaskDataURL.h"
 #include "NetworkLoad.h"
 #include "NetworkProcess.h"
 #include "NetworkSessionSoup.h"
@@ -54,6 +55,13 @@ namespace WebKit {
 using namespace WebCore;
 
 static const size_t gDefaultReadBufferSize = 8192;
+
+Ref<NetworkDataTask> NetworkDataTaskSoup::create(NetworkSession& session, NetworkDataTaskClient& client, const NetworkLoadParameters& parameters)
+{
+    if (parameters.request.url().protocolIsData())
+        return NetworkDataTaskDataURL::create(session, client, parameters);
+    return adoptRef(*new NetworkDataTaskSoup(session, client, parameters));
+}
 
 NetworkDataTaskSoup::NetworkDataTaskSoup(NetworkSession& session, NetworkDataTaskClient& client, const NetworkLoadParameters& parameters)
     : NetworkDataTask(session, client, parameters.request, parameters.storedCredentialsPolicy, parameters.shouldClearReferrerOnHTTPSToHTTPRedirect, parameters.isMainFrameNavigation)
@@ -145,9 +153,6 @@ void NetworkDataTaskSoup::createRequest(ResourceRequest&& request, WasBlockingCo
         m_file = adoptGRef(g_file_new_for_path(m_currentRequest.url().fileSystemPath().utf8().data()));
         return;
     }
-
-    if (m_currentRequest.url().protocolIsData())
-        return;
 
     if (!m_currentRequest.url().protocolIsInHTTPFamily()) {
         scheduleFailure(FailureType::InvalidURL);
@@ -255,7 +260,6 @@ void NetworkDataTaskSoup::clearRequest()
 
     stopTimeout();
     m_pendingResult = nullptr;
-    m_pendingDataURLResult = std::nullopt;
     m_file = nullptr;
     m_inputStream = nullptr;
     m_multipartInputStream = nullptr;
@@ -337,25 +341,6 @@ void NetworkDataTaskSoup::resume()
         return;
     }
 
-    if (m_currentRequest.url().protocolIsData() && !m_cancellable) {
-        m_networkLoadMetrics.fetchStart = MonotonicTime::now();
-        m_cancellable = adoptGRef(g_cancellable_new());
-        DataURLDecoder::decode(m_currentRequest.url(), { }, [this, protectedThis = WTFMove(protectedThis)](auto decodeResult) mutable {
-            if (m_state == State::Canceling || m_state == State::Completed || !m_client) {
-                clearRequest();
-                return;
-            }
-
-            if (m_state == State::Suspended) {
-                m_pendingDataURLResult = WTFMove(decodeResult);
-                return;
-            }
-
-            didReadDataURL(WTFMove(decodeResult));
-        });
-        return;
-    }
-
     if (m_pendingResult) {
         GRefPtr<GAsyncResult> pendingResult = WTFMove(m_pendingResult);
         if (m_inputStream)
@@ -372,8 +357,7 @@ void NetworkDataTaskSoup::resume()
                 readFileCallback(m_file.get(), pendingResult.get(), protectedThis.leakRef());
         } else
             ASSERT_NOT_REACHED();
-    } else if (m_currentRequest.url().protocolIsData())
-        didReadDataURL(WTFMove(m_pendingDataURLResult));
+    }
 }
 
 void NetworkDataTaskSoup::cancel()
@@ -1793,24 +1777,6 @@ void NetworkDataTaskSoup::enumerateFileChildrenCallback(GFile* file, GAsyncResul
 void NetworkDataTaskSoup::didReadFile(GRefPtr<GInputStream>&& inputStream)
 {
     m_inputStream = WTFMove(inputStream);
-    dispatchDidReceiveResponse();
-}
-
-void NetworkDataTaskSoup::didReadDataURL(std::optional<DataURLDecoder::Result>&& result)
-{
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
-        didFail(cancelledError(m_currentRequest));
-        return;
-    }
-
-    if (!result) {
-        didFail(internalError(m_currentRequest.url()));
-        return;
-    }
-
-    m_response = ResourceResponse::dataURLResponse(m_currentRequest.url(), result.value());
-    auto bytes = SharedBuffer::create(WTFMove(result->data))->createGBytes();
-    m_inputStream = adoptGRef(g_memory_input_stream_new_from_bytes(bytes.get()));
     dispatchDidReceiveResponse();
 }
 
