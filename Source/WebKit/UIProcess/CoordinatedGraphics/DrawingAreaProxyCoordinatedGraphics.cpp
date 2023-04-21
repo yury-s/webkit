@@ -103,10 +103,6 @@ void DrawingAreaProxyCoordinatedGraphics::sizeDidChange()
     if (m_isWaitingForDidUpdateGeometry)
         return;
 
-    for (auto& value : m_callbacks)
-        value();
-    m_callbacks.clear();
-
     sendUpdateGeometry();
 }
 
@@ -307,6 +303,11 @@ void DrawingAreaProxyCoordinatedGraphics::didUpdateGeometry()
     // we need to resend the new size here.
     if (m_lastSentSize != m_size)
         sendUpdateGeometry();
+    else {
+        for (auto& value : m_callbacks)
+            value();
+        m_callbacks.clear();
+    }
 }
 
 #if !PLATFORM(WPE)
