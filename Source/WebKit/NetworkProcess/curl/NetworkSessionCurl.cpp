@@ -66,7 +66,7 @@ void NetworkSessionCurl::clearAlternativeServices(WallTime)
 
 std::unique_ptr<WebSocketTask> NetworkSessionCurl::createWebSocketTask(WebPageProxyIdentifier, NetworkSocketChannel& channel, const WebCore::ResourceRequest& request, const String& protocol, const WebCore::ClientOrigin&, bool, bool, OptionSet<WebCore::NetworkConnectionIntegrity>)
 {
-    return makeUnique<WebSocketTask>(channel, request, protocol);
+    return makeUnique<WebSocketTask>(channel, request, protocol, ignoreCertificateErrors());
 }
 
 } // namespace WebKit
