@@ -3565,7 +3565,6 @@ LazyIframeLoadingEnabled:
     WebCore:
       default: false
 
-# Playwright: disable setting.
 LazyImageLoadingEnabled:
   type: bool
   status: stable
@@ -3576,7 +3575,7 @@ LazyImageLoadingEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
       default: false
 
