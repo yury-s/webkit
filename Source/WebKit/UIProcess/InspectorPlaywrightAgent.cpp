@@ -37,6 +37,7 @@
 #include "NetworkProcessMessages.h"
 #include "NetworkProcessProxy.h"
 #include "PageClient.h"
+#include "PlaywrightFullScreenManagerProxyClient.h"
 #include "SandboxExtension.h"
 #include "StorageNamespaceIdentifier.h"
 #include "WebAutomationSession.h"
@@ -392,6 +393,7 @@ void InspectorPlaywrightAgent::didCreateInspectorController(WebPageProxy& page)
     // Always pause new targets if controlled remotely.
     page.inspectorController().setPauseOnStart(true);
     m_pageProxyChannels.set(pageProxyID, WTFMove(pageProxyChannel));
+    page.setFullScreenManagerClientOverride(makeUnique<PlaywrightFullScreenManagerProxyClient>(page));
 }
 
 void InspectorPlaywrightAgent::willDestroyInspectorController(WebPageProxy& page)

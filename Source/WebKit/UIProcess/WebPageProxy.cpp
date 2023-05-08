@@ -1195,7 +1195,7 @@ void WebPageProxy::didAttachToRunningProcess()
 
 #if ENABLE(FULLSCREEN_API)
     ASSERT(!m_fullScreenManager);
-    m_fullScreenManager = makeUnique<WebFullScreenManagerProxy>(*this, pageClient().fullScreenManagerProxyClient());
+    m_fullScreenManager = makeUnique<WebFullScreenManagerProxy>(*this, m_fullScreenManagerClientOverride ? *m_fullScreenManagerClientOverride : pageClient().fullScreenManagerProxyClient());
 #endif
 #if ENABLE(VIDEO_PRESENTATION_MODE)
     ASSERT(!m_playbackSessionManager);
@@ -7581,6 +7581,11 @@ void WebPageProxy::resourceLoadDidCompleteWithError(ResourceLoadInfo&& loadInfo,
 }
 
 #if ENABLE(FULLSCREEN_API)
+void WebPageProxy::setFullScreenManagerClientOverride(std::unique_ptr<WebFullScreenManagerProxyClient>&& client)
+{
+    m_fullScreenManagerClientOverride = WTFMove(client);
+}
+
 WebFullScreenManagerProxy* WebPageProxy::fullScreenManager()
 {
     return m_fullScreenManager.get();

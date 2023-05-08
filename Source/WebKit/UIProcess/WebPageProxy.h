@@ -395,6 +395,7 @@ class WebExtensionController;
 class WebFramePolicyListenerProxy;
 class WebFrameProxy;
 class WebFullScreenManagerProxy;
+class WebFullScreenManagerProxyClient;
 class WebInspectorUIProxy;
 class WebKeyboardEvent;
 class WebMouseEvent;
@@ -619,6 +620,7 @@ public:
     bool hasSleepDisabler() const;
 
 #if ENABLE(FULLSCREEN_API)
+    void setFullScreenManagerClientOverride(std::unique_ptr<WebFullScreenManagerProxyClient>&&);
     WebFullScreenManagerProxy* fullScreenManager();
 
     API::FullscreenClient& fullscreenClient() const { return *m_fullscreenClient; }
@@ -2931,6 +2933,7 @@ private:
     InspectorDialogAgent* m_inspectorDialogAgent { nullptr };
 
 #if ENABLE(FULLSCREEN_API)
+    std::unique_ptr<WebFullScreenManagerProxyClient> m_fullScreenManagerClientOverride;
     std::unique_ptr<WebFullScreenManagerProxy> m_fullScreenManager;
     std::unique_ptr<API::FullscreenClient> m_fullscreenClient;
 #endif
