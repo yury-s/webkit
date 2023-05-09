@@ -24,7 +24,6 @@
  */
 
 #import <WebKit/WKFoundation.h>
-
 #import <WebKit/WKWebsiteDataRecord.h>
 
 #if __has_include(<Network/proxy_config.h>)
@@ -112,6 +111,8 @@ WK_CLASS_AVAILABLE(macos(10.11), ios(9.0))
 #if 0 // API_WEBKIT_ADDITIONS_REPLACEMENT
 #import <WebKitAdditions/WKWebsiteDataStoreAdditions.h>
 #endif
+
+- (uint64_t)sessionID;
 
 @end
 
