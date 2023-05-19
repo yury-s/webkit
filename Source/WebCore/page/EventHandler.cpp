@@ -144,6 +144,7 @@
 
 #if ENABLE(TOUCH_EVENTS) && !ENABLE(IOS_TOUCH_EVENTS)
 #include "PlatformTouchEvent.h"
+#include "PointerCaptureController.h"
 #endif
 
 #if ENABLE(MAC_GESTURE_EVENTS)
@@ -819,9 +820,7 @@ bool EventHandler::handleMousePressEvent(const MouseEventWithHitTestResults& eve
     m_mousePressNode = event.targetNode();
     m_frame.document()->setFocusNavigationStartingNode(event.targetNode());
 
-#if ENABLE(DRAG_SUPPORT)
     m_dragStartPosition = event.event().position();
-#endif
 
     m_mousePressed = true;
     m_selectionInitiationState = HaveNotStartedSelection;
@@ -861,8 +860,6 @@ VisiblePosition EventHandler::selectionExtentRespectingEditingBoundary(const Vis
     return adjustedTarget->renderer()->positionForPoint(LayoutPoint(selectionEndPoint), nullptr);
 }
 
-#if ENABLE(DRAG_SUPPORT)
-
 #if !PLATFORM(IOS_FAMILY)
 
 bool EventHandler::supportsSelectionUpdatesOnMouseDrag() const
@@ -884,8 +881,10 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
 
     Ref protectedFrame(m_frame);
 
+#if ENABLE(DRAG_SUPPORT)
     if (handleDrag(event, checkDragHysteresis))
         return true;
+#endif
 
     RefPtr targetNode = event.targetNode();
     if (event.event().button() != LeftButton || !targetNode)
@@ -906,7 +905,9 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
     ASSERT(mouseDownMayStartSelect() || m_mouseDownMayStartAutoscroll);
 #endif
 
+#if ENABLE(DRAG_SUPPORT)
     m_mouseDownMayStartDrag = false;
+#endif
 
     if (m_mouseDownMayStartAutoscroll && !panScrollInProgress()) {
         m_autoscrollController->startAutoscrollForSelection(renderer);
@@ -923,6 +924,8 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
     return true;
 }
     
+#if ENABLE(DRAG_SUPPORT)
+
 bool EventHandler::eventMayStartDrag(const PlatformMouseEvent& event) const
 {
     // This is a pre-flight check of whether the event might lead to a drag being started.  Be careful
@@ -953,6 +956,8 @@ bool EventHandler::eventMayStartDrag(const PlatformMouseEvent& event) const
     RefPtr targetElement = result.targetElement();
     return targetElement && page->dragController().draggableElement(&m_frame, targetElement.get(), result.roundedPointInInnerNodeFrame(), state);
 }
+
+#endif // ENABLE(DRAG_SUPPORT)
 
 void EventHandler::updateSelectionForMouseDrag()
 {
@@ -1062,7 +1067,6 @@ void EventHandler::updateSelectionForMouseDrag(const HitTestResult& hitTestResul
     if (oldSelection != newSelection && ImageOverlay::isOverlayText(newSelection.start().containerNode()) && ImageOverlay::isOverlayText(newSelection.end().containerNode()))
         invalidateClick();
 }
-#endif // ENABLE(DRAG_SUPPORT)
 
 void EventHandler::lostMouseCapture()
 {
@@ -1110,9 +1114,7 @@ bool EventHandler::handleMouseReleaseEvent(const MouseEventWithHitTestResults& e
     // on the selection, the selection goes away.  However, if we are
     // editing, place the caret.
     if (m_mouseDownWasSingleClickInSelection && m_selectionInitiationState != ExtendedSelection
-#if ENABLE(DRAG_SUPPORT)
             && m_dragStartPosition == event.event().position()
-#endif
             && m_frame.selection().isRange()
             && event.event().button() != RightButton) {
         VisibleSelection newSelection;
@@ -2101,10 +2103,8 @@ bool EventHandler::handleMouseMoveEvent(const PlatformMouseEvent& platformMouseE
     
     swallowEvent = !dispatchMouseEvent(eventNames().mousemoveEvent, mouseEvent.targetNode(), 0, platformMouseEvent, FireMouseOverOut::Yes);
 
-#if ENABLE(DRAG_SUPPORT)
     if (!swallowEvent)
         swallowEvent = handleMouseDraggedEvent(mouseEvent);
-#endif
 
     return swallowEvent;
 }
@@ -4197,7 +4197,14 @@ bool EventHandler::handleDrag(const MouseEventWithHitTestResults& event, CheckDr
     if (!m_frame.document())
         return false;
 
-    dragState().dataTransfer = DataTransfer::createForDrag(*m_frame.document());
+#if PLATFORM(MAC)
+    auto* page = m_frame.page();
+    if (page && !page->overrideDragPasteboardName().isEmpty())
+        dragState().dataTransfer = DataTransfer::createForDrag(*m_frame.document(), page->overrideDragPasteboardName());
+    else
+#endif
+        dragState().dataTransfer = DataTransfer::createForDrag(*m_frame.document());
+
     auto hasNonDefaultPasteboardData = HasNonDefaultPasteboardData::No;
     
     if (dragState().shouldDispatchEvents) {
@@ -4882,11 +4889,6 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
             document.page()->pointerCaptureController().dispatchEventForTouchAtIndex(
                 *touchTarget, cancelEvent, index, !index, *document.windowProxy(), { 0, 0 });
         }
-
-        // FIXME: Pass the touch delta for pointermove events by remembering the position per pointerID similar to
-        // Apple's m_touchLastGlobalPositionAndDeltaMap
-        document.page()->pointerCaptureController().dispatchEventForTouchAtIndex(
-            *pointerTarget, event, index, !index, *document.windowProxy(), { 0, 0 });
 #endif
 
         if (&m_frame != targetFrame) {
@@ -4928,6 +4930,9 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
             changedTouches[pointState].m_touches->append(WTFMove(touch));
             changedTouches[pointState].m_targets.add(touchTarget);
         }
+        document.page()->pointerCaptureController().dispatchEventForTouchAtIndex(
+            *touchTarget, event, index, index == 0, *document.windowProxy(), IntPoint::zero());
+
     }
     m_touchPressed = touches->length() > 0;
     if (allTouchReleased)
