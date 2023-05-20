@@ -24,7 +24,6 @@
       <dep package="wpebackend-fdo"/>
       <dep package="icu"/>
       <dep package="libsoup"/>
-      <dep package="openxr"/>
       <dep package="libvpx"/>
       <dep package="glib"/>
       <dep package="glib-networking"/>
@@ -167,12 +166,11 @@
   <!-- glib needed to upgrade gdbus-codegen -->
   <meson id="glib"
          mesonargs="-Dlibmount=disabled -Dselinux=disabled">
-    <dependencies>
-      <dep package="libffi"/>
-    </dependencies>
-    <branch module="/sources/glib/2.70/glib-${version}.tar.xz" version="2.70.0"
+    <pkg-config>glib-2.0.pc</pkg-config>
+    <branch module="/sources/glib/2.71/glib-${version}.tar.xz"
+            version="2.71.3"
             repo="download.gnome.org"
-            hash="sha256:200d7df811c5ba634afbf109f14bb40ba7fde670e89389885da14e27c0840742">
+            hash="sha256:288549404c26db3d52cf7a37f2f42b495b31ccffce2b4cb2439a64099c740343">
     </branch>
   </meson>
 
