@@ -529,6 +529,11 @@ set(webrtc_SOURCES
     Source/third_party/boringssl/src/tool/transport_common.cc
     Source/third_party/boringssl/src/util/fipstools/acvp/modulewrapper/main.cc
     Source/third_party/boringssl/src/util/fipstools/acvp/modulewrapper/modulewrapper.cc
+# Playwright begin
+    Source/third_party/libwebm/mkvmuxer/mkvmuxer.cc
+    Source/third_party/libwebm/mkvmuxer/mkvmuxerutil.cc
+    Source/third_party/libwebm/mkvmuxer/mkvwriter.cc
+# Playwright end
     Source/third_party/libyuv/source/compare.cc
     Source/third_party/libyuv/source/compare_common.cc
     Source/third_party/libyuv/source/compare_gcc.cc
@@ -1791,7 +1796,7 @@ if (WTF_CPU_X86_64 OR WTF_CPU_X86)
         Source/webrtc/modules/audio_processing/aec3/vector_math_avx2.cc
         Source/webrtc/modules/audio_processing/agc2/rnn_vad/vector_math_avx2.cc
     )
-    set_source_files_properties(webrtc_avx_SOURCES PROPERTIES COMPILE_OPTIONS "-mavx2;-mfma")
+    set_source_files_properties(${webrtc_avx_SOURCES} PROPERTIES COMPILE_OPTIONS "-mavx2;-mfma")
     list(APPEND webrtc_SOURCES ${webrtc_avx_SOURCES})
     add_definitions(-DWEBRTC_ENABLE_AVX2)
 endif()
@@ -2124,6 +2129,10 @@ set(webrtc_INCLUDE_DIRECTORIES PRIVATE
     Source/third_party/libsrtp/config
     Source/third_party/libsrtp/crypto/include
     Source/third_party/libsrtp/include
+# Playwright begin
+    Source/third_party/libwebm
+    Source/third_party/libvpx/source/libvpx
+# Playwright end
     Source/third_party/libyuv/include
     Source/third_party/opus/src/celt
     Source/third_party/opus/src/include

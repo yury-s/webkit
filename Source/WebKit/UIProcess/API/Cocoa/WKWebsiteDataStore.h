@@ -24,7 +24,6 @@
  */
 
 #import <WebKit/WKFoundation.h>
-
 #import <WebKit/WKWebsiteDataRecord.h>
 
 #if __has_include(<Network/proxy_config.h>)
@@ -116,6 +115,8 @@ WK_CLASS_AVAILABLE(macos(10.11), ios(9.0))
 /*! @abstract Gets or sets the proxy configurations to be used to override networking in all WKWebViews that use this WKWebsiteDataStore. */
 @property (nullable, nonatomic, copy) NSArray<nw_proxy_config_t> *proxyConfigurations NS_REFINED_FOR_SWIFT API_AVAILABLE(macos(14.0), ios(17.0));
 #endif
+
+- (uint64_t)sessionID;
 
 @end
 
