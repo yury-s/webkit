@@ -127,7 +127,8 @@ public:
     void sendMessageToFrontend(const String& message) override
     {
         m_senderQueue->dispatch([message = message.isolatedCopy()]() {
-            WriteBytes(message.ascii().data(), message.length());
+            auto utf8 = message.utf8();
+            WriteBytes(utf8.data(), utf8.length());
             WriteBytes("\0", 1);
         });
     }
