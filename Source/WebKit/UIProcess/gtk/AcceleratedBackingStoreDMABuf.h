@@ -79,6 +79,7 @@ private:
 #else
     bool paint(cairo_t*, const WebCore::IntRect&) override;
 #endif
+    cairo_surface_t* surface() override;
     void realize() override;
     void unrealize() override;
     bool makeContextCurrent() override;
@@ -96,6 +97,7 @@ private:
 #else
         virtual void paint(GtkWidget*, cairo_t*, const WebCore::IntRect&) const = 0;
 #endif
+        virtual cairo_surface_t* surfaceForScreencast() = 0;
 
         const WebCore::IntSize size() const { return m_size; }
 
@@ -122,6 +124,7 @@ private:
 #else
         void paint(GtkWidget*, cairo_t*, const WebCore::IntRect&) const override;
 #endif
+        cairo_surface_t* surfaceForScreencast() override { return nullptr; }
 
         GRefPtr<GdkGLContext> m_context;
         unsigned m_textureID { 0 };
@@ -153,6 +156,7 @@ private:
 #else
         void paint(GtkWidget*, cairo_t*, const WebCore::IntRect&) const override;
 #endif
+        cairo_surface_t* surfaceForScreencast() override;
 
 #if USE(GBM)
         RefPtr<cairo_surface_t> map(struct gbm_bo*) const;
@@ -170,6 +174,7 @@ private:
         RefPtr<cairo_surface_t> m_surface;
         RefPtr<cairo_surface_t> m_backSurface;
         RefPtr<cairo_surface_t> m_displaySurface;
+        RefPtr<cairo_surface_t> m_flippedSurface;
     };
 
     std::unique_ptr<RenderSource> createSource();

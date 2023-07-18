@@ -572,6 +572,53 @@ String Value::asString() const
     return m_value.string;
 }
 
+static void escapeString(StringBuilder& builder, StringView string)
+{
+    for (UChar codeUnit : string.codeUnits()) {
+        switch (codeUnit) {
+        case '\b':
+            builder.append("\\b");
+            continue;
+        case '\f':
+            builder.append("\\f");
+            continue;
+        case '\n':
+            builder.append("\\n");
+            continue;
+        case '\r':
+            builder.append("\\r");
+            continue;
+        case '\t':
+            builder.append("\\t");
+            continue;
+        case '\\':
+            builder.append("\\\\");
+            continue;
+        case '"':
+            builder.append("\\\"");
+            continue;
+        }
+        // We escape < and > to prevent script execution.
+        if (codeUnit >= 32 && codeUnit < 127 && codeUnit != '<' && codeUnit != '>') {
+            builder.append(codeUnit);
+            continue;
+        }
+        // We could encode characters >= 127 as UTF-8 instead of \u escape sequences.
+        // We could handle surrogates here if callers wanted that; for now we just
+        // write them out as a \u sequence, so a surrogate pair appears as two of them.
+        builder.append("\\u",
+            upperNibbleToASCIIHexDigit(codeUnit >> 8), lowerNibbleToASCIIHexDigit(codeUnit >> 8),
+            upperNibbleToASCIIHexDigit(codeUnit), lowerNibbleToASCIIHexDigit(codeUnit));
+    }
+}
+
+static inline void appendDoubleQuotedString(StringBuilder& builder, StringView string)
+{
+    builder.append('"');
+    escapeString(builder, string);
+    builder.append('"');
+}
+
 void Value::dump(PrintStream& out) const
 {
     switch (m_type) {
@@ -636,7 +683,7 @@ void Value::writeJSON(StringBuilder& output) const
             output.append("false");
         break;
     case Type::String:
-        output.appendQuotedJSONString(m_value.string);
+        appendDoubleQuotedString(output, m_value.string);
         break;
     case Type::Double:
     case Type::Integer: {
@@ -753,7 +800,7 @@ void ObjectBase::writeJSON(StringBuilder& output) const
         ASSERT(findResult != m_map.end());
         if (i)
             output.append(',');
-        output.appendQuotedJSONString(findResult->key);
+        appendDoubleQuotedString(output, findResult->key);
         output.append(':');
         findResult->value->writeJSON(output);
     }
