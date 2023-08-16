@@ -26,8 +26,7 @@
 #import "config.h"
 #import "InspectorPlaywrightAgentClientMac.h"
 
-#import <wtf/RefPtr.h>
-#import <wtf/text/WTFString.h>
+#import "PageClient.h"
 #import "WebPageProxy.h"
 #import "WebProcessPool.h"
 #import "WebsiteDataStore.h"
@@ -36,11 +35,15 @@
 #import "WKWebsiteDataStoreInternal.h"
 #import "WKWebView.h"
 #import "WKWebViewInternal.h"
+#import <WebCore/ImageBufferUtilitiesCG.h>
+#import <wtf/RefPtr.h>
+#import <wtf/text/WTFString.h>
 
 namespace WebKit {
 
-InspectorPlaywrightAgentClientMac::InspectorPlaywrightAgentClientMac(_WKBrowserInspectorDelegate* delegate)
-  : delegate_(delegate)
+InspectorPlaywrightAgentClientMac::InspectorPlaywrightAgentClientMac(_WKBrowserInspectorDelegate* delegate, bool headless)
+  : delegate_(delegate),
+    headless_(headless)
 {
 }
 
@@ -72,6 +75,26 @@ std::unique_ptr<BrowserContext> InspectorPlaywrightAgentClientMac::createBrowser
 void InspectorPlaywrightAgentClientMac::deleteBrowserContext(WTF::String& error, PAL::SessionID sessionID)
 {
     [delegate_ deleteBrowserContext:sessionID.toUInt64()];
+}
+
+String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error, WebPageProxy& page)
+{
+    RetainPtr<CGImageRef> imageRef = page.pageClient().takeSnapshotForAutomation();
+    if (!imageRef) {
+        error = "Could not take view snapshot"_s;
+        return String();
+    }
+
+    CGImage* imagePtr = imageRef.get();
+    RetainPtr<CGImageRef> transformedImageRef;
+    int toolbarHeight = headless_ ? 0 : 59;
+    if (toolbarHeight) {
+        WebCore::IntSize imageSize(CGImageGetWidth(imagePtr), CGImageGetHeight(imagePtr));
+        imageSize.contract(0, toolbarHeight);
+        transformedImageRef = adoptCF(CGImageCreateWithImageInRect(imagePtr, CGRectMake(0, toolbarHeight, imageSize.width(), imageSize.height())));
+        imagePtr = transformedImageRef.get();
+    }
+    return WebCore::dataURL(imagePtr, "image/png"_s, std::nullopt);
 }
 
 } // namespace WebKit

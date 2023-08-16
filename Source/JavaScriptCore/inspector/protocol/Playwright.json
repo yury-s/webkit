@@ -143,6 +143,17 @@
             ]
         },
         {
+            "name": "takePageScreenshot",
+            "description": "Capture a snapshot of the page.",
+            "parameters": [
+                { "name": "pageProxyId", "$ref": "PageProxyID", "description": "Unique identifier of the page proxy." },
+                { "name": "omitDeviceScaleFactor", "type": "boolean", "optional": true, "description": "By default, screenshot is inflated by device scale factor to avoid blurry image. This flag disables it." }
+            ],
+            "returns": [
+                { "name": "dataURL", "type": "string", "description": "Base64-encoded image data (PNG)." }
+            ]
+        },
+        {
             "name": "setIgnoreCertificateErrors",
             "description": "Change whether all certificate errors should be ignored.",
             "parameters": [

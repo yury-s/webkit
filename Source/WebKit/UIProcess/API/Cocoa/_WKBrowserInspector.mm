@@ -42,7 +42,7 @@ using namespace WebKit;
 #if ENABLE(REMOTE_INSPECTOR)
     InitializeWebKit2();
     PageClientImpl::setHeadless(headless);
-    initializeBrowserInspectorPipe(makeUnique<InspectorPlaywrightAgentClientMac>(delegate));
+    initializeBrowserInspectorPipe(makeUnique<InspectorPlaywrightAgentClientMac>(delegate, headless));
 #endif
 }
 

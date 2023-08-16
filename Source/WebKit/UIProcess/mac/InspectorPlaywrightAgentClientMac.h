@@ -35,16 +35,18 @@ namespace WebKit {
 class InspectorPlaywrightAgentClientMac : public InspectorPlaywrightAgentClient {
     WTF_MAKE_FAST_ALLOCATED;
 public:
-    InspectorPlaywrightAgentClientMac(_WKBrowserInspectorDelegate* delegate);
+    InspectorPlaywrightAgentClientMac(_WKBrowserInspectorDelegate* delegate, bool headless);
     ~InspectorPlaywrightAgentClientMac() override = default;
 
     RefPtr<WebPageProxy> createPage(WTF::String& error, const BrowserContext&) override;
     void closeBrowser() override;
     std::unique_ptr<BrowserContext> createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList) override;
     void deleteBrowserContext(WTF::String& error, PAL::SessionID) override;
+    String takePageScreenshot(WTF::String& error, WebPageProxy&) override;
 
 private:
     _WKBrowserInspectorDelegate* delegate_;
+    bool headless_;
 };
 
 

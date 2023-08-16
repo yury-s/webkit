@@ -62,6 +62,9 @@ public:
     virtual void closeBrowser() = 0;
     virtual std::unique_ptr<BrowserContext> createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList) = 0;
     virtual void deleteBrowserContext(WTF::String& error, PAL::SessionID) = 0;
+#if PLATFORM(COCOA)
+    virtual String takePageScreenshot(WTF::String& error, WebPageProxy&) = 0;
+#endif
 };
 
 } // namespace WebKit

@@ -70,7 +70,6 @@
 #include <wtf/HexNumber.h>
 #include <wtf/URL.h>
 
-
 using namespace Inspector;
 
 namespace WebKit {
@@ -723,6 +722,28 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
 #endif
     return { };
 }
+
+Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, std::optional<bool>&& omitDeviceScaleFactor)
+{
+#if PLATFORM(COCOA)
+    fprintf(stderr, "InspectorPlaywrightAgent::snapshotRect\n");
+    auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
+    if (!pageProxyChannel)
+        return makeUnexpected("Unknown pageProxyID"_s);
+
+    if (!omitDeviceScaleFactor.has_value() || !*omitDeviceScaleFactor)
+        return makeUnexpected("Screenshots with device pixels are not implemented"_s);
+
+    String error;
+    String screenshot = m_client->takePageScreenshot(error, pageProxyChannel->page());
+    if (!error.isEmpty())
+        return makeUnexpected(error);
+    return screenshot;
+#else
+    return makeUnexpected("This method is only supported on macOS and GTK."_s);
+#endif
+}
+
 
 Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setIgnoreCertificateErrors(const String& browserContextID, bool ignore)
 {
