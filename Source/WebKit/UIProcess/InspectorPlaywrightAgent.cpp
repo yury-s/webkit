@@ -726,7 +726,6 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
 Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, std::optional<bool>&& omitDeviceScaleFactor)
 {
 #if PLATFORM(COCOA)
-    fprintf(stderr, "InspectorPlaywrightAgent::snapshotRect\n");
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
     if (!pageProxyChannel)
         return makeUnexpected("Unknown pageProxyID"_s);
@@ -740,7 +739,7 @@ Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScr
         return makeUnexpected(error);
     return screenshot;
 #else
-    return makeUnexpected("This method is only supported on macOS and GTK."_s);
+    return makeUnexpected("This method is only supported on macOS."_s);
 #endif
 }
 
