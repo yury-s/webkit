@@ -510,6 +510,11 @@ void WebKitWebViewClient::frameDisplayed(WKWPE::View&)
     }
 }
 
+cairo_surface_t* WebKitWebViewClient::takeViewScreenshot()
+{
+    return webkitWebViewBackendTakeScreenshot(m_webView->priv->backend.get());
+}
+
 void WebKitWebViewClient::willStartLoad(WKWPE::View&)
 {
     webkitWebViewWillStartLoad(m_webView);

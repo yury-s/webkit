@@ -161,6 +161,7 @@ private:
     void didChangeWebPageID() const override;
 
     void selectionDidChange() override;
+    RefPtr<cairo_surface_t> takeViewSnapshot() override;
 
     WebKitWebResourceLoadManager* webResourceLoadManager() override;
 

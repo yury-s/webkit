@@ -29,15 +29,20 @@
 #if ENABLE(REMOTE_INSPECTOR)
 
 #include "InspectorPlaywrightAgent.h"
+#include "PageClient.h"
+#include "ViewSnapshotStore.h"
 #include "WebKitBrowserInspectorPrivate.h"
 #include "WebKitWebContextPrivate.h"
 #include "WebKitWebsiteDataManagerPrivate.h"
 #include "WebKitWebViewPrivate.h"
 #include "WebPageProxy.h"
+#include <WebCore/ImageBufferUtilitiesCairo.h>
 #include <wtf/HashMap.h>
 #include <wtf/RefPtr.h>
+#include <wtf/text/Base64.h>
 #include <wtf/text/StringView.h>
 #include <wtf/text/WTFString.h>
+
 
 namespace WebKit {
 
@@ -150,6 +155,25 @@ std::unique_ptr<BrowserContext> InspectorPlaywrightAgentClientGlib::createBrowse
 void InspectorPlaywrightAgentClientGlib::deleteBrowserContext(WTF::String& error, PAL::SessionID sessionID)
 {
     m_idToContext.remove(sessionID);
+}
+
+String InspectorPlaywrightAgentClientGlib::takePageScreenshot(WTF::String& error, WebPageProxy& page)
+{
+    cairo_surface_t* surface = nullptr;
+#if PLATFORM(GTK)
+    RefPtr<ViewSnapshot> viewSnapshot = page.pageClient().takeViewSnapshot(std::nullopt);
+    if (viewSnapshot)
+        surface = viewSnapshot->surface();
+#elif PLATFORM(WPE)
+    RefPtr<cairo_surface_t> protectPtr = page.pageClient().takeViewSnapshot();
+    surface = protectPtr.get();
+#endif
+    if (surface) {
+        Vector<uint8_t> encodeData = WebCore::encodeData(surface, "image/png"_s, std::nullopt);
+        return makeString("data:image/png;base64,"_s, base64Encoded(encodeData));
+    }
+    error = "Failed to take screenshot"_s;
+    return String();
 }
 
 } // namespace WebKit

@@ -84,6 +84,10 @@ OBJC_CLASS WKView;
 #endif
 #endif
 
+#if PLATFORM(COCOA)
+#include <WebCore/RefPtrCairo.h>
+#endif
+
 namespace API {
 class Attachment;
 class HitTestResult;
@@ -335,6 +339,9 @@ public:
 // Paywright begin
 #if PLATFORM(COCOA)
     virtual RetainPtr<CGImageRef> takeSnapshotForAutomation() = 0;
+#endif
+#if PLATFORM(WPE)
+    virtual RefPtr<cairo_surface_t> takeViewSnapshot() = 0;
 #endif
 // Paywright end
 #if PLATFORM(COCOA) || PLATFORM(GTK)

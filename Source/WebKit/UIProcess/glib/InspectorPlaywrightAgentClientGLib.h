@@ -47,6 +47,7 @@ public:
     void closeBrowser() override;
     std::unique_ptr<BrowserContext> createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList) override;
     void deleteBrowserContext(WTF::String& error, PAL::SessionID) override;
+    String takePageScreenshot(WTF::String& error, WebPageProxy&) override;
 
 private:
     WebKitWebContext* findContext(WTF::String& error, PAL::SessionID);

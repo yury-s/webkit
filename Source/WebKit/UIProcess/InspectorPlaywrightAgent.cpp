@@ -725,7 +725,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
 
 Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, std::optional<bool>&& omitDeviceScaleFactor)
 {
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
     if (!pageProxyChannel)
         return makeUnexpected("Unknown pageProxyID"_s);

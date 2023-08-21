@@ -430,6 +430,11 @@ void PageClientImpl::selectionDidChange()
     m_view.selectionDidChange();
 }
 
+RefPtr<cairo_surface_t> PageClientImpl::takeViewSnapshot()
+{
+    return adoptRef(m_view.client().takeViewScreenshot());
+}
+
 WebKitWebResourceLoadManager* PageClientImpl::webResourceLoadManager()
 {
     return m_view.webResourceLoadManager();
