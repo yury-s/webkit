@@ -84,7 +84,7 @@ OBJC_CLASS WKView;
 #endif
 #endif
 
-#if PLATFORM(COCOA)
+#if PLATFORM(GTK) || PLATFORM(WPE)
 #include <WebCore/RefPtrCairo.h>
 #endif
 
