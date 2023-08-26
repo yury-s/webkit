@@ -157,15 +157,15 @@ void InspectorPlaywrightAgentClientGlib::deleteBrowserContext(WTF::String& error
     m_idToContext.remove(sessionID);
 }
 
-String InspectorPlaywrightAgentClientGlib::takePageScreenshot(WTF::String& error, WebPageProxy& page)
+String InspectorPlaywrightAgentClientGlib::takePageScreenshot(WTF::String& error, WebPageProxy& page, WebCore::IntRect&& clip, bool nominalResolution)
 {
     cairo_surface_t* surface = nullptr;
 #if PLATFORM(GTK)
-    RefPtr<ViewSnapshot> viewSnapshot = page.pageClient().takeViewSnapshot(std::nullopt);
+    RefPtr<ViewSnapshot> viewSnapshot = page.pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
     if (viewSnapshot)
         surface = viewSnapshot->surface();
 #elif PLATFORM(WPE)
-    RefPtr<cairo_surface_t> protectPtr = page.pageClient().takeViewSnapshot();
+    RefPtr<cairo_surface_t> protectPtr = page.pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
     surface = protectPtr.get();
 #endif
     if (surface) {

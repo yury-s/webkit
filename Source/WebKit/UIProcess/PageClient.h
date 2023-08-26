@@ -340,13 +340,14 @@ public:
 // Paywright begin
 #if PLATFORM(COCOA)
     virtual RetainPtr<CGImageRef> takeSnapshotForAutomation() = 0;
-#endif
-#if PLATFORM(WPE)
-    virtual RefPtr<cairo_surface_t> takeViewSnapshot() = 0;
+#elif PLATFORM(WPE)
+    virtual RefPtr<cairo_surface_t> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution = false) = 0;
+#elif PLATFORM(GTK)
+    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution = false) = 0;
 #endif
 // Paywright end
-#if PLATFORM(COCOA) || PLATFORM(GTK)
-    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&) = 0;
+#if PLATFORM(COCOA)
+    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution) = 0;
 #endif
 
 #if USE(APPKIT)

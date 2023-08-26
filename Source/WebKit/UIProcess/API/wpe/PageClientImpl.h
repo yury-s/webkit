@@ -161,7 +161,7 @@ private:
     void didChangeWebPageID() const override;
 
     void selectionDidChange() override;
-    RefPtr<cairo_surface_t> takeViewSnapshot() override;
+    RefPtr<cairo_surface_t> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution) override;
 
     WebKitWebResourceLoadManager* webResourceLoadManager() override;
 

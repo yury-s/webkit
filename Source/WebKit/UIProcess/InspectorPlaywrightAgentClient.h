@@ -29,6 +29,7 @@
 
 #include <memory>
 #include <pal/SessionID.h>
+#include <WebCore/IntRect.h>
 #include <wtf/Forward.h>
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
@@ -63,7 +64,7 @@ public:
     virtual std::unique_ptr<BrowserContext> createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList) = 0;
     virtual void deleteBrowserContext(WTF::String& error, PAL::SessionID) = 0;
 #if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
-    virtual String takePageScreenshot(WTF::String& error, WebPageProxy&) = 0;
+    virtual String takePageScreenshot(WTF::String& error, WebPageProxy&, WebCore::IntRect&& clip, bool nominalResolution) = 0;
 #endif
 };
 

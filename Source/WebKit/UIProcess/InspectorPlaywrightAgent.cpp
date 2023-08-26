@@ -723,18 +723,20 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
     return { };
 }
 
-Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, std::optional<bool>&& omitDeviceScaleFactor)
+Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, int x, int y, int width, int height, std::optional<bool>&& omitDeviceScaleFactor)
 {
 #if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
     if (!pageProxyChannel)
         return makeUnexpected("Unknown pageProxyID"_s);
 
-    if (!omitDeviceScaleFactor.has_value() || !*omitDeviceScaleFactor)
-        return makeUnexpected("Screenshots with device pixels are not implemented"_s);
+    bool nominalResolution = omitDeviceScaleFactor.has_value() && *omitDeviceScaleFactor;
+    // if (!nominalResolution)
+    //     return makeUnexpected("Screenshots with device pixels are not implemented"_s);
 
+    WebCore::IntRect clip(x, y, width, height);
     String error;
-    String screenshot = m_client->takePageScreenshot(error, pageProxyChannel->page());
+    String screenshot = m_client->takePageScreenshot(error, pageProxyChannel->page(), WTFMove(clip), nominalResolution);
     if (!error.isEmpty())
         return makeUnexpected(error);
     return screenshot;

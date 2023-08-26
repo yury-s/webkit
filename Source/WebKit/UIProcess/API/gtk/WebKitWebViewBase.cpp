@@ -2888,12 +2888,13 @@ void webkitWebViewBasePageClosed(WebKitWebViewBase* webkitWebViewBase)
         webkitWebViewBase->priv->acceleratedBackingStore->update({ });
 }
 
-RefPtr<WebKit::ViewSnapshot> webkitWebViewBaseTakeViewSnapshot(WebKitWebViewBase* webkitWebViewBase, std::optional<IntRect>&& clipRect)
+RefPtr<WebKit::ViewSnapshot> webkitWebViewBaseTakeViewSnapshot(WebKitWebViewBase* webkitWebViewBase, std::optional<IntRect>&& clipRect, bool nominalResolution)
 {
     WebPageProxy* page = webkitWebViewBase->priv->pageProxy.get();
 
     IntSize size = clipRect ? clipRect->size() : page->viewSize();
-    float deviceScale = page->deviceScaleFactor();
+    float deviceScale = nominalResolution ? 1 : page->deviceScaleFactor();
+    fprintf(stderr, "webkitWebViewBaseTakeViewSnapshot nominalResolution = %d deviceScale = %f\n", nominalResolution, deviceScale);
     size.scale(deviceScale);
 
 #if !USE(GTK4)

@@ -430,9 +430,31 @@ void PageClientImpl::selectionDidChange()
     m_view.selectionDidChange();
 }
 
-RefPtr<cairo_surface_t> PageClientImpl::takeViewSnapshot()
+RefPtr<cairo_surface_t> PageClientImpl::takeViewSnapshot(std::optional<WebCore::IntRect>&& clipRect, bool nominalResolution)
 {
-    return adoptRef(m_view.client().takeViewScreenshot());
+    RefPtr<cairo_surface_t> fullScreenshot = adoptRef(m_view.client().takeViewScreenshot());
+    float deviceScale = m_view.page().deviceScaleFactor();
+    if (!clipRect && (!nominalResolution || deviceScale == 1))
+        return fullScreenshot;
+
+    WebCore::IntSize size = clipRect ? clipRect->size() : m_view.page().viewSize();
+    if (!nominalResolution) {
+        size.scale(deviceScale);
+        if (clipRect)
+            clipRect->scale(deviceScale);
+    }
+    RefPtr<cairo_surface_t> surface = adoptRef(cairo_image_surface_create(CAIRO_FORMAT_RGB24, size.width(), size.height()));
+    RefPtr<cairo_t> cr = adoptRef(cairo_create(surface.get()));
+    if (clipRect) {
+        cairo_translate(cr.get(), -clipRect->x(), -clipRect->y());
+        cairo_rectangle(cr.get(), clipRect->x(), clipRect->y(), clipRect->width(), clipRect->height());
+        cairo_clip(cr.get());
+    }
+    if (nominalResolution)
+        cairo_scale(cr.get(), 1/deviceScale, 1/deviceScale);
+    cairo_set_source_surface(cr.get(), fullScreenshot.get(), 0, 0);
+    cairo_paint(cr.get());
+    return surface;
 }
 
 WebKitWebResourceLoadManager* PageClientImpl::webResourceLoadManager()
