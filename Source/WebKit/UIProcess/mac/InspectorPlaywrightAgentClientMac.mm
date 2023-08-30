@@ -77,7 +77,7 @@ void InspectorPlaywrightAgentClientMac::deleteBrowserContext(WTF::String& error,
     [delegate_ deleteBrowserContext:sessionID.toUInt64()];
 }
 
-String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error, WebPageProxy& page)
+String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error, WebPageProxy& page, WebCore::IntRect&&, bool)
 {
     RetainPtr<CGImageRef> imageRef = page.pageClient().takeSnapshotForAutomation();
     if (!imageRef) {
