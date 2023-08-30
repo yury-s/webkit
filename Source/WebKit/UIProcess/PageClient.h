@@ -347,7 +347,7 @@ public:
 #endif
 // Paywright end
 #if PLATFORM(COCOA)
-    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution) = 0;
+    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&) = 0;
 #endif
 
 #if USE(APPKIT)

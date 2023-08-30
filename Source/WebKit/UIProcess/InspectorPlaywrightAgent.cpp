@@ -731,9 +731,6 @@ Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScr
         return makeUnexpected("Unknown pageProxyID"_s);
 
     bool nominalResolution = omitDeviceScaleFactor.has_value() && *omitDeviceScaleFactor;
-    // if (!nominalResolution)
-    //     return makeUnexpected("Screenshots with device pixels are not implemented"_s);
-
     WebCore::IntRect clip(x, y, width, height);
     String error;
     String screenshot = m_client->takePageScreenshot(error, pageProxyChannel->page(), WTFMove(clip), nominalResolution);
