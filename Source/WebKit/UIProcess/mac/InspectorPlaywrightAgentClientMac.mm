@@ -77,7 +77,7 @@ void InspectorPlaywrightAgentClientMac::deleteBrowserContext(WTF::String& error,
     [delegate_ deleteBrowserContext:sessionID.toUInt64()];
 }
 
-String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error, WebPageProxy& page, WebCore::IntRect&&, bool)
+String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error, WebPageProxy& page, WebCore::IntRect&& clipRect, bool)
 {
     RetainPtr<CGImageRef> imageRef = page.pageClient().takeSnapshotForAutomation();
     if (!imageRef) {
@@ -85,16 +85,10 @@ String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error,
         return String();
     }
 
-    CGImage* imagePtr = imageRef.get();
-    RetainPtr<CGImageRef> transformedImageRef;
     int toolbarHeight = headless_ ? 0 : 59;
-    if (toolbarHeight) {
-        WebCore::IntSize imageSize(CGImageGetWidth(imagePtr), CGImageGetHeight(imagePtr));
-        imageSize.contract(0, toolbarHeight);
-        transformedImageRef = adoptCF(CGImageCreateWithImageInRect(imagePtr, CGRectMake(0, toolbarHeight, imageSize.width(), imageSize.height())));
-        imagePtr = transformedImageRef.get();
-    }
-    return WebCore::dataURL(imagePtr, "image/png"_s, std::nullopt);
+    clipRect.shiftYEdgeBy(toolbarHeight);
+    RetainPtr<CGImageRef> transformedImageRef = adoptCF(CGImageCreateWithImageInRect(imageRef.get(), clipRect));
+    return WebCore::dataURL(transformedImageRef.get(), "image/png"_s, std::nullopt);
 }
 
 } // namespace WebKit
