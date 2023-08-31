@@ -86,7 +86,7 @@ String InspectorPlaywrightAgentClientMac::takePageScreenshot(WTF::String& error,
     }
 
     int toolbarHeight = headless_ ? 0 : 59;
-    clipRect.shiftYEdgeBy(toolbarHeight);
+    clipRect.move(0, toolbarHeight);
     RetainPtr<CGImageRef> transformedImageRef = adoptCF(CGImageCreateWithImageInRect(imageRef.get(), clipRect));
     return WebCore::dataURL(transformedImageRef.get(), "image/png"_s, std::nullopt);
 }
