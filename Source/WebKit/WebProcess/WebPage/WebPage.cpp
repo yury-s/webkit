@@ -7343,6 +7343,10 @@ void WebPage::didCommitLoad(WebFrame* frame)
 #endif
 
     flushDeferredDidReceiveMouseEvent();
+// Playwright begin
+    if (frame->isMainFrame())
+        send(Messages::WebPageProxy::ViewScaleFactorDidChange(viewScaleFactor()));
+// Playwright end
 }
 
 void WebPage::didFinishDocumentLoad(WebFrame& frame)
