@@ -39,6 +39,7 @@
 #include "WebPageProxyMessages.h"
 #include "WebProcessMessages.h"
 #include "WebProcessProxy.h"
+#include "WebProcessMessages.h"
 
 namespace WebKit {
 
