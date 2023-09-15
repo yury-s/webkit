@@ -182,6 +182,8 @@ public:
     WEBCORE_EXPORT String frameId(Frame*);
     String loaderId(DocumentLoader*);
     LocalFrame* assertFrame(Inspector::Protocol::ErrorString&, const Inspector::Protocol::Network::FrameId&);
+    void setIgnoreDidClearWindowObject(bool ignore) { m_ignoreDidClearWindowObject = ignore; }
+    bool ignoreDidClearWindowObject() const { return m_ignoreDidClearWindowObject; }
 
 private:
     double timestamp();
@@ -216,6 +218,7 @@ private:
     bool m_interceptFileChooserDialog { false };
     bool m_bypassCSP { false };
     bool m_doingAccessibilitySnapshot { false };
+    bool m_ignoreDidClearWindowObject { false };
 };
 
 } // namespace WebCore

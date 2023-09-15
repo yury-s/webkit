@@ -1159,6 +1159,9 @@ void InspectorPageAgent::didClearWindowObjectInWorld(LocalFrame& frame, DOMWrapp
     if (!m_worldNameToBootstrapScript.contains(worldName))
         return;
 
+    if (m_ignoreDidClearWindowObject)
+        return;
+
     String bootstrapScript = m_worldNameToBootstrapScript.get(worldName);
     frame.script().evaluateInWorldIgnoringException(ScriptSourceCode(bootstrapScript, JSC::SourceTaintedOrigin::Untainted, URL { "web-inspector://bootstrap.js"_str }), world);
 }

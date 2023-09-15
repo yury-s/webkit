@@ -94,8 +94,13 @@ Protocol::ErrorStringOr<void> PageRuntimeAgent::disable()
 
 void PageRuntimeAgent::frameNavigated(LocalFrame& frame)
 {
+    auto* pageAgent = m_instrumentingAgents.enabledPageAgent();
+    if (pageAgent)
+        pageAgent->setIgnoreDidClearWindowObject(true);
     // Ensure execution context is created for the frame even if it doesn't have scripts.
     mainWorldGlobalObject(frame);
+    if (pageAgent)
+        pageAgent->setIgnoreDidClearWindowObject(false);
 }
 
 static JSC_DECLARE_HOST_FUNCTION(bindingCallback);
@@ -153,16 +158,21 @@ void PageRuntimeAgent::bindingCalled(JSC::JSGlobalObject* globalObject, const St
 
 void PageRuntimeAgent::didClearWindowObjectInWorld(LocalFrame& frame, DOMWrapperWorld& world)
 {
+    auto* pageAgent = m_instrumentingAgents.enabledPageAgent();
+    if (!pageAgent)
+        return;
+
+    if (pageAgent->ignoreDidClearWindowObject())
+        return;
+
     if (world.isNormal()) {
         for (const auto& name : m_bindingNames)
             addBindingToFrame(frame, name);
     }
 
-    auto* pageAgent = m_instrumentingAgents.enabledPageAgent();
-    if (!pageAgent)
-        return;
-
+    pageAgent->setIgnoreDidClearWindowObject(true);
     notifyContextCreated(pageAgent->frameId(&frame), frame.script().globalObject(world), world);
+    pageAgent->setIgnoreDidClearWindowObject(false);
 }
 
 void PageRuntimeAgent::didReceiveMainResourceError(LocalFrame& frame)
