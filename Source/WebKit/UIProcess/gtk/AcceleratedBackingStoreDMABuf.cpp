@@ -536,10 +536,10 @@ bool AcceleratedBackingStoreDMABuf::paint(cairo_t* cr, const WebCore::IntRect& c
 
 cairo_surface_t* AcceleratedBackingStoreDMABuf::surface()
 {
-    if (prepareForRendering())
-        return m_renderer->surfaceForScreencast();
+    if (!m_renderer)
+        return nullptr;
 
-    return nullptr;
+    return m_renderer->surfaceForScreencast();
 }
 
 
