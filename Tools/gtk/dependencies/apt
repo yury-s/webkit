@@ -23,7 +23,6 @@ PACKAGES+=(
     libpulse-dev
     librsvg2-dev
     libsecret-1-dev
-    libsoup2.4-dev
     libsrtp2-dev
     libtheora-dev
     libupower-glib-dev
@@ -37,6 +36,9 @@ PACKAGES+=(
     nasm
     unifdef
     xfonts-utils
+    $(aptIfElse libenchant-dev libenchant-2-dev)
+    $(aptIfExists libwpe-1.0-dev)
+    $(aptIfExists libwpebackend-fdo-1.0-dev)
 
     # These are dependencies necessary for running tests.
     cups-daemon
