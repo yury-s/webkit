@@ -157,23 +157,26 @@ void InspectorPlaywrightAgentClientGlib::deleteBrowserContext(WTF::String& error
     m_idToContext.remove(sessionID);
 }
 
-String InspectorPlaywrightAgentClientGlib::takePageScreenshot(WTF::String& error, WebPageProxy& page, WebCore::IntRect&& clip, bool nominalResolution)
+void InspectorPlaywrightAgentClientGlib::takePageScreenshot(WebPageProxy& page, WebCore::IntRect&& clip, bool nominalResolution, CompletionHandler<void(const String&, const String&)>&& completionHandler)
 {
-    cairo_surface_t* surface = nullptr;
+    page.callAfterNextPresentationUpdate([protectedPage = Ref{ page }, clip = WTFMove(clip), nominalResolution, completionHandler = WTFMove(completionHandler)]() mutable {
+        cairo_surface_t* surface = nullptr;
 #if PLATFORM(GTK)
-    RefPtr<ViewSnapshot> viewSnapshot = page.pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
-    if (viewSnapshot)
-        surface = viewSnapshot->surface();
+        RefPtr<ViewSnapshot> viewSnapshot = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
+        if (viewSnapshot)
+            surface = viewSnapshot->surface();
 #elif PLATFORM(WPE)
-    RefPtr<cairo_surface_t> protectPtr = page.pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
-    surface = protectPtr.get();
+        RefPtr<cairo_surface_t> protectPtr = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
+        surface = protectPtr.get();
 #endif
-    if (surface) {
-        Vector<uint8_t> encodeData = WebCore::encodeData(surface, "image/png"_s, std::nullopt);
-        return makeString("data:image/png;base64,"_s, base64Encoded(encodeData));
-    }
-    error = "Failed to take screenshot"_s;
-    return String();
+        if (surface) {
+            Vector<uint8_t> encodeData = WebCore::encodeData(surface, "image/png"_s, std::nullopt);
+            completionHandler(emptyString(), makeString("data:image/png;base64,"_s, base64Encoded(encodeData)));
+            return;
+        }
+
+        completionHandler("Failed to take screenshot"_s, emptyString());
+    });
 }
 
 } // namespace WebKit

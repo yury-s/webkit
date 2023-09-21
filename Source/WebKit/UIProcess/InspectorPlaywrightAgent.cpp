@@ -723,22 +723,25 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
     return { };
 }
 
-Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, int x, int y, int width, int height, std::optional<bool>&& omitDeviceScaleFactor)
+void InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, int x, int y, int width, int height, std::optional<bool>&& omitDeviceScaleFactor, Ref<TakePageScreenshotCallback>&& callback)
 {
 #if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
-    if (!pageProxyChannel)
-        return makeUnexpected("Unknown pageProxyID"_s);
+    if (!pageProxyChannel) {
+        callback->sendFailure("Unknown pageProxyID"_s);
+        return;
+    }
 
     bool nominalResolution = omitDeviceScaleFactor.has_value() && *omitDeviceScaleFactor;
     WebCore::IntRect clip(x, y, width, height);
-    String error;
-    String screenshot = m_client->takePageScreenshot(error, pageProxyChannel->page(), WTFMove(clip), nominalResolution);
-    if (!error.isEmpty())
-        return makeUnexpected(error);
-    return screenshot;
+    m_client->takePageScreenshot(pageProxyChannel->page(), WTFMove(clip), nominalResolution, [callback = WTFMove(callback)](const String& error, const String& data) {
+        if (error.isEmpty())
+            callback->sendSuccess(data);
+        else
+            callback->sendFailure(error);
+    });
 #else
-    return makeUnexpected("This method is only supported on macOS."_s);
+    return callback->sendFailure("This method is only supported on macOS."_s);
 #endif
 }
 

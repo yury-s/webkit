@@ -145,6 +145,7 @@
         {
             "name": "takePageScreenshot",
             "description": "Capture a snapshot of the page.",
+            "async": true,
             "parameters": [
                 { "name": "pageProxyId", "$ref": "PageProxyID", "description": "Unique identifier of the page proxy." },
                 { "name": "x", "type": "integer", "description": "X coordinate" },

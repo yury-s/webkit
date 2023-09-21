@@ -64,7 +64,7 @@ public:
     virtual std::unique_ptr<BrowserContext> createBrowserContext(WTF::String& error, const WTF::String& proxyServer, const WTF::String& proxyBypassList) = 0;
     virtual void deleteBrowserContext(WTF::String& error, PAL::SessionID) = 0;
 #if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
-    virtual String takePageScreenshot(WTF::String& error, WebPageProxy&, WebCore::IntRect&& clip, bool nominalResolution) = 0;
+    virtual void takePageScreenshot(WebPageProxy&, WebCore::IntRect&& clip, bool nominalResolution, CompletionHandler<void(const String&, const String&)>&& completionHandler) = 0;
 #endif
 };
 
