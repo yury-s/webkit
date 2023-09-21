@@ -37,7 +37,7 @@
 #include <string.h>
 
 struct _BrowserWindow {
-    GtkApplicationWindow parent;
+    GtkOffscreenWindow parent;
 
     WebKitWebContext *webContext;
 #if GTK_CHECK_VERSION(3, 98, 0)
@@ -70,7 +70,7 @@ struct _BrowserWindow {
 };
 
 struct _BrowserWindowClass {
-    GtkApplicationWindowClass parent;
+    GtkOffscreenWindowClass parent;
 };
 
 static const char *defaultWindowTitle = "🎭 Playwright";
@@ -79,7 +79,7 @@ static const gdouble maximumZoomLevel = 3;
 static const gdouble defaultZoomLevel = 1;
 static const gdouble zoomStep = 1.2;
 
-G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_APPLICATION_WINDOW)
+G_DEFINE_TYPE(BrowserWindow, browser_window, GTK_TYPE_OFFSCREEN_WINDOW)
 
 static char *getExternalURI(const char *uri)
 {
@@ -1074,8 +1074,8 @@ static GtkWidget *addToolbarButton(GtkWidget *box, ToolbarButtonType type, const
     }
 
     gtk_widget_set_focus_on_click(button, FALSE);
-    if (actionName)
-        gtk_actionable_set_action_name(GTK_ACTIONABLE(button), actionName);
+    // if (actionName)
+    //     gtk_actionable_set_action_name(GTK_ACTIONABLE(button), actionName);
 
 #if GTK_CHECK_VERSION(3, 98, 5)
     gtk_box_append(GTK_BOX(box), button);
@@ -1263,43 +1263,43 @@ static void browserWindowSwitchTab(GtkNotebook *notebook, BrowserTab *tab, guint
     window->activeTab = tab;
 
     WebKitWebView *webView = browser_tab_get_web_view(window->activeTab);
-    if (webkit_web_view_is_editable(webView)) {
-        browserWindowSetupEditorToolbar(window);
-        g_signal_connect(webkit_web_view_get_editor_state(webView), "notify::typing-attributes", G_CALLBACK(typingAttributesChanged), window);
-    }
-    webViewURIChanged(webView, NULL, window);
-    webViewTitleChanged(webView, NULL, window);
-    webViewIsLoadingChanged(webView, NULL, window);
-    faviconChanged(webView, NULL, window);
-    browserWindowUpdateZoomActions(window);
-    if (webkit_web_view_is_loading(webView))
-        webViewLoadProgressChanged(webView, NULL, window);
+    // if (webkit_web_view_is_editable(webView)) {
+    //     browserWindowSetupEditorToolbar(window);
+    //     g_signal_connect(webkit_web_view_get_editor_state(webView), "notify::typing-attributes", G_CALLBACK(typingAttributesChanged), window);
+    // }
+    // webViewURIChanged(webView, NULL, window);
+    // webViewTitleChanged(webView, NULL, window);
+    // webViewIsLoadingChanged(webView, NULL, window);
+    // faviconChanged(webView, NULL, window);
+    // browserWindowUpdateZoomActions(window);
+    // if (webkit_web_view_is_loading(webView))
+    //     webViewLoadProgressChanged(webView, NULL, window);
 
-    g_signal_connect(webView, "notify::uri", G_CALLBACK(webViewURIChanged), window);
-    g_signal_connect(webView, "notify::estimated-load-progress", G_CALLBACK(webViewLoadProgressChanged), window);
-    g_signal_connect(webView, "notify::title", G_CALLBACK(webViewTitleChanged), window);
-    g_signal_connect(webView, "notify::is-loading", G_CALLBACK(webViewIsLoadingChanged), window);
+    // g_signal_connect(webView, "notify::uri", G_CALLBACK(webViewURIChanged), window);
+    // g_signal_connect(webView, "notify::estimated-load-progress", G_CALLBACK(webViewLoadProgressChanged), window);
+    // g_signal_connect(webView, "notify::title", G_CALLBACK(webViewTitleChanged), window);
+    // g_signal_connect(webView, "notify::is-loading", G_CALLBACK(webViewIsLoadingChanged), window);
     g_signal_connect(webView, "create", G_CALLBACK(webViewCreate), window);
     g_signal_connect(webView, "load-failed", G_CALLBACK(webViewLoadFailed), window);
     g_signal_connect(webView, "decide-policy", G_CALLBACK(webViewDecidePolicy), window);
     g_signal_connect(webView, "mouse-target-changed", G_CALLBACK(webViewMouseTargetChanged), window);
-    g_signal_connect(webView, "notify::zoom-level", G_CALLBACK(webViewZoomLevelChanged), window);
-    g_signal_connect(webView, "notify::favicon", G_CALLBACK(faviconChanged), window);
+    // g_signal_connect(webView, "notify::zoom-level", G_CALLBACK(webViewZoomLevelChanged), window);
+    // g_signal_connect(webView, "notify::favicon", G_CALLBACK(faviconChanged), window);
     g_signal_connect(webView, "enter-fullscreen", G_CALLBACK(webViewEnterFullScreen), window);
     g_signal_connect(webView, "leave-fullscreen", G_CALLBACK(webViewLeaveFullScreen), window);
 #if !GTK_CHECK_VERSION(3, 98, 0)
     g_signal_connect(webView, "scroll-event", G_CALLBACK(scrollEventCallback), window);
 #endif
-    g_signal_connect_object(webView, "notify::camera-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
-    g_signal_connect_object(webView, "notify::microphone-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
-    g_signal_connect_object(webView, "notify::display-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
+    // g_signal_connect_object(webView, "notify::camera-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
+    // g_signal_connect_object(webView, "notify::microphone-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
+    // g_signal_connect_object(webView, "notify::display-capture-state", G_CALLBACK(webViewMediaCaptureStateChanged), window, 0);
 
     g_object_set(window->uriEntry, "secondary-icon-activatable", TRUE, NULL);
     g_signal_connect(window->uriEntry, "icon-press", G_CALLBACK(webViewUriEntryIconPressed), window);
 
-    WebKitBackForwardList *backForwardlist = webkit_web_view_get_back_forward_list(webView);
-    browserWindowUpdateNavigationMenu(window, backForwardlist);
-    g_signal_connect(backForwardlist, "changed", G_CALLBACK(backForwardlistChanged), window);
+    // WebKitBackForwardList *backForwardlist = webkit_web_view_get_back_forward_list(webView);
+    // browserWindowUpdateNavigationMenu(window, backForwardlist);
+    // g_signal_connect(backForwardlist, "changed", G_CALLBACK(backForwardlistChanged), window);
 }
 
 static void browserWindowTabAddedOrRemoved(GtkNotebook *notebook, BrowserTab *tab, guint tabIndex, BrowserWindow *window)
@@ -1382,7 +1382,7 @@ static void browser_window_init(BrowserWindow *window)
     gtk_window_set_title(GTK_WINDOW(window), defaultWindowTitle);
     gtk_window_set_default_size(GTK_WINDOW(window), 1024, 768);
 
-    g_action_map_add_action_entries(G_ACTION_MAP(window), actions, G_N_ELEMENTS(actions), window);
+    // g_action_map_add_action_entries(G_ACTION_MAP(window), actions, G_N_ELEMENTS(actions), window);
 
     GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
     window->toolbar = toolbar;
@@ -1491,8 +1491,8 @@ static gboolean browserWindowDeleteEvent(GtkWidget *widget, GdkEventAny* event)
 
 static void zeroPreferredSize(GtkWidget* widget, gint* minimumSize, gint* naturalSize)
 {
-    *minimumSize = 10;
-    *naturalSize = 10;
+    *minimumSize = 100;
+    *naturalSize = 100;
 }
 
 static void browser_window_class_init(BrowserWindowClass *klass)
