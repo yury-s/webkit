@@ -88,6 +88,12 @@
             "name": "disable"
         },
         {
+            "name": "getInfo",
+            "returns": [
+                { "name": "os", "type": "string", "description": "Name of the operating system where the browser is running (macOS, Linux or Windows)." }
+            ]
+        },
+        {
             "name": "close",
             "async": true,
             "description": "Close browser."

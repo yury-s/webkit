@@ -517,6 +517,19 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::disable()
     return { };
 }
 
+Inspector::Protocol::ErrorStringOr<String> InspectorPlaywrightAgent::getInfo()
+{
+#if PLATFORM(MAC)
+    return { "macOS"_s };
+#elif PLATFORM(GTK) || PLATFORM(WPE)
+    return { "Linux"_s };
+#elif PLATFORM(WIN)
+    return { "Windows"_s };
+#else
+#error "Unsupported platform."
+#endif
+}
+
 void InspectorPlaywrightAgent::close(Ref<CloseCallback>&& callback)
 {
     closeImpl([callback = WTFMove(callback)] (String error) {
@@ -725,7 +738,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::grantFileRead
 
 void InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, int x, int y, int width, int height, std::optional<bool>&& omitDeviceScaleFactor, Ref<TakePageScreenshotCallback>&& callback)
 {
-#if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
+#if PLATFORM(MAC) || PLATFORM(GTK) || PLATFORM(WPE)
     auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
     if (!pageProxyChannel) {
         callback->sendFailure("Unknown pageProxyID"_s);
@@ -741,7 +754,7 @@ void InspectorPlaywrightAgent::takePageScreenshot(const String& pageProxyID, int
             callback->sendFailure(error);
     });
 #else
-    return callback->sendFailure("This method is only supported on macOS."_s);
+    return callback->sendFailure("This method is not supported on this platform."_s);
 #endif
 }
 

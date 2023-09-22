@@ -81,6 +81,7 @@ private:
     // PlaywrightDispatcherHandler
     Inspector::Protocol::ErrorStringOr<void> enable() override;
     Inspector::Protocol::ErrorStringOr<void> disable() override;
+    Inspector::Protocol::ErrorStringOr<String> getInfo() override;
     void close(Ref<CloseCallback>&&) override;
     Inspector::Protocol::ErrorStringOr<String /* browserContextID */> createContext(const String& proxyServer, const String& proxyBypassList) override;
     void deleteContext(const String& browserContextID, Ref<DeleteContextCallback>&& callback) override;
