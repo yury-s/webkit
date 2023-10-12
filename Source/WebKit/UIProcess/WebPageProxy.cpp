@@ -2230,17 +2230,14 @@ void WebPageProxy::setPermissionsForAutomation(const HashMap<String, HashSet<Str
     m_permissionsForAutomation = permissions;
 }
 
-bool WebPageProxy::hasPermissionForAutomation(const String& origin, const String& permission) const
+std::optional<bool> WebPageProxy::permissionForAutomation(const String& origin, const String& permission) const
 {
-    auto originPermissions = m_permissionsForAutomation.find(origin);
-    if (originPermissions != m_permissionsForAutomation.end() && originPermissions->value.contains(permission))
-        return true;
-
-    auto wildcardPermissions = m_permissionsForAutomation.find("*"_s);
-    if (wildcardPermissions != m_permissionsForAutomation.end() && wildcardPermissions->value.contains(permission))
-        return true;
-
-    return false;
+    auto permissions = m_permissionsForAutomation.find(origin);
+    if (permissions == m_permissionsForAutomation.end())
+        permissions = m_permissionsForAutomation.find("*"_s);
+    if (permissions == m_permissionsForAutomation.end())
+        return std::nullopt;
+    return permissions->value.contains(permission);
 }
 
 void WebPageProxy::setActiveForAutomation(std::optional<bool> active) {
@@ -8069,7 +8066,7 @@ void WebPageProxy::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAc
 
     if (isControlledByAutomation()) {
         DOMPasteAccessResponse response = DOMPasteAccessResponse::DeniedForGesture;
-        if (hasPermissionForAutomation(originIdentifier, "clipboard-read"_s)) {
+        if (permissionForAutomation(originIdentifier, "clipboard-read"_s).value_or(false)) {
             response = DOMPasteAccessResponse::GrantedForGesture;
             // Grant access to general pasteboard.
             willPerformPasteCommand(DOMPasteAccessCategory::General);
@@ -10129,7 +10126,7 @@ void WebPageProxy::requestGeolocationPermissionForFrame(GeolocationIdentifier ge
 
     if (isControlledByAutomation()) {
         auto securityOrigin = frameInfo.securityOrigin.securityOrigin();
-        completionHandler(hasPermissionForAutomation(securityOrigin->toString(), "geolocation"_s));
+        completionHandler(permissionForAutomation(securityOrigin->toString(), "geolocation"_s).value_or(false));
         return;
     }
 
@@ -10187,6 +10184,12 @@ void WebPageProxy::queryPermission(const ClientOrigin& clientOrigin, const Permi
             shouldChangeDeniedToPrompt = false;
 
         if (sessionID().isEphemeral()) {
+            auto permission = permissionForAutomation(clientOrigin.topOrigin.toString(), name);
+            if (permission.has_value()) {
+                completionHandler(permission.value() ? PermissionState::Granted : PermissionState::Denied);
+                return;
+            }
+
             completionHandler(shouldChangeDeniedToPrompt ? PermissionState::Prompt : PermissionState::Denied);
             return;
         }
@@ -10198,6 +10201,12 @@ void WebPageProxy::queryPermission(const ClientOrigin& clientOrigin, const Permi
 
     if (name.isNull()) {
         completionHandler({ });
+        return;
+    }
+
+    auto permission = permissionForAutomation(clientOrigin.topOrigin.toString(), name);
+    if (permission.has_value()) {
+        completionHandler(permission.value() ? PermissionState::Granted : PermissionState::Denied);
         return;
     }
 
