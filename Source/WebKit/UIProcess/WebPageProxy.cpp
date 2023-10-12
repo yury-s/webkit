@@ -2220,6 +2220,19 @@ void WebPageProxy::setPermissionsForAutomation(const HashMap<String, HashSet<Str
     m_permissionsForAutomation = permissions;
 }
 
+bool WebPageProxy::hasPermissionForAutomation(const String& origin, const String& permission) const
+{
+    auto originPermissions = m_permissionsForAutomation.find(origin);
+    if (originPermissions != m_permissionsForAutomation.end() && originPermissions->value.contains(permission))
+        return true;
+
+    auto wildcardPermissions = m_permissionsForAutomation.find("*"_s);
+    if (wildcardPermissions != m_permissionsForAutomation.end() && wildcardPermissions->value.contains(permission))
+        return true;
+
+    return false;
+}
+
 void WebPageProxy::setActiveForAutomation(std::optional<bool> active) {
     m_activeForAutomation = active;
     OptionSet<ActivityState> state;
@@ -8036,14 +8049,11 @@ void WebPageProxy::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAc
 
     if (isControlledByAutomation()) {
         DOMPasteAccessResponse response = DOMPasteAccessResponse::DeniedForGesture;
-        auto permissions = m_permissionsForAutomation.find(originIdentifier);
-        if (permissions == m_permissionsForAutomation.end())
-            permissions = m_permissionsForAutomation.find("*"_s);
-        if (permissions != m_permissionsForAutomation.end() && permissions->value.contains("clipboard-read"_s))
+        if (hasPermissionForAutomation(originIdentifier, "clipboard-read"_s)) {
             response = DOMPasteAccessResponse::GrantedForGesture;
-        // Grant access to general pasteboard.
-        if (response == DOMPasteAccessResponse::GrantedForGesture)
+            // Grant access to general pasteboard.
             willPerformPasteCommand(DOMPasteAccessCategory::General);
+        }
         completionHandler(response);
         return;
     }
@@ -10096,11 +10106,8 @@ void WebPageProxy::requestGeolocationPermissionForFrame(GeolocationIdentifier ge
     };
 
     auto securityOrigin = frameInfo.securityOrigin.securityOrigin();
-    auto permissions = m_permissionsForAutomation.find(securityOrigin->toString());
-    if (permissions == m_permissionsForAutomation.end())
-      permissions = m_permissionsForAutomation.find("*"_s);
-    if (permissions != m_permissionsForAutomation.end()) {
-        completionHandler(permissions->value.contains("geolocation"_s));
+    if (hasPermissionForAutomation(securityOrigin->toString(), "geolocation"_s)) {
+        completionHandler(true);
         return;
     }
 

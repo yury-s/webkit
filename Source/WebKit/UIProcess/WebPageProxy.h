@@ -2502,6 +2502,7 @@ private:
     RefPtr<API::Navigation> launchProcessForReload();
 
     void requestNotificationPermission(const String& originString, CompletionHandler<void(bool allowed)>&&);
+    bool hasPermissionForAutomation(const String& origin, const String& permission) const;
 
     void didChangeContentSize(const WebCore::IntSize&);
     void didChangeIntrinsicContentSize(const WebCore::IntSize&);
