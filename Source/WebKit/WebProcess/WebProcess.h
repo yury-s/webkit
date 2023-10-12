@@ -756,7 +756,7 @@ private:
 
     WeakHashMap<WebCore::UserGestureToken, uint64_t> m_userGestureTokens;
 
-#if PLATFORM(GTK)
+#if PLATFORM(WAYLAND) || PLATFORM(GTK)
     std::unique_ptr<WebCore::PlatformDisplay> m_displayForCompositing;
     OptionSet<DMABufRendererBufferMode> m_dmaBufRendererBufferMode;
 #endif
