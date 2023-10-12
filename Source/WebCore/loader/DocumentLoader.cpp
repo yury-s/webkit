@@ -767,8 +767,10 @@ void DocumentLoader::willSendRequest(ResourceRequest&& newRequest, const Resourc
     if (!didReceiveRedirectResponse)
         return completionHandler(WTFMove(newRequest));
 
+    InspectorInstrumentation::willCheckNavigationPolicy(*m_frame);
     auto navigationPolicyCompletionHandler = [this, protectedThis = Ref { *this }, protectedFrame = Ref { *m_frame }, completionHandler = WTFMove(completionHandler)] (ResourceRequest&& request, WeakPtr<FormState>&&, NavigationPolicyDecision navigationPolicyDecision) mutable {
         m_waitingForNavigationPolicy = false;
+        InspectorInstrumentation::didCheckNavigationPolicy(protectedFrame.get(), navigationPolicyDecision != NavigationPolicyDecision::ContinueLoad);
         switch (navigationPolicyDecision) {
         case NavigationPolicyDecision::IgnoreLoad:
         case NavigationPolicyDecision::LoadWillContinueInAnotherProcess:
@@ -1550,8 +1552,6 @@ void DocumentLoader::detachFromFrame()
     // already done so just return.
     if (!m_frame)
         return;
-
-    InspectorInstrumentation::loaderDetachedFromFrame(*m_frame, *this);
 
     observeFrame(nullptr);
 }
