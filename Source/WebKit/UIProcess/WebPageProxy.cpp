@@ -8034,6 +8034,20 @@ void WebPageProxy::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAc
 {
     MESSAGE_CHECK_COMPLETION(m_process, !originIdentifier.isEmpty(), completionHandler(DOMPasteAccessResponse::DeniedForGesture));
 
+    if (isControlledByAutomation()) {
+        DOMPasteAccessResponse response = DOMPasteAccessResponse::DeniedForGesture;
+        auto permissions = m_permissionsForAutomation.find(originIdentifier);
+        if (permissions == m_permissionsForAutomation.end())
+            permissions = m_permissionsForAutomation.find("*"_s);
+        if (permissions != m_permissionsForAutomation.end() && permissions->value.contains("clipboard-read"_s))
+            response = DOMPasteAccessResponse::GrantedForGesture;
+        // Grant access to general pasteboard.
+        if (response == DOMPasteAccessResponse::GrantedForGesture)
+            willPerformPasteCommand(DOMPasteAccessCategory::General);
+        completionHandler(response);
+        return;
+    }
+
     m_pageClient->requestDOMPasteAccess(pasteAccessCategory, elementRect, originIdentifier, WTFMove(completionHandler));
 }
 
