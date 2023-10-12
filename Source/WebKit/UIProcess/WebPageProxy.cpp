@@ -10105,9 +10105,9 @@ void WebPageProxy::requestGeolocationPermissionForFrame(GeolocationIdentifier ge
             request->deny();
     };
 
-    auto securityOrigin = frameInfo.securityOrigin.securityOrigin();
-    if (hasPermissionForAutomation(securityOrigin->toString(), "geolocation"_s)) {
-        completionHandler(true);
+    if (isControlledByAutomation()) {
+        auto securityOrigin = frameInfo.securityOrigin.securityOrigin();
+        completionHandler(hasPermissionForAutomation(securityOrigin->toString(), "geolocation"_s));
         return;
     }
 
