@@ -27,9 +27,7 @@
 #include "InspectorWorkerAgent.h"
 
 #include "Document.h"
-#include "FrameDestructionObserverInlines.h"
 #include "InstrumentingAgents.h"
-#include "InspectorPageAgent.h"
 #include "Page.h"
 #include <wtf/Ref.h>
 #include <wtf/RefPtr.h>
@@ -170,11 +168,7 @@ void InspectorWorkerAgent::connectToWorkerInspectorProxy(WorkerInspectorProxy& p
 
     m_connectedProxies.set(proxy.identifier(), proxy);
 
-    ASSERT(is<Document>(proxy.scriptExecutionContext()));
-    Document& document = downcast<Document>(*proxy.scriptExecutionContext());
-    auto* pageAgent = m_instrumentingAgents.enabledPageAgent();
-    m_frontendDispatcher->workerCreated(proxy.identifier(), proxy.url().string(), proxy.name(),
-        pageAgent ? pageAgent->frameId(document.frame()) : emptyString());
+    m_frontendDispatcher->workerCreated(proxy.identifier(), proxy.url().string(), proxy.name());
 }
 
 void InspectorWorkerAgent::disconnectFromWorkerInspectorProxy(WorkerInspectorProxy& proxy)

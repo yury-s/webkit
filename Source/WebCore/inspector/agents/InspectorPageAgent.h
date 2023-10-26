@@ -118,7 +118,7 @@ public:
     Inspector::Protocol::ErrorStringOr<void> deleteCookie(const String& cookieName, const String& url);
     Inspector::Protocol::ErrorStringOr<Ref<Inspector::Protocol::Page::FrameResourceTree>> getResourceTree();
     Inspector::Protocol::ErrorStringOr<std::tuple<String, bool /* base64Encoded */>> getResourceContent(const Inspector::Protocol::Network::FrameId&, const String& url);
-    Inspector::Protocol::ErrorStringOr<void> setBootstrapScript(const String& source, const String& worldName);
+    Inspector::Protocol::ErrorStringOr<void> setBootstrapScript(const String& source);
     Inspector::Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>>> searchInResource(const Inspector::Protocol::Network::FrameId&, const String& url, const String& query, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex, const Inspector::Protocol::Network::RequestId&);
     Inspector::Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>>> searchInResources(const String&, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex);
 #if !PLATFORM(IOS_FAMILY)
@@ -137,7 +137,6 @@ public:
     Inspector::Protocol::ErrorStringOr<void> setScreenSizeOverride(std::optional<int>&& width, std::optional<int>&& height);
 
     Inspector::Protocol::ErrorStringOr<void> insertText(const String& text);
-    Inspector::Protocol::ErrorStringOr<void> setComposition(const String& text, int selectionStart, int selectionLength, std::optional<int>&& replacementStart, std::optional<int>&& replacementLength);
     Inspector::Protocol::ErrorStringOr<Ref<Inspector::Protocol::Page::AXNode>> accessibilitySnapshot(const String& objectId);
     Inspector::Protocol::ErrorStringOr<void> setInterceptFileChooserDialog(bool enabled);
     Inspector::Protocol::ErrorStringOr<void> setDefaultBackgroundColorOverride(RefPtr<JSON::Object>&&);
@@ -145,7 +144,6 @@ public:
     Inspector::Protocol::ErrorStringOr<void> setBypassCSP(bool);
     Inspector::Protocol::ErrorStringOr<void> crash();
     Inspector::Protocol::ErrorStringOr<void> setOrientationOverride(std::optional<int>&& angle);
-    Inspector::Protocol::ErrorStringOr<void> setVisibleContentRects(RefPtr<JSON::Object>&& unobscuredContentRect, RefPtr<JSON::Object>&& contentInsets, RefPtr<JSON::Object>&& obscuredInsets, RefPtr<JSON::Object>&& unobscuredInsets);
     Inspector::Protocol::ErrorStringOr<void> updateScrollingState();
 
     // InspectorInstrumentation
@@ -208,7 +206,6 @@ private:
     InspectorOverlay* m_overlay { nullptr };
 
     MemoryCompactRobinHoodHashMap<String, WeakPtr<Frame>> m_identifierToFrame;
-    HashMap<String, String> m_worldNameToBootstrapScript;
     String m_userAgentOverride;
     String m_platformOverride;
     AtomString m_emulatedMedia;

@@ -36,7 +36,6 @@
 #include "BackForwardController.h"
 #include "CachedResource.h"
 #include "CachedResourceLoader.h"
-#include "CompositionHighlight.h"
 #include "Cookie.h"
 #include "CookieJar.h"
 #include "CustomHeaderFields.h"
@@ -883,13 +882,9 @@ Protocol::ErrorStringOr<std::tuple<String, bool /* base64Encoded */>> InspectorP
     return { { content, base64Encoded } };
 }
 
-Protocol::ErrorStringOr<void> InspectorPageAgent::setBootstrapScript(const String& source, const String& worldName)
+Protocol::ErrorStringOr<void> InspectorPageAgent::setBootstrapScript(const String& source)
 {
-    String key = worldName.isNull() ? emptyString() : worldName;
-    if (source.isEmpty())
-        m_worldNameToBootstrapScript.remove(key);
-    else
-        m_worldNameToBootstrapScript.set(key, source);
+    m_bootstrapScript = source;
 
     return { };
 }
@@ -1145,25 +1140,16 @@ void InspectorPageAgent::defaultAppearanceDidChange()
 
 void InspectorPageAgent::didClearWindowObjectInWorld(LocalFrame& frame, DOMWrapperWorld& world)
 {
-    if (m_worldNameToBootstrapScript.isEmpty())
+    if (&world != &mainThreadNormalWorld())
         return;
 
-    if (world.name().isEmpty() && &world != &mainThreadNormalWorld())
+    if (m_bootstrapScript.isEmpty())
        return;
-
-    String worldName = world.name();
-    // Null string cannot be used as a key.
-    if (worldName.isNull())
-        worldName = emptyString();
-
-    if (!m_worldNameToBootstrapScript.contains(worldName))
-        return;
 
     if (m_ignoreDidClearWindowObject)
         return;
 
-    String bootstrapScript = m_worldNameToBootstrapScript.get(worldName);
-    frame.script().evaluateInWorldIgnoringException(ScriptSourceCode(bootstrapScript, JSC::SourceTaintedOrigin::Untainted, URL { "web-inspector://bootstrap.js"_str }), world);
+    frame.script().evaluateIgnoringException(ScriptSourceCode(m_bootstrapScript, JSC::SourceTaintedOrigin::Untainted, URL { "web-inspector://bootstrap.js"_str }));
 }
 
 void InspectorPageAgent::didPaint(RenderObject& renderer, const LayoutRect& rect)
@@ -1488,24 +1474,6 @@ Protocol::ErrorStringOr<void> InspectorPageAgent::insertText(const String& text)
         Document* focusedDocument = frame.document();
         TypingCommand::insertText(*focusedDocument, text, { });
     }
-    return { };
-}
-
-Protocol::ErrorStringOr<void> InspectorPageAgent::setComposition(const String& text, int selectionStart, int selectionLength, std::optional<int>&& replacementStart, std::optional<int>&& replacementLength)
-{
-    LocalFrame& frame = m_inspectedPage.focusController().focusedOrMainFrame();
-
-    UserGestureIndicator indicator { ProcessingUserGesture };
-
-    if (!frame.selection().selection().isContentEditable())
-        return { };
-    if (replacementStart) {
-        WebCore::CharacterRange range { static_cast<uint64_t>(*replacementStart), replacementLength ? static_cast<uint64_t>(*replacementLength) : 0 };
-        auto* element = frame.selection().rootEditableElementOrDocumentElement();
-        if (element)
-            frame.selection().setSelection(VisibleSelection(resolveCharacterRange(makeRangeSelectingNodeContents(*element), range)));
-    }
-    frame.editor().setComposition(text, { }, { }, { }, static_cast<uint64_t>(selectionStart), selectionStart + selectionLength);
     return { };
 }
 
@@ -2024,69 +1992,6 @@ Protocol::ErrorStringOr<void> InspectorPageAgent::setOrientationOverride(std::op
     UNUSED_PARAM(angle);
     return makeUnexpected("Orientation events are disabled in this build");
 #endif
-}
-
-static std::optional<FloatBoxExtent> parseInsets(RefPtr<JSON::Object>&& insets)
-{
-    std::optional<double> top = insets->getDouble("top"_s);
-    std::optional<double> right = insets->getDouble("right"_s);
-    std::optional<double> bottom = insets->getDouble("bottom"_s);
-    std::optional<double> left = insets->getDouble("left"_s);
-    if (top && right && bottom && left)
-        return FloatBoxExtent(static_cast<float>(*top), static_cast<float>(*right), static_cast<float>(*bottom), static_cast<float>(*left));
-    return std::optional<FloatBoxExtent>();
-}
-
-static std::optional<FloatRect> parseRect(RefPtr<JSON::Object>&& insets)
-{
-    std::optional<double> x = insets->getDouble("x"_s);
-    std::optional<double> y = insets->getDouble("y"_s);
-    std::optional<double> width = insets->getDouble("width"_s);
-    std::optional<double> height = insets->getDouble("height"_s);
-    if (x && y && width && height)
-        return FloatRect(static_cast<float>(*x), static_cast<float>(*y), static_cast<float>(*width), static_cast<float>(*height));
-    return std::optional<FloatRect>();
-}
-
-Protocol::ErrorStringOr<void> InspectorPageAgent::setVisibleContentRects(RefPtr<JSON::Object>&& unobscuredContentRect, RefPtr<JSON::Object>&& contentInsets, RefPtr<JSON::Object>&& obscuredInsets, RefPtr<JSON::Object>&& unobscuredInsets)
-{
-    auto* localFrame = dynamicDowncast<LocalFrame>(m_inspectedPage.mainFrame());
-    LocalFrameView* view = localFrame ? localFrame->view() : nullptr;
-    if (!view)
-        return makeUnexpected("Internal error: No frame view to set content rects for"_s);
-
-    if (unobscuredContentRect) {
-        std::optional<FloatRect> ucr = parseRect(WTFMove(unobscuredContentRect));
-        if (!ucr)
-            return makeUnexpected("Invalid unobscured content rect"_s);
-
-        view->setUnobscuredContentSize(FloatSize(ucr->width(), ucr->height()));
-    }
-
-    if (contentInsets) {
-        std::optional<FloatBoxExtent> ci = parseInsets(WTFMove(contentInsets));
-        if (!ci)
-            return makeUnexpected("Invalid content insets"_s);
-
-        m_inspectedPage.setContentInsets(*ci);
-    }
-
-    if (obscuredInsets) {
-        std::optional<FloatBoxExtent> oi = parseInsets(WTFMove(obscuredInsets));
-        if (!oi)
-            return makeUnexpected("Invalid obscured insets"_s);
-
-        m_inspectedPage.setObscuredInsets(*oi);
-    }
-
-    if (unobscuredInsets) {
-        std::optional<FloatBoxExtent> ui = parseInsets(WTFMove(unobscuredInsets));
-        if (!ui)
-            return makeUnexpected("Invalid unobscured insets"_s);
-
-        m_inspectedPage.setUnobscuredSafeAreaInsets(*ui);
-    }
-    return {};
 }
 
 Protocol::ErrorStringOr<void> InspectorPageAgent::updateScrollingState()
