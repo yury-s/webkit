@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<script src="../../http/tests/inspector/resources/inspector-test.js"></script>
+<script>
+const myObject = {a: 2023};
+
+function test()
+{
+    let suite = InspectorTest.createAsyncSuite("Runtime.callFunctionOn.awaitPromise");
+
+    suite.addTestCase({
+        name: "NoAwaitPromiseSyncFunction",
+        description: "Call sync function with the awaitPromise option set to false.",
+        async test() {
+            const testObject = await RuntimeAgent.evaluate.invoke({expression: `myObject`});
+            const response = await RuntimeAgent.callFunctionOn.invoke({functionDeclaration: `function() { return this; }`, awaitPromise: false, returnByValue: true, objectId: testObject.result.objectId});
+            InspectorTest.assert(!response.error, "Should not be a protocol error.");
+            InspectorTest.assert(!response.wasThrown);
+            InspectorTest.log(response)
+        }
+    });
+
+    suite.addTestCase({
+        name: "NoAwaitPromiseAsyncFunction",
+        description: "Call async function with the awaitPromise option set to false.",
+        async test() {
+            const testObject = await RuntimeAgent.evaluate.invoke({expression: `myObject`});
+            const response = await RuntimeAgent.callFunctionOn.invoke({functionDeclaration: `async function() { await new Promise(r => setTimeout(r, 0)); return this; }`, awaitPromise: false, returnByValue: true, objectId: testObject.result.objectId});
+            InspectorTest.assert(!response.error, "Should not be a protocol error.");
+            InspectorTest.assert(!response.wasThrown);
+            InspectorTest.log(response)
+        }
+    });
+
+    suite.addTestCase({
+        name: "AwaitPromiseSyncFunctionReload",
+        description: "Call sync function that reloads page with the awaitPromise option set to true.",
+        async test() {
+            const testObject = await RuntimeAgent.evaluate.invoke({expression: `myObject`});
+            const reloadPromise = InspectorTest.awaitEvent(FrontendTestHarness.Event.TestPageDidLoad);
+            const response = await RuntimeAgent.callFunctionOn.invoke({functionDeclaration: `function() { window.location.reload(); return this; }`, awaitPromise: true, returnByValue: true, objectId: testObject.result.objectId});
+            await reloadPromise;
+            InspectorTest.assert(!response.error, "Should not be a protocol error.");
+            InspectorTest.assert(!response.wasThrown);
+            InspectorTest.log(response)
+        }
+    });
+
+
+    suite.addTestCase({
+        name: "AwaitPromiseAsyncFunctionThrow",
+        description: "Call async function that rejects promise with the awaitPromise option set to true.",
+        async test() {
+            const testObject = await RuntimeAgent.evaluate.invoke({expression: `myObject`});
+            const functionDeclaration = `function() { return new Promise((resolve, reject) => setTimeout(reject, 0, {b: 2023})); }`;
+            const response = await RuntimeAgent.callFunctionOn.invoke({functionDeclaration, awaitPromise: true, returnByValue: true, objectId: testObject.result.objectId});
+            InspectorTest.assert(!response.error, "Should not be a protocol error.");
+            InspectorTest.assert(response.wasThrown, "There should be an error.");
+            const remoteObject = WI.RemoteObject.fromPayload(response.result);
+            const propertyDescriptors = await new Promise((resolve) => remoteObject.getPropertyDescriptors(resolve));
+            const value = propertyDescriptors.find((property) => property.name === 'b').value.value;
+            InspectorTest.expectEqual(value, 2023, "The rejected value should be " + JSON.stringify({b: 2023}));
+        }
+    });
+
+    suite.runTestCasesAndFinish();
+}
+</script>
+</head>
+<body onload="runTest()">
+<p>Tests for Runtime.callFunctionOn awaitPromise option.</p>
+</body>
+</html>

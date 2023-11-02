@@ -1,0 +1,16 @@
+Tests for Runtime.callFunctionOn awaitPromise option.
+
+
+== Running test suite: Runtime.callFunctionOn.awaitPromise
+-- Running test case: NoAwaitPromiseSyncFunction
+{"result":{"type":"object","value":{"a":2023}},"wasThrown":false}
+
+-- Running test case: NoAwaitPromiseAsyncFunction
+{"result":{"type":"object","value":{}},"wasThrown":false}
+
+-- Running test case: AwaitPromiseSyncFunctionReload
+{"result":{"type":"object","value":{"a":2023}},"wasThrown":false}
+
+-- Running test case: AwaitPromiseAsyncFunctionThrow
+PASS: The rejected value should be {"b":2023}
+
