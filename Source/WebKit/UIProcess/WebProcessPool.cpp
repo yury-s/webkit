@@ -527,14 +527,6 @@ void WebProcessPool::establishRemoteWorkerContextConnectionToNetworkProcess(Remo
 
     RefPtr<WebProcessProxy> requestingProcess = requestingProcessIdentifier ? WebProcessProxy::processForIdentifier(*requestingProcessIdentifier) : nullptr;
     WebProcessPool* processPool = requestingProcess ? &requestingProcess->processPool() : processPools()[0];
-    // Playwright begin
-    for (auto& process : websiteDataStore->processes()) {
-        if (process.processPoolIfExists()) {
-            processPool = process.processPoolIfExists();
-            break;
-        }
-    }
-    // Playwright end
     ASSERT(processPool);
 
     WebProcessProxy* remoteWorkerProcessProxy { nullptr };
