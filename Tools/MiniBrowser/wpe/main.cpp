@@ -171,7 +171,7 @@ static void webViewClose(WebKitWebView* webView, gpointer user_data)
 {
     // Hash table key delete func takes care of unref'ing the view
     g_hash_table_remove(openViews, webView);
-    if (!g_hash_table_size(openViews))
+    if (!g_hash_table_size(openViews) && user_data)
         g_application_quit(G_APPLICATION(user_data));
 }
 
