@@ -3247,8 +3247,8 @@ void WebPageProxy::performDragControllerAction(DragControllerAction action, Drag
 {
     if (!hasRunningProcess())
         return;
-    if (action == DragControllerAction::Entered || action == DragControllerAction::Updated)
-        m_dragEventsQueued++;
+
+    m_dragEventsQueued++;
 
     auto completionHandler = [this, protectedThis = Ref { *this }] (auto... args) {
         didPerformDragControllerAction(args...);
