@@ -278,9 +278,7 @@ Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::op
     if (injectedScript.hasNoValue())
         return makeUnexpected(errorString);
 
-    JSC::JSGlobalObject* globalObject = injectedScript.globalObject();
-    Document* document = globalObject ? activeDOMWindow(*globalObject).document() : nullptr;
-    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), document);
+    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), dynamicDowncast<Document>(executionContext(injectedScript.globalObject())));
     return InspectorRuntimeAgent::evaluate(injectedScript, expression, objectGroup, WTFMove(includeCommandLineAPI), WTFMove(doNotPauseOnExceptionsAndMuteConsole), WTFMove(returnByValue), WTFMove(generatePreview), WTFMove(saveResult), WTFMove(emulateUserGesture));
 }
 
@@ -292,9 +290,7 @@ void PageRuntimeAgent::callFunctionOn(const Protocol::Runtime::RemoteObjectId& o
         return;
     }
 
-    JSC::JSGlobalObject* globalObject = injectedScript.globalObject();
-    Document* document = globalObject ? activeDOMWindow(*globalObject).document() : nullptr;
-    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), document);
+    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), dynamicDowncast<Document>(executionContext(injectedScript.globalObject())));
     return InspectorRuntimeAgent::callFunctionOn(objectId, expression, WTFMove(optionalArguments), WTFMove(doNotPauseOnExceptionsAndMuteConsole), WTFMove(returnByValue), WTFMove(generatePreview), WTFMove(emulateUserGesture), WTFMove(awaitPromise), WTFMove(callback));
 }
 

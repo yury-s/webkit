@@ -37,7 +37,6 @@
 #include "Document.h"
 #include "InspectorPageAgent.h"
 #include "InstrumentingAgents.h"
-#include "JSDOMWindowBase.h"
 #include "JSExecState.h"
 #include "JSLocalDOMWindowCustom.h"
 #include "LocalFrame.h"
@@ -75,9 +74,7 @@ Protocol::ErrorStringOr<std::tuple<Ref<Protocol::Runtime::RemoteObject>, std::op
     if (injectedScript.hasNoValue())
         return makeUnexpected("Missing injected script for given callFrameId"_s);
 
-    JSC::JSGlobalObject* globalObject = injectedScript.globalObject();
-    Document* document = globalObject ? activeDOMWindow(*globalObject).document() : nullptr;
-    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), document);
+    UserGestureEmulationScope userGestureScope(m_inspectedPage, emulateUserGesture.value_or(false), dynamicDowncast<Document>(executionContext(injectedScript.globalObject())));
     return WebDebuggerAgent::evaluateOnCallFrame(injectedScript, callFrameId, expression, objectGroup, WTFMove(includeCommandLineAPI), WTFMove(doNotPauseOnExceptionsAndMuteConsole), WTFMove(returnByValue), WTFMove(generatePreview), WTFMove(saveResult), WTFMove(emulateUserGesture));
 }
 
