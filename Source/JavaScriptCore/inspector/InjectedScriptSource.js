@@ -172,7 +172,13 @@ let InjectedScript = class InjectedScript extends PrototypelessObjectBase
             return;
         }
 
+<<<<<<< HEAD
         if (!(InjectedScriptHost.internalConstructorName(promiseObject) === "Promise")) {
+||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
+        if (!(promiseObject instanceof @Promise)) {
+=======
+        if (InjectedScriptHost.internalConstructorName(promiseObject) !== 'Promise') {
+>>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
             callback("Object with given id is not a Promise");
             return;
         }
@@ -213,10 +219,20 @@ let InjectedScript = class InjectedScript extends PrototypelessObjectBase
         let object = this._objectForId(parsedObjectId);
         let objectGroupName = this._idToObjectGroupName[parsedObjectId.id];
 
+<<<<<<< HEAD
         if (!isDefined(object)) {
             callback("Could not find object with given id");
             return;
         }
+||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
+        if (!isDefined(object))
+            return "Could not find object with given id";
+=======
+        if (!isDefined(object)) {
+            callback(this._createThrownValue("Could not find object with given id", objectGroupName));
+            return ;
+        }
+>>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
 
         let resolvedArgs = @createArrayWithoutPrototype();
         if (args) {
@@ -225,14 +241,22 @@ let InjectedScript = class InjectedScript extends PrototypelessObjectBase
                 try {
                     resolvedArgs[i] = this._resolveCallArgument(callArgs[i]);
                 } catch (e) {
+<<<<<<< HEAD
                     callback(@String(e));
                     return;
+||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
+                    return @String(e);
+=======
+                    callback(this._createThrownValue(e, objectGroupName));
+                    return;
+>>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
                 }
             }
         }
 
         try {
             let func = InjectedScriptHost.evaluate("(" + expression + ")");
+<<<<<<< HEAD
             if (typeof func !== "function") {
                 callback("Given expression does not evaluate to a function");
                 return;
@@ -253,6 +277,36 @@ let InjectedScript = class InjectedScript extends PrototypelessObjectBase
                     "result", RemoteObject.create(result, objectGroupName, returnByValue, generatePreview),
                 ));
             }
+||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
+            if (typeof func !== "function")
+                return "Given expression does not evaluate to a function";
+
+            return @createObjectWithoutPrototype(
+                "wasThrown", false,
+                "result", RemoteObject.create(func.@apply(object, resolvedArgs), objectGroupName, returnByValue, generatePreview),
+            );
+=======
+            if (typeof func !== "function") {
+                callback(this._createThrownValue("Given expression does not evaluate to a function", objectGroupName));
+                return;
+            }
+            let result = func.@apply(object, resolvedArgs);
+            if (awaitPromise && isDefined(result) && (InjectedScriptHost.internalConstructorName(result) === 'Promise')) {
+                result.then(value => {
+                    callback({
+                        wasThrown: false,
+                        result: RemoteObject.create(value, objectGroupName, returnByValue, generatePreview),
+                    });
+                }, reason => {
+                    callback(this._createThrownValue(reason, objectGroupName));
+                });
+            } else {
+                callback({
+                    wasThrown: false,
+                    result: RemoteObject.create(result, objectGroupName, returnByValue, generatePreview)
+                });
+            }
+>>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
         } catch (e) {
             callback(this._createThrownValue(e, objectGroupName));
             return;
