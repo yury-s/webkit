@@ -191,18 +191,6 @@ void InspectorRuntimeAgent::callFunctionOn(const Protocol::Runtime::RemoteObject
 void InspectorRuntimeAgent::callFunctionOn(InjectedScript& injectedScript, const Protocol::Runtime::RemoteObjectId& objectId, const String& functionDeclaration, RefPtr<JSON::Array>&& arguments, std::optional<bool>&& doNotPauseOnExceptionsAndMuteConsole, std::optional<bool>&& returnByValue, std::optional<bool>&& generatePreview, std::optional<bool>&& /* emulateUserGesture */, std::optional<bool>&& awaitPromise, Ref<CallFunctionOnCallback>&& callback)
 {
     ASSERT(!injectedScript.hasNoValue());
-<<<<<<< HEAD
-
-||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
-
-    Protocol::ErrorString errorString;
-
-    RefPtr<Protocol::Runtime::RemoteObject> result;
-    std::optional<bool> wasThrown;
-
-=======
-    
->>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
     JSC::Debugger::TemporarilyDisableExceptionBreakpoints temporarilyDisableExceptionBreakpoints(m_debugger);
     
     bool pauseAndMute = doNotPauseOnExceptionsAndMuteConsole.value_or(false);
@@ -210,7 +198,6 @@ void InspectorRuntimeAgent::callFunctionOn(InjectedScript& injectedScript, const
         temporarilyDisableExceptionBreakpoints.replace();
         muteConsole();
     }
-<<<<<<< HEAD
 
     injectedScript.callFunctionOn(objectId, functionDeclaration, arguments ? arguments->toJSONString() : nullString(), returnByValue.value_or(false), generatePreview.value_or(false), awaitPromise.value_or(false), [callback = WTFMove(callback)] (Protocol::ErrorString& errorString, RefPtr<Protocol::Runtime::RemoteObject>&& result, std::optional<bool>&& wasThrown, std::optional<int>&& savedResultIndex) {
         UNUSED_PARAM(savedResultIndex);
@@ -219,35 +206,14 @@ void InspectorRuntimeAgent::callFunctionOn(InjectedScript& injectedScript, const
         else
             callback->sendSuccess(result.releaseNonNull(), WTFMove(wasThrown));
     });
-||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
-
-    injectedScript.callFunctionOn(errorString, objectId, functionDeclaration, arguments ? arguments->toJSONString() : nullString(), returnByValue.value_or(false), generatePreview.value_or(false), result, wasThrown);
-=======
-    
-    injectedScript.callFunctionOn(objectId, functionDeclaration, arguments ? arguments->toJSONString() : nullString(), returnByValue.value_or(false), generatePreview.value_or(false), awaitPromise.value_or(false), [callback=WTFMove(callback)] (Protocol::ErrorString& errorString, RefPtr<Protocol::Runtime::RemoteObject>&& result, std::optional<bool>&& wasThrown, std::optional<int>&&) {
-        if (!result)
-            callback->sendFailure(errorString);
-        else
-            callback->sendSuccess(result.releaseNonNull(), WTFMove(wasThrown));
-    });
->>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
 
     if (pauseAndMute)
         unmuteConsole();
-<<<<<<< HEAD
-||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
-
-    if (!result)
-        return makeUnexpected(errorString);
-
-    return { { result.releaseNonNull(), WTFMove(wasThrown) } };
-=======
 }
 
 Protocol::ErrorStringOr<void> InspectorRuntimeAgent::addBinding(const String&)
 {
     return makeUnexpected("Not implemented in this type of agent."_s);
->>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
 }
 
 Protocol::ErrorStringOr<Ref<Protocol::Runtime::ObjectPreview>> InspectorRuntimeAgent::getPreview(const Protocol::Runtime::RemoteObjectId& objectId)

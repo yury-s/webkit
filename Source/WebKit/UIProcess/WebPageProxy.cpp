@@ -771,20 +771,10 @@ WebPageProxy::~WebPageProxy()
     if (preferences->mediaSessionCoordinatorEnabled())
         GroupActivitiesSessionNotifier::sharedNotifier().removeWebPage(*this);
 #endif
-<<<<<<< HEAD
-||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
-
-    internals().remotePageProxyInOpenerProcess = nullptr;
-    internals().openedRemotePageProxies.clear();
-=======
-
-    internals().remotePageProxyInOpenerProcess = nullptr;
-    internals().openedRemotePageProxies.clear();
 
 #if PLATFORM(COCOA)
     releaseInspectorDragPasteboard();
 #endif
->>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
 }
 
 void WebPageProxy::addAllMessageReceivers()

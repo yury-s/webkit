@@ -269,12 +269,6 @@
             "returns": [
                 { "name": "result", "$ref": "RemoteObject", "description": "Call result." },
                 { "name": "wasThrown", "type": "boolean", "optional": true, "description": "True if the result was thrown during the evaluation." }
-<<<<<<< HEAD
-            ],
-            "async": true
-||||||| parent of 184d12ac9951 (chore(webkit): bootstrap build #1944)
-            ]
-=======
             ],
             "async": true
         },
@@ -284,7 +278,6 @@
           "parameters": [
               { "name": "name", "type": "string", "description": "Name of the bound function." }
           ]
->>>>>>> 184d12ac9951 (chore(webkit): bootstrap build #1944)
         },
         {
             "name": "getPreview",
