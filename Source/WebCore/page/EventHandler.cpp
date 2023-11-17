@@ -4920,7 +4920,7 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
 
         // Increment the platform touch id by 1 to avoid storing a key of 0 in the hashmap.
         unsigned touchPointTargetKey = point.id() + 1;
-#if PLATFORM(WPE)
+#if !ENABLE(IOS_TOUCH_EVENTS)
         bool pointerCancelled = false;
 #endif
         RefPtr<EventTarget> touchTarget;
@@ -4967,7 +4967,7 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
             // we also remove it from the map.
             touchTarget = m_originatingTouchPointTargets.take(touchPointTargetKey);
 
-#if PLATFORM(WPE)
+#if !ENABLE(IOS_TOUCH_EVENTS)
             HitTestResult result = hitTestResultAtPoint(pagePoint, hitType | HitTestRequest::Type::AllowChildFrameContent);
             pointerTarget = result.targetElement();
             pointerCancelled = (pointerTarget != touchTarget);
@@ -4989,7 +4989,7 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
         if (!targetFrame)
             continue;
 
-#if PLATFORM(WPE)
+#if !ENABLE(IOS_TOUCH_EVENTS)
         // FIXME: WPE currently does not send touch stationary events, so create a naive TouchReleased PlatformTouchPoint
         // on release if the hit test result changed since the previous TouchPressed or TouchMoved
         if (pointState == PlatformTouchPoint::TouchReleased && pointerCancelled) {
