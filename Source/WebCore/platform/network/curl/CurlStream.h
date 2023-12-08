@@ -53,12 +53,12 @@ public:
         virtual void didFail(CurlStreamID, CURLcode, CertificateInfo&&) = 0;
     };
 
-    static std::unique_ptr<CurlStream> create(CurlStreamScheduler& scheduler, CurlStreamID streamID, URL&& url, ServerTrustEvaluation serverTrustEvaluation)
+    static std::unique_ptr<CurlStream> create(CurlStreamScheduler& scheduler, CurlStreamID streamID, bool ignoreCertificateErrors, URL&& url, ServerTrustEvaluation serverTrustEvaluation)
     {
-        return makeUnique<CurlStream>(scheduler, streamID, WTFMove(url), serverTrustEvaluation);
+        return makeUnique<CurlStream>(scheduler, streamID, ignoreCertificateErrors, WTFMove(url), serverTrustEvaluation);
     }
 
-    CurlStream(CurlStreamScheduler&, CurlStreamID, URL&&, ServerTrustEvaluation);
+    CurlStream(CurlStreamScheduler&, CurlStreamID, bool ignoreCertificateErrors, URL&&, ServerTrustEvaluation);
     virtual ~CurlStream();
 
     void send(UniqueArray<uint8_t>&&, size_t);

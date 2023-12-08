@@ -177,6 +177,8 @@ namespace WebCore {
     macro(DecompressionStreamTransform) \
     macro(DelayNode) \
     macro(DeprecationReportBody) \
+    macro(DeviceMotionEvent) \
+    macro(DeviceOrientationEvent) \
     macro(DocumentTimeline) \
     macro(DynamicsCompressorNode) \
     macro(ElementInternals) \
