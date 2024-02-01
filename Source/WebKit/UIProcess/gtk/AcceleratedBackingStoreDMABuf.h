@@ -157,7 +157,6 @@ private:
     public:
         static RefPtr<Buffer> create(uint64_t id, const WebCore::IntSize&, float deviceScaleFactor, uint32_t format, WTF::UnixFileDescriptor&&, uint32_t stride);
         ~BufferGBM();
-        cairo_surface_t* surfaceForScreencast();
 
     private:
         BufferGBM(uint64_t id, const WebCore::IntSize&, float deviceScaleFactor, WTF::UnixFileDescriptor&&, struct gbm_bo*);
@@ -176,7 +175,6 @@ private:
     public:
         static RefPtr<Buffer> create(uint64_t id, RefPtr<ShareableBitmap>&&, float deviceScaleFactor);
         ~BufferSHM() = default;
-        cairo_surface_t* surfaceForScreencast();
 
     private:
         BufferSHM(uint64_t id, RefPtr<ShareableBitmap>&&, float deviceScaleFactor);
@@ -214,6 +212,9 @@ private:
     RefPtr<Buffer> m_pendingBuffer;
     RefPtr<Buffer> m_committedBuffer;
     HashMap<uint64_t, RefPtr<Buffer>> m_buffers;
+// Playwright begin
+    RefPtr<cairo_surface_t> m_flippedSurface;
+// Playwright end
 };
 
 } // namespace WebKit
