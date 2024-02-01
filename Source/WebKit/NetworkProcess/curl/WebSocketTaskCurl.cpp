@@ -35,11 +35,12 @@
 
 namespace WebKit {
 
-WebSocketTask::WebSocketTask(NetworkSocketChannel& channel, WebPageProxyIdentifier webProxyPageID, const WebCore::ResourceRequest& request, const String& protocol, const WebCore::ClientOrigin& clientOrigin)
+WebSocketTask::WebSocketTask(NetworkSocketChannel& channel, WebPageProxyIdentifier webProxyPageID, const WebCore::ResourceRequest& request, const String& protocol, bool ignoreCertificateErrors, const WebCore::ClientOrigin& clientOrigin)
     : m_channel(channel)
     , m_webProxyPageID(webProxyPageID)
     , m_request(request.isolatedCopy())
     , m_protocol(protocol)
+    , m_ignoreCertificateErrors(ignoreCertificateErrors)
     , m_scheduler(WebCore::CurlContext::singleton().streamScheduler())
 {
     // We use topOrigin in case of service worker websocket connections, for which pageID does not link to a real page.
@@ -47,7 +48,7 @@ WebSocketTask::WebSocketTask(NetworkSocketChannel& channel, WebPageProxyIdentifi
     if (clientOrigin.topOrigin == clientOrigin.clientOrigin)
         m_topOrigin = clientOrigin.topOrigin;
 
-    m_streamID = m_scheduler.createStream(request.url(), *this);
+    m_streamID = m_scheduler.createStream(request.url(), ignoreCertificateErrors, *this);
     m_channel.didSendHandshakeRequest(WebCore::ResourceRequest(m_request));
 }
 
@@ -246,7 +247,7 @@ void WebSocketTask::tryServerTrustEvaluation(WebCore::AuthenticationChallenge&& 
 {
     networkSession()->didReceiveChallenge(*this, WTFMove(challenge), [this, errorReason = WTFMove(errorReason)](WebKit::AuthenticationChallengeDisposition disposition, const WebCore::Credential& credential) mutable {
         if (disposition == AuthenticationChallengeDisposition::UseCredential && !credential.isEmpty())
-            m_streamID = m_scheduler.createStream(m_request.url(), *this, WebCore::CurlStream::ServerTrustEvaluation::Disable);
+            m_streamID = m_scheduler.createStream(m_request.url(), m_ignoreCertificateErrors, *this, WebCore::CurlStream::ServerTrustEvaluation::Disable);
         else
             didFail(WTFMove(errorReason));
     });

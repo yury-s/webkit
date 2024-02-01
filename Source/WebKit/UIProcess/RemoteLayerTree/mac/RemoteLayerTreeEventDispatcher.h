@@ -30,6 +30,7 @@
 #include "DisplayLinkObserverID.h"
 #include "MomentumEventDispatcher.h"
 #include "NativeWebWheelEvent.h"
+#include "RemoteLayerTreeNode.h"
 #include <pal/HysteresisActivity.h>
 #include <wtf/Condition.h>
 #include <wtf/Deque.h>
@@ -39,6 +40,11 @@
 #include <wtf/RunLoop.h>
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/threads/BinarySemaphore.h>
+#include <WebCore/PageIdentifier.h>
+#include <WebCore/RectEdges.h>
+
+#include "NativeWebWheelEvent.h"
+#include "WebPage.h"
 
 namespace WebCore {
 class PlatformWheelEvent;

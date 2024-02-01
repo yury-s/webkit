@@ -2490,6 +2490,9 @@ class WebCore::DragData {
 #if PLATFORM(COCOA)
     String pasteboardName();
 #endif
+#if PLATFORM(WIN)
+    WebCore::DragDataMap dragDataMap();
+#endif
     WebCore::IntPoint clientPosition();
     WebCore::IntPoint globalPosition();
 #if PLATFORM(COCOA)
@@ -3049,6 +3052,7 @@ header: <WebCore/ResourceResponseBase.h>
     String httpStatusText;
     String httpVersion;
     WebCore::HTTPHeaderMap httpHeaderFields;
+    WebCore::HTTPHeaderMap httpRequestHeaderFields;
     std::optional<WebCore::NetworkLoadMetrics> networkLoadMetrics;
     WebCore::ResourceResponseBase::Source source;
     WebCore::ResourceResponseBase::Type type;
