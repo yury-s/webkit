@@ -561,6 +561,50 @@ bool AcceleratedBackingStoreDMABuf::paint(cairo_t* cr, const WebCore::IntRect& c
 }
 #endif
 
+static cairo_surface_t* _surfaceForScreencast(RefPtr<cairo_surface_t> surface, float deviceScaleFactor)
+{
+    if (!surface)
+        return nullptr;
+
+    // The original surface is upside down, so we flip it to match orientation in other accelerated backing stores.
+    static RefPtr<cairo_surface_t> flippedSurface = adoptRef(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, cairo_image_surface_get_width(surface.get()), cairo_image_surface_get_height(surface.get())));
+    {
+        RefPtr<cairo_t> cr = adoptRef(cairo_create(flippedSurface.get()));
+        cairo_matrix_t transform;
+        cairo_matrix_init(&transform, 1, 0, 0, -1, 0, cairo_image_surface_get_height(surface.get()) / deviceScaleFactor);
+        cairo_transform(cr.get(), &transform);
+        cairo_set_source_surface(cr.get(), surface.get(), 0, 0);
+        cairo_paint(cr.get());
+    }
+    cairo_surface_flush(flippedSurface.get());
+    return flippedSurface.get();
+}
+
+cairo_surface_t* AcceleratedBackingStoreDMABuf::BufferGBM::surfaceForScreencast()
+{
+    return _surfaceForScreencast(surface(), deviceScaleFactor());
+}
+
+cairo_surface_t* AcceleratedBackingStoreDMABuf::BufferSHM::surfaceForScreencast()
+{
+    return _surfaceForScreencast(surface(), deviceScaleFactor());
+}
+
+cairo_surface_t* AcceleratedBackingStoreDMABuf::surface()
+{
+    RefPtr<Buffer> buffer = m_renderer.buffer();
+    if (!buffer)
+        return nullptr;
+
+    if (RefPtr<BufferSHM> bufferSHM = reinterpret_cast<RefPtr<BufferSHM>&>(buffer))
+        return bufferSHM->surfaceForScreencast();
+    if (RefPtr<BufferGBM> bufferGBM = reinterpret_cast<RefPtr<BufferGBM>&>(buffer))
+        return bufferGBM->surfaceForScreencast();
+
+    return nullptr;
+}
+
+
 } // namespace WebKit
 
 #endif // USE(EGL)

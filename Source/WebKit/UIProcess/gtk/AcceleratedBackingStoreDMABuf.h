@@ -88,6 +88,7 @@ private:
 #else
     bool paint(cairo_t*, const WebCore::IntRect&) override;
 #endif
+    cairo_surface_t* surface() override;
     void unrealize() override;
     void update(const LayerTreeContext&) override;
 
@@ -156,6 +157,7 @@ private:
     public:
         static RefPtr<Buffer> create(uint64_t id, const WebCore::IntSize&, float deviceScaleFactor, uint32_t format, WTF::UnixFileDescriptor&&, uint32_t stride);
         ~BufferGBM();
+        cairo_surface_t* surfaceForScreencast();
 
     private:
         BufferGBM(uint64_t id, const WebCore::IntSize&, float deviceScaleFactor, WTF::UnixFileDescriptor&&, struct gbm_bo*);
@@ -174,6 +176,7 @@ private:
     public:
         static RefPtr<Buffer> create(uint64_t id, RefPtr<ShareableBitmap>&&, float deviceScaleFactor);
         ~BufferSHM() = default;
+        cairo_surface_t* surfaceForScreencast();
 
     private:
         BufferSHM(uint64_t id, RefPtr<ShareableBitmap>&&, float deviceScaleFactor);

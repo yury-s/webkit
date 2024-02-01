@@ -163,6 +163,9 @@ public:
     virtual void deviceOrPageScaleFactorChanged() = 0;
     virtual bool enterAcceleratedCompositingModeIfNeeded() = 0;
 #endif
+#if PLATFORM(WIN)
+    void didChangeAcceleratedCompositingMode(bool enabled);
+#endif
 
 #if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
     virtual void preferredBufferFormatsDidChange() { }

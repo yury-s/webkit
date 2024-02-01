@@ -41,6 +41,7 @@
 #include "WebPageProxyMessages.h"
 #include "WebProcessMessages.h"
 #include "WebProcessProxy.h"
+#include "WebProcessMessages.h"
 #include <WebCore/RemoteUserInputEventData.h>
 
 namespace WebKit {

@@ -70,6 +70,8 @@ public:
 
     void clearCache() final;
 
+    void setCookieFromResponse(WebCore::ResourceLoader&, const String& setCookieValue);
+
 private:
     WebCookieJar();
 
