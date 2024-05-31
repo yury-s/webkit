@@ -841,6 +841,12 @@ void InspectorPlaywrightAgent::setCookies(const String& browserContextID, Ref<JS
                 cookie.sameSite = WebCore::Cookie::SameSitePolicy::Lax;
             if (sameSite == "Strict"_s)
                 cookie.sameSite = WebCore::Cookie::SameSitePolicy::Strict;
+#if USE(SOUP)
+        } else {
+            // Cookies are Lax by default in libsoup and will reject cookies with
+            // sameSite: None and secure: false (defaults in WebCore::Cookie).
+            cookie.sameSite = WebCore::Cookie::SameSitePolicy::Lax;
+#endif
         }
         cookies.append(WTFMove(cookie));
     }
