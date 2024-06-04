@@ -122,7 +122,7 @@ void webkit_web_view_backend_set_screenshot_callback(WebKitWebViewBackend *view_
     view_backend->screenshotCallback = callback;
 }
 
-cairo_surface_t* webkitWebViewBackendTakeScreenshot(WebKitWebViewBackend* view_backend)
+PlatformImage webkitWebViewBackendTakeScreenshot(WebKitWebViewBackend* view_backend)
 {
     if (!view_backend->screenshotCallback)
         return nullptr;

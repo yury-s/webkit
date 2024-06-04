@@ -37,7 +37,12 @@
 #include "WebKitWebsiteDataManagerPrivate.h"
 #include "WebKitWebViewPrivate.h"
 #include "WebPageProxy.h"
+#if USE(CAIRO)
 #include <WebCore/ImageBufferUtilitiesCairo.h>
+#endif
+#if USE(SKIA)
+#include <WebCore/ImageBufferUtilitiesSkia.h>
+#endif
 #include <wtf/HashMap.h>
 #include <wtf/RefPtr.h>
 #include <wtf/text/Base64.h>
@@ -173,9 +178,14 @@ void InspectorPlaywrightAgentClientGlib::takePageScreenshot(WebPageProxy& page, 
             }
         }
 #elif PLATFORM(WPE)
+#if USE(SKIA)
+        sk_sp<SkImage> protectPtr = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
+        SkImage* surface = protectPtr.get();
+#elif USE(CAIRO)
         cairo_surface_t* surface = nullptr;
         RefPtr<cairo_surface_t> protectPtr = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
         surface = protectPtr.get();
+#endif
         if (surface) {
             Vector<uint8_t> encodeData = WebCore::encodeData(surface, "image/png"_s, std::nullopt);
             completionHandler(emptyString(), makeString("data:image/png;base64,"_s, base64Encoded(encodeData)));

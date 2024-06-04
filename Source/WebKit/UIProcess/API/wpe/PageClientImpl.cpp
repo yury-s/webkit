@@ -49,6 +49,12 @@
 #include <atk/atk.h>
 #endif
 
+#if USE(SKIA)
+#include <skia/core/SkBitmap.h>
+#include <skia/core/SkCanvas.h>
+#include <skia/core/SkImage.h>
+#endif
+
 namespace WebKit {
 
 PageClientImpl::PageClientImpl(WKWPE::View& view)
@@ -469,6 +475,35 @@ void PageClientImpl::selectionDidChange()
     m_view.selectionDidChange();
 }
 
+#if USE(SKIA)
+sk_sp<SkImage> PageClientImpl::takeViewSnapshot(std::optional<WebCore::IntRect>&& clipRect, bool nominalResolution)
+{
+    sk_sp<SkImage> fullScreenshot = m_view.client().takeViewScreenshot();
+    float deviceScale = m_view.page().deviceScaleFactor();
+    if (!clipRect && (!nominalResolution || deviceScale == 1))
+        return fullScreenshot;
+
+    WebCore::IntSize size = clipRect ? clipRect->size() : m_view.page().viewSize();
+    if (!nominalResolution) {
+        size.scale(deviceScale);
+        if (clipRect)
+            clipRect->scale(deviceScale);
+    }
+
+    SkBitmap bitmap;
+    bitmap.allocPixels(SkImageInfo::Make(size.width(), size.height(), kN32_SkColorType, kPremul_SkAlphaType));
+    SkCanvas canvas(bitmap);
+    if (clipRect) {
+        canvas.translate(-clipRect->x(), -clipRect->y());
+        SkRect rect = SkRect::MakeXYWH(clipRect->x(), clipRect->y(), clipRect->width(), clipRect->height());
+        canvas.clipRect(rect);
+    }
+    if (nominalResolution)
+        canvas.scale(1/deviceScale, 1/deviceScale);
+    canvas.drawImage(fullScreenshot, 0, 0);
+    return bitmap.asImage();
+}
+#elif USE(CAIRO)
 RefPtr<cairo_surface_t> PageClientImpl::takeViewSnapshot(std::optional<WebCore::IntRect>&& clipRect, bool nominalResolution)
 {
     RefPtr<cairo_surface_t> fullScreenshot = adoptRef(m_view.client().takeViewScreenshot());
@@ -495,6 +530,8 @@ RefPtr<cairo_surface_t> PageClientImpl::takeViewSnapshot(std::optional<WebCore::
     cairo_paint(cr.get());
     return surface;
 }
+#endif
+
 
 WebKitWebResourceLoadManager* PageClientImpl::webResourceLoadManager()
 {

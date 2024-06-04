@@ -38,6 +38,18 @@
 #include <wtf/UUID.h>
 #include <wtf/text/Base64.h>
 
+#if USE(SKIA)
+#include "DrawingAreaProxyCoordinatedGraphics.h"
+#include "DrawingAreaProxy.h"
+#include <skia/core/SkBitmap.h>
+#include <skia/core/SkCanvas.h>
+#include <skia/core/SkImage.h>
+#include <skia/core/SkPixmap.h>
+#include <skia/core/SkData.h>
+#include <skia/core/SkStream.h>
+#include <skia/encode/SkJpegEncoder.h>
+#endif
+
 #if USE(CAIRO)
 #include "CairoJpegEncoder.h"
 #include "DrawingAreaProxyCoordinatedGraphics.h"
@@ -83,6 +95,82 @@ void InspectorScreencastAgent::willDestroyFrontendAndBackend(DisconnectReason)
 
     m_encoder = nullptr;
 }
+
+#if USE(SKIA)
+void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
+{
+    sk_sp<SkImage> image(surface);
+#if PLATFORM(WPE)
+    // Get actual image size (in device pixels).
+    WebCore::IntSize displaySize(image->width(), image->height());
+
+    WebCore::IntSize drawingAreaSize = m_page.drawingArea()->size();
+    drawingAreaSize.scale(m_page.deviceScaleFactor());
+    if (drawingAreaSize != displaySize) {
+        return;
+    }
+#else
+    WebCore::IntSize displaySize = m_page.drawingArea()->size();
+#endif
+    // Do not WTFMove image here as it is used below
+    if (m_encoder)
+        m_encoder->encodeFrame(sk_sp<SkImage>(image), displaySize);
+    if (m_screencast) {
+        {
+            SkBitmap bitmap;
+            bitmap.setInfo(SkImageInfo::Make(image->width(), image->height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType));
+            if (!bitmap.tryAllocPixels() || !image->readPixels(bitmap.pixmap(), 0, 0)) {
+                fprintf(stderr, "Failed to read pixels from SkImage\n");
+                return;
+            }
+            // Do not send the same frame over and over.
+            size_t len = bitmap.computeByteSize();
+            auto cryptoDigest = PAL::CryptoDigest::create(PAL::CryptoDigest::Algorithm::SHA_1);
+            cryptoDigest->addBytes(std::span(reinterpret_cast<unsigned char*>(bitmap.getPixels()), len));
+            auto digest = cryptoDigest->computeHash();
+            if (m_lastFrameDigest == digest)
+                return;
+            m_lastFrameDigest = digest;
+        }
+
+        if (m_screencastFramesInFlight > kMaxFramesInFlight)
+            return;
+        // Scale image to fit width / height
+        double scale = std::min(m_screencastWidth / displaySize.width(), m_screencastHeight / displaySize.height());
+        if (scale < 1) {
+            // Create a destination bitmap with the desired size
+            SkImageInfo dstInfo = SkImageInfo::MakeN32Premul(displaySize.width() * scale, displaySize.height() * scale);
+            SkBitmap dstBitmap;
+            if (!dstBitmap.allocPixels(dstInfo)) {
+                fprintf(stderr, "Failed to allocate dstBitmap\n");
+                return;
+            }
+            SkCanvas canvas(dstBitmap);
+            canvas.scale(scale, scale);
+            canvas.drawImage(image, 0, 0);
+            image = dstBitmap.asImage();
+        }
+
+        SkPixmap pixmap;
+        if (!image->peekPixels(&pixmap)) {
+            fprintf(stderr, "Failed to peek pixels from SkImage\n");
+            return;
+        }
+
+        SkJpegEncoder::Options options;
+        options.fQuality = 90;
+        SkDynamicMemoryWStream stream;
+        if (!SkJpegEncoder::Encode(&stream, pixmap, options)) {
+            fprintf(stderr, "Failed to encode image to JPEG\n");
+            return;
+        }
+        sk_sp<SkData> jpegData = stream.detachAsData();
+        String result = base64EncodeToString(std::span(reinterpret_cast<const unsigned char*>(jpegData->data()), jpegData->size()));
+        ++m_screencastFramesInFlight;
+        m_frontendDispatcher->screencastFrame(result, displaySize.width(), displaySize.height());
+    }
+}
+#endif
 
 #if USE(CAIRO)
 void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)

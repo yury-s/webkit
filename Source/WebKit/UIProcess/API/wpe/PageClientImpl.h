@@ -166,8 +166,11 @@ private:
     void didChangeWebPageID() const override;
 
     void selectionDidChange() override;
+#if USE(SKIA)
+    sk_sp<SkImage> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution) override;
+#elif USE(CAIRO)
     RefPtr<cairo_surface_t> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution) override;
-
+#endif
     WebKitWebResourceLoadManager* webResourceLoadManager() override;
     void didClearEditorStateAfterPageTransition() final { }
 

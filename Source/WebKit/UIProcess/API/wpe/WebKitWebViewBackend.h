@@ -27,7 +27,15 @@
 #include <glib-object.h>
 #include <wpe/WebKitDefines.h>
 #include <wpe/wpe.h>
+
+#if defined(USE_CAIRO) && USE_CAIRO
 #include <cairo.h>
+using PlatformImage = cairo_surface_t*;
+#endif
+#if defined(USE_SKIA) && USE_SKIA
+#include <skia/core/SkImage.h>
+using PlatformImage = SkImage*;
+#endif
 
 G_BEGIN_DECLS
 
@@ -45,7 +53,7 @@ webkit_web_view_backend_new             (struct wpe_view_backend *backend,
 WEBKIT_API struct wpe_view_backend *
 webkit_web_view_backend_get_wpe_backend (WebKitWebViewBackend    *view_backend);
 
-typedef cairo_surface_t* (*take_screenshot_callback)(gpointer              user_data);
+typedef PlatformImage (*take_screenshot_callback)(gpointer              user_data);
 
 WEBKIT_API void
 webkit_web_view_backend_set_screenshot_callback   (WebKitWebViewBackend      *view_backend,

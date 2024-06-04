@@ -39,6 +39,13 @@
 #include <wtf/WorkQueue.h>
 #include <wtf/text/StringConcatenateNumbers.h>
 
+#if USE(SKIA)
+#include <skia/core/SkBitmap.h>
+#include <skia/core/SkCanvas.h>
+#include <skia/core/SkData.h>
+#include <skia/core/SkImage.h>
+#endif
+
 #if USE(CAIRO)
 #include <WebCore/RefPtrCairo.h>
 #endif
@@ -127,7 +134,11 @@ class ScreencastEncoder::VPXFrame {
     WTF_MAKE_NONCOPYABLE(VPXFrame);
     WTF_MAKE_FAST_ALLOCATED;
 public:
-#if USE(CAIRO)
+#if USE(SKIA)
+    explicit VPXFrame(sk_sp<SkImage>&& surface)
+        : m_surface(WTFMove(surface))
+    { }
+#elif USE(CAIRO)
     explicit VPXFrame(RefPtr<cairo_surface_t>&& surface)
         : m_surface(WTFMove(surface))
     { }
@@ -143,7 +154,16 @@ public:
 
     void convertToVpxImage(vpx_image_t* image)
     {
-#if USE(CAIRO)
+#if USE(SKIA)
+        // Convert the updated region to YUV ready for encoding.
+        SkImageInfo info = SkImageInfo::Make(m_surface->width(), m_surface->height(), kN32_SkColorType, kPremul_SkAlphaType);
+        int argb_stride = info.minRowBytes();
+        size_t bufferSize = info.computeByteSize(argb_stride);
+        UniqueArray<uint8_t> buffer = makeUniqueArray<uint8_t>(bufferSize);
+        uint8_t* argb_data = buffer.get();
+        if (!m_surface->readPixels(info, argb_data, argb_stride, 0, 0))
+            fprintf(stderr, "Read SkImage to ARGB buffer\n");
+#elif USE(CAIRO)
         // Convert the updated region to YUV ready for encoding.
         const uint8_t* argb_data = cairo_image_surface_get_data(m_surface.get());
         int argb_stride = cairo_image_surface_get_stride(m_surface.get());
@@ -169,7 +189,9 @@ public:
     }
 
 private:
-#if USE(CAIRO)
+#if USE(SKIA)
+    sk_sp<SkImage> m_surface;
+#elif USE(CAIRO)
     RefPtr<cairo_surface_t> m_surface;
 #elif PLATFORM(MAC)
     RetainPtr<CGImageRef> m_windowImage;
@@ -332,7 +354,31 @@ void ScreencastEncoder::flushLastFrame()
     m_lastFrameTimestamp = now;
 }
 
-#if USE(CAIRO)
+#if USE(SKIA)
+void ScreencastEncoder::encodeFrame(sk_sp<SkImage>&& image, IntSize size)
+{
+    flushLastFrame();
+    // Note that in WPE drawing area size is updated asynchronously and may differ from acutal
+    // size of the surface.
+    if (size.isZero()) {
+        return;
+    }
+    SkBitmap surface;
+    surface.allocPixels(SkImageInfo::Make(m_size.width(), m_size.height(), kBGRA_8888_SkColorType, kPremul_SkAlphaType));
+    SkCanvas canvas(surface);
+    SkMatrix transform;
+    if (size.width() > m_size.width() || size.height() > m_size.height()) {
+        // If no scale is specified shrink to fit the frame.
+        double scale = std::min(static_cast<double>(m_size.width()) / size.width(),
+                                static_cast<double>(m_size.height()) / size.height());
+        transform.setScale(scale, scale);
+        canvas.setMatrix(transform);
+    }
+    // Record top left part of the drawing area that fits into the frame.
+    canvas.drawImage(image, 0, 0);
+    m_lastFrame = makeUnique<VPXFrame>(surface.asImage());
+}
+#elif USE(CAIRO)
 void ScreencastEncoder::encodeFrame(cairo_surface_t* drawingAreaSurface, IntSize size)
 {
     flushLastFrame();

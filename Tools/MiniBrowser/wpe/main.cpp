@@ -370,7 +370,7 @@ static WebKitWebView* createNewPage(WebKitBrowserInspector*, WebKitWebContext *w
     return webView;
 }
 
-static void quitBroserApplication(WebKitBrowserInspector* browser_inspector, gpointer data)
+static void quitBroserApplication(WebKitBrowserInspector*, gpointer data)
 {
     GApplication* application = static_cast<GApplication*>(data);
     g_application_quit(application);

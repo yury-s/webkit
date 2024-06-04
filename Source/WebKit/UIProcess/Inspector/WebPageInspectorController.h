@@ -36,6 +36,11 @@
 #include <wtf/text/WTFString.h>
 #include <wtf/URL.h>
 
+#if USE(SKIA)
+#include <skia/core/SkData.h>
+#include <skia/core/SkImage.h>
+#endif
+
 #if USE(CAIRO)
 #include <cairo.h>
 #endif
@@ -113,6 +118,9 @@ public:
 
 #if ENABLE(REMOTE_INSPECTOR)
     void setIndicating(bool);
+#endif
+#if USE(SKIA)
+    void didPaint(sk_sp<SkImage>&&);
 #endif
 #if USE(CAIRO)
     void didPaint(cairo_surface_t*);
