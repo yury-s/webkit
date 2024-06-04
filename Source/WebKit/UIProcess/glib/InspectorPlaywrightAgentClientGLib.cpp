@@ -31,6 +31,7 @@
 #include "InspectorPlaywrightAgent.h"
 #include "PageClient.h"
 #include "ViewSnapshotStore.h"
+#include "WebAutomationSession.h"
 #include "WebKitBrowserInspectorPrivate.h"
 #include "WebKitWebContextPrivate.h"
 #include "WebKitWebsiteDataManagerPrivate.h"
@@ -123,7 +124,9 @@ std::unique_ptr<BrowserContext> InspectorPlaywrightAgentClientGlib::createBrowse
 #endif
     // WPE has PSON enabled by default and doesn't have such parameter.
 #if PLATFORM(GTK)
+#if !ENABLE(2022_GLIB_API)
         "process-swap-on-cross-site-navigation-enabled", true,
+#endif
 #endif
         nullptr)));
     if (!context) {
@@ -160,21 +163,25 @@ void InspectorPlaywrightAgentClientGlib::deleteBrowserContext(WTF::String& error
 void InspectorPlaywrightAgentClientGlib::takePageScreenshot(WebPageProxy& page, WebCore::IntRect&& clip, bool nominalResolution, CompletionHandler<void(const String&, const String&)>&& completionHandler)
 {
     page.callAfterNextPresentationUpdate([protectedPage = Ref{ page }, clip = WTFMove(clip), nominalResolution, completionHandler = WTFMove(completionHandler)]() mutable {
-        cairo_surface_t* surface = nullptr;
 #if PLATFORM(GTK)
         RefPtr<ViewSnapshot> viewSnapshot = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
-        if (viewSnapshot)
-            surface = viewSnapshot->surface();
+        if (viewSnapshot) {
+            std::optional<String> data = WebAutomationSession::platformGetBase64EncodedPNGData(*viewSnapshot);
+            if (data) {
+                completionHandler(emptyString(), makeString("data:image/png;base64,"_s, *data));
+                return;
+            }
+        }
 #elif PLATFORM(WPE)
+        cairo_surface_t* surface = nullptr;
         RefPtr<cairo_surface_t> protectPtr = protectedPage->pageClient().takeViewSnapshot(WTFMove(clip), nominalResolution);
         surface = protectPtr.get();
-#endif
         if (surface) {
             Vector<uint8_t> encodeData = WebCore::encodeData(surface, "image/png"_s, std::nullopt);
             completionHandler(emptyString(), makeString("data:image/png;base64,"_s, base64Encoded(encodeData)));
             return;
         }
-
+#endif
         completionHandler("Failed to take screenshot"_s, emptyString());
     });
 }

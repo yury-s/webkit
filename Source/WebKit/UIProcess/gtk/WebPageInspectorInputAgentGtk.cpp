@@ -33,6 +33,7 @@
 
 namespace WebKit {
 
+#if !USE(GTK4)
 static Vector<String> commandsForKeyEvent(GdkEventType type, unsigned keyVal, unsigned state)
 {
     ASSERT(type == GDK_KEY_PRESS || type == GDK_KEY_RELEASE);
@@ -48,6 +49,7 @@ static Vector<String> commandsForKeyEvent(GdkEventType type, unsigned keyVal, un
         event->key.hardware_keycode = keys.get()[0].keycode;
     return KeyBindingTranslator().commandsForKeyEvent(&event->key);
 }
+#endif
 
 static unsigned modifiersToEventState(OptionSet<WebEventModifier> modifiers)
 {
@@ -67,6 +69,7 @@ void WebPageInspectorInputAgent::platformDispatchKeyEvent(WebEventType type, con
 {
     Vector<String> commands;
     const guint keyVal = WebCore::PlatformKeyboardEvent::gdkKeyCodeForWindowsKeyCode(windowsVirtualKeyCode);
+#if !USE(GTK4)
     if (keyVal) {
         GdkEventType event = GDK_NOTHING;
         switch (type)
@@ -84,6 +87,7 @@ void WebPageInspectorInputAgent::platformDispatchKeyEvent(WebEventType type, con
         unsigned state = modifiersToEventState(modifiers);
         commands = commandsForKeyEvent(event, keyVal, state);
     }
+#endif
     NativeWebKeyboardEvent event(
         type,
         text,

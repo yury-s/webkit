@@ -751,8 +751,10 @@ static void filterSavedCallback(WebKitUserContentFilterStore *store, GAsyncResul
 static WebKitSettings* createPlaywrightSettings() {
     WebKitSettings* webkitSettings = webkit_settings_new();
     // Playwright: revert to the default state before https://github.com/WebKit/WebKit/commit/a73a25b9ea9229987c8fa7b2e092e6324cb17913
+#if !GTK_CHECK_VERSION(3, 98, 0)
     webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER);
     webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_ON_DEMAND);
+#endif
     return webkitSettings;
 }
 
@@ -766,10 +768,18 @@ static WebKitWebView *createNewPage(WebKitBrowserInspector *browser_inspector, W
     WebKitWebView *newWebView = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
         "web-context", context,
         "settings", createPlaywrightSettings(),
+#if GTK_CHECK_VERSION(3, 98, 0)
+        "network-session", webkit_web_context_get_network_session_for_automation(context),
+#else
         "is-ephemeral", webkit_web_context_is_ephemeral(context),
+#endif
         "is-controlled-by-automation", TRUE,
         NULL));
+#if GTK_CHECK_VERSION(3, 98, 0)
+    GtkWidget *newWindow = browser_window_new(NULL, context, webkit_web_context_get_network_session_for_automation(context));
+#else
     GtkWidget *newWindow = browser_window_new(NULL, context);
+#endif
     gtk_window_set_application(GTK_WINDOW(newWindow), browserApplication);
     browser_window_append_view(BROWSER_WINDOW(newWindow), newWebView);
     gtk_widget_grab_focus(GTK_WIDGET(newWebView));
@@ -871,17 +881,24 @@ static void activate(GApplication *application, WebKitSettings *webkitSettings)
     g_signal_connect(webContext, "automation-started", G_CALLBACK(automationStartedCallback), application);
 
     WebKitNetworkSession *networkSession;
-    if (automationMode)
-        networkSession = g_object_ref(webkit_web_context_get_network_session_for_automation(webContext));
-    else if (privateMode)
+    if (userDataDir) {
+        char *dataDirectory = g_build_filename(userDataDir, "data", NULL);
+        char *cacheDirectory = g_build_filename(userDataDir, "cache", NULL);
+        networkSession = webkit_network_session_new(dataDirectory, cacheDirectory);
+        g_free(dataDirectory);
+        g_free(cacheDirectory);
+        cookiesFile = g_build_filename(userDataDir, "cookies.txt", NULL);
+    } else if (inspectorPipe || privateMode || automationMode) {
         networkSession = webkit_network_session_new_ephemeral();
-    else {
+    } else {
         char *dataDirectory = g_build_filename(g_get_user_data_dir(), "webkitgtk-" WEBKITGTK_API_VERSION, "MiniBrowser", NULL);
         char *cacheDirectory = g_build_filename(g_get_user_cache_dir(), "webkitgtk-" WEBKITGTK_API_VERSION, "MiniBrowser", NULL);
         networkSession = webkit_network_session_new(dataDirectory, cacheDirectory);
         g_free(dataDirectory);
         g_free(cacheDirectory);
     }
+
+    webkit_web_context_set_network_session_for_automation(webContext, networkSession);
 
     webkit_network_session_set_itp_enabled(networkSession, enableITP);
 

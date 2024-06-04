@@ -34,7 +34,11 @@ namespace WebKit {
 
 void InspectorTargetProxy::platformActivate(String& error) const
 {
+#if USE(GTK4)
+    GtkWidget* parent = GTK_WIDGET(gtk_widget_get_root(m_page.viewWidget()));
+#else
     GtkWidget* parent = gtk_widget_get_toplevel(m_page.viewWidget());
+#endif
     if (WebCore::widgetIsOnscreenToplevelWindow(parent))
         gtk_window_present(GTK_WINDOW(parent));
     else
