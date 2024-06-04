@@ -122,15 +122,6 @@ static void webSocketMessageNetworkEventCallback(SoupMessage* soupMessage, GSock
 }
 #endif
 
-static void webSocketMessageNetworkEventCallbackIgnoreTLSErrors(SoupMessage* soupMessage, GSocketClientEvent event, GIOStream* connection)
-{
-    if (event != G_SOCKET_CLIENT_TLS_HANDSHAKING)
-        return;
-
-    g_object_set_data(G_OBJECT(connection), "wk-soup-message", soupMessage);
-    g_signal_connect(connection, "accept-certificate", G_CALLBACK(webSocketAcceptCertificateCallbackIgnoreTLSErrors), soupMessage);
-}
-
 std::unique_ptr<WebSocketTask> NetworkSessionSoup::createWebSocketTask(WebPageProxyIdentifier, std::optional<FrameIdentifier> frameID, std::optional<PageIdentifier> pageID, NetworkSocketChannel& channel, const ResourceRequest& request, const String& protocol, const ClientOrigin&, bool, bool, OptionSet<WebCore::AdvancedPrivacyProtections>, ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking, StoredCredentialsPolicy)
 {
     GRefPtr<SoupMessage> soupMessage = request.createSoupMessage(blobRegistry());
@@ -139,10 +130,7 @@ std::unique_ptr<WebSocketTask> NetworkSessionSoup::createWebSocketTask(WebPagePr
 
     if (request.url().protocolIs("wss"_s)) {
 #if USE(SOUP2)
-        if (ignoreCertificateErrors())
-          g_signal_connect(soupMessage.get(), "network-event", G_CALLBACK(webSocketMessageNetworkEventCallbackIgnoreTLSErrors), this);
-        else
-          g_signal_connect(soupMessage.get(), "network-event", G_CALLBACK(webSocketMessageNetworkEventCallback), this);
+        g_signal_connect(soupMessage.get(), "network-event", G_CALLBACK(webSocketMessageNetworkEventCallback), this);
 #else
         if (ignoreCertificateErrors()) {
             g_signal_connect(soupMessage.get(), "accept-certificate", G_CALLBACK(webSocketAcceptCertificateCallbackIgnoreTLSErrors), this);

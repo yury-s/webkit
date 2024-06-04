@@ -440,11 +440,7 @@ void  NetworkStorageSession::setCookiesFromResponse(const URL& firstParty, const
         if (!cookie)
             continue;
 
-#if SOUP_CHECK_VERSION(2, 67, 1)
         soup_cookie_jar_add_cookie_full(cookieStorage(), cookie.release(), origin.get(), firstPartyURI.get());
-#else
-        soup_cookie_jar_add_cookie_with_first_party(cookieStorage(), firstPartyURI.get(), cookie.release());
-#endif
     }
 }
 
