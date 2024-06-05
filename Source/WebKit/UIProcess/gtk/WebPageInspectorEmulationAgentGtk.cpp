@@ -45,6 +45,14 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
     }
     GtkAllocation viewAllocation;
     gtk_widget_get_allocation(viewWidget, &viewAllocation);
+#if USE(GTK4)
+    // In GTK4 newly added tabs will have allocation size of 0x0, before the tab is shown.
+    // This is a Ctrl+click scenario. We invoke callback righ await to not stall.
+    if (!viewAllocation.width && !viewAllocation.height) {
+        callback(String());
+        return;
+    }
+#endif
     if (viewAllocation.width == width && viewAllocation.height == height) {
         callback(String());
         return;
