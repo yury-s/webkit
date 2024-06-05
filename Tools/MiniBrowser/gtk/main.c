@@ -750,8 +750,11 @@ static void filterSavedCallback(WebKitUserContentFilterStore *store, GAsyncResul
 
 static WebKitSettings* createPlaywrightSettings() {
     WebKitSettings* webkitSettings = webkit_settings_new();
+#if GTK_CHECK_VERSION(3, 98, 0)
+    // FIXME(Playwright): in GTK4, WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS is the default, but the page content is just black in that case.
+    webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER);
+#else
     // Playwright: revert to the default state before https://github.com/WebKit/WebKit/commit/a73a25b9ea9229987c8fa7b2e092e6324cb17913
-#if !GTK_CHECK_VERSION(3, 98, 0)
     webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER);
     webkit_settings_set_hardware_acceleration_policy(webkitSettings, WEBKIT_HARDWARE_ACCELERATION_POLICY_ON_DEMAND);
 #endif
