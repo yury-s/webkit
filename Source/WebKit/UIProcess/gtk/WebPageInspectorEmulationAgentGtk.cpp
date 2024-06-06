@@ -31,6 +31,19 @@
 #include <gtk/gtk.h>
 
 namespace WebKit {
+
+#if USE(GTK4)
+bool windowHasManyTabs(GtkWidget* widget) {
+    for (GtkWidget* parent = gtk_widget_get_parent(widget); parent; parent = gtk_widget_get_parent(parent)) {
+        if (GTK_IS_NOTEBOOK(parent)) {
+            int pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(parent));
+            return pages > 1;
+        }
+    }
+    return false;
+}
+#endif
+
 void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Function<void (const String& error)>&& callback)
 {
     GtkWidget* viewWidget = m_page.viewWidget();
@@ -48,7 +61,7 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
 #if USE(GTK4)
     // In GTK4 newly added tabs will have allocation size of 0x0, before the tab is shown.
     // This is a Ctrl+click scenario. We invoke callback righ await to not stall.
-    if (!viewAllocation.width && !viewAllocation.height) {
+    if (!viewAllocation.width && !viewAllocation.height && windowHasManyTabs(viewWidget)) {
         callback(String());
         return;
     }
