@@ -33,24 +33,6 @@
 
 namespace WebKit {
 
-#if !USE(GTK4)
-static Vector<String> commandsForKeyEvent(GdkEventType type, unsigned keyVal, unsigned state)
-{
-    ASSERT(type == GDK_KEY_PRESS || type == GDK_KEY_RELEASE);
-
-    GUniquePtr<GdkEvent> event(gdk_event_new(type));
-    event->key.keyval = keyVal;
-    event->key.time = GDK_CURRENT_TIME;
-    event->key.state = state;
-    // When synthesizing an event, an invalid hardware_keycode value can cause it to be badly processed by GTK+.
-    GUniqueOutPtr<GdkKeymapKey> keys;
-    int keysCount;
-    if (gdk_keymap_get_entries_for_keyval(gdk_keymap_get_default(), keyVal, &keys.outPtr(), &keysCount) && keysCount)
-        event->key.hardware_keycode = keys.get()[0].keycode;
-    return KeyBindingTranslator().commandsForKeyEvent(&event->key);
-}
-#endif
-
 static unsigned modifiersToEventState(OptionSet<WebEventModifier> modifiers)
 {
     unsigned state = 0;
@@ -69,25 +51,10 @@ void WebPageInspectorInputAgent::platformDispatchKeyEvent(WebEventType type, con
 {
     Vector<String> commands;
     const guint keyVal = WebCore::PlatformKeyboardEvent::gdkKeyCodeForWindowsKeyCode(windowsVirtualKeyCode);
-#if !USE(GTK4)
     if (keyVal) {
-        GdkEventType event = GDK_NOTHING;
-        switch (type)
-        {
-        case WebEventType::KeyDown:
-            event = GDK_KEY_PRESS;
-            break;
-        case WebEventType::KeyUp:
-            event = GDK_KEY_RELEASE;
-            break;
-        default:
-            fprintf(stderr, "Unsupported event type = %d\n", type);
-            break;
-        }
         unsigned state = modifiersToEventState(modifiers);
-        commands = commandsForKeyEvent(event, keyVal, state);
+        commands = KeyBindingTranslator().commandsForKeyval(keyVal, state);
     }
-#endif
     NativeWebKeyboardEvent event(
         type,
         text,
