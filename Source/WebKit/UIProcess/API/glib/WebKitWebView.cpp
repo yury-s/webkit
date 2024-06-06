@@ -2681,6 +2681,7 @@ RefPtr<WebPageProxy> webkitWebViewCreateNewPage(WebKitWebView* webView, Ref<API:
 
 void webkitWebViewReadyToShowPage(WebKitWebView* webView)
 {
+    fprintf(stderr, "webkitWebViewReadyToShowPage %p\n", webView);
     g_signal_emit(webView, signals[READY_TO_SHOW], 0, NULL);
 }
 

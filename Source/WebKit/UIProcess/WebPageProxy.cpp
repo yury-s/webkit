@@ -7862,6 +7862,7 @@ void WebPageProxy::createNewPage(WindowFeatures&& windowFeatures, NavigationActi
 void WebPageProxy::showPage()
 {
     m_uiClient->showPage(this);
+    fprintf(stderr, "WebPageProxy::showPage\n");
     m_inspectorController->didShowPage();
 }
 

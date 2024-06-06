@@ -58,11 +58,13 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
     }
     GtkAllocation viewAllocation;
     gtk_widget_get_allocation(viewWidget, &viewAllocation);
+    fprintf(stderr, "platformSetSize: viewAllocation: %dx%d\n", width, height);
 #if USE(GTK4)
     // In GTK4 newly added tabs will have allocation size of 0x0, before the tab is shown.
     // This is a Ctrl+click scenario. We invoke callback righ await to not stall.
     if (!viewAllocation.width && !viewAllocation.height && windowHasManyTabs(viewWidget)) {
         callback(String());
+        fprintf(stderr, "WebPageInspectorEmulationAgent::platformSetSize: viewAllocation is 0x0, bailing out\n");
         return;
     }
 #endif
@@ -79,12 +81,14 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
 
     if (auto* drawingArea = static_cast<DrawingAreaProxyCoordinatedGraphics*>(m_page.drawingArea())) {
         drawingArea->waitForSizeUpdate([callback = WTFMove(callback)]() {
+            fprintf(stderr, "WebPageInspectorEmulationAgent::platformSetSize: drawingArea->waitForSizeUpdate\n");
             callback(String());
         });
     } else {
         callback("No backing store for window"_s);
     }
     gtk_window_resize(GTK_WINDOW(window), width, height);
+    gtk_widget_queue_allocate(window);
 }
 
 } // namespace WebKit

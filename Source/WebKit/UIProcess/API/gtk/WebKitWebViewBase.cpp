@@ -1007,6 +1007,8 @@ static void webkitWebViewBaseSizeAllocate(GtkWidget* widget, GtkAllocation* allo
     GTK_WIDGET_CLASS(webkit_web_view_base_parent_class)->size_allocate(widget, width, height, baseline);
     GtkAllocation allocationStack = { 0, 0, width, height };
     GtkAllocation* allocation = &allocationStack;
+
+    fprintf(stderr, "webkitWebViewBaseSizeAllocate %d %d baseline = %d\n", width, height, baseline);
 #else
     GTK_WIDGET_CLASS(webkit_web_view_base_parent_class)->size_allocate(widget, allocation);
 #endif

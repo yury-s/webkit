@@ -73,6 +73,7 @@ void WebPageInspectorEmulationAgent::setDeviceMetricsOverride(int width, int hei
     if (deviceScaleFactor)
         m_page.setCustomDeviceScaleFactor(deviceScaleFactor.value());
     m_page.setUseFixedLayout(fixedlayout);
+    fprintf(stderr, "WebPageInspectorEmulationAgent::setDeviceMetricsOverride: %dx%d isVisible=%d\n", width, height, m_page.pageClient().isViewVisible());
     if (!m_page.pageClient().isViewVisible() && m_page.configuration().relatedPage()) {
         m_commandsToRunWhenShown.append([this, width, height, callback = WTFMove(callback)]() mutable {
             setSize(width, height, WTFMove(callback));
@@ -139,6 +140,7 @@ Inspector::Protocol::ErrorStringOr<void> WebPageInspectorEmulationAgent::resetPe
 
 void WebPageInspectorEmulationAgent::didShowPage()
 {
+    fprintf(stderr, "WebPageInspectorEmulationAgent::didShowPage %p\n", this);
     for (auto& command : m_commandsToRunWhenShown)
         command();
     m_commandsToRunWhenShown.clear();
