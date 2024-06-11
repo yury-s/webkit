@@ -170,7 +170,7 @@ void DrawingAreaProxyCoordinatedGraphics::deviceScaleFactorDidChange()
     send(Messages::DrawingArea::SetDeviceScaleFactor(m_webPageProxy->deviceScaleFactor()));
 }
 
-void DrawingAreaProxyCoordinatedGraphics::waitForSizeUpdate(Function<void ()>&& callback)
+void DrawingAreaProxyCoordinatedGraphics::waitForSizeUpdate(Function<void (const DrawingAreaProxyCoordinatedGraphics&)>&& callback)
 {
     m_callbacks.append(WTFMove(callback));
 }
@@ -330,9 +330,10 @@ void DrawingAreaProxyCoordinatedGraphics::didUpdateGeometry()
     if (m_lastSentSize != m_size)
         sendUpdateGeometry();
     else {
-        for (auto& value : m_callbacks)
-            value();
-        m_callbacks.clear();
+        Vector<Function<void (const DrawingAreaProxyCoordinatedGraphics&)>> callbacks;
+        callbacks.swap(m_callbacks);
+        for (auto& cb : callbacks)
+            cb(*this);
     }
 }
 

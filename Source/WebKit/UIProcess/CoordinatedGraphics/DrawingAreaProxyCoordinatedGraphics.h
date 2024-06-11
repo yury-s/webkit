@@ -62,7 +62,7 @@ public:
 
     bool isInAcceleratedCompositingMode() const { return !m_layerTreeContext.isEmpty(); }
     const LayerTreeContext& layerTreeContext() const { return m_layerTreeContext; }
-    void waitForSizeUpdate(Function<void ()>&&);
+    void waitForSizeUpdate(Function<void (const DrawingAreaProxyCoordinatedGraphics&)>&&);
 #if !PLATFORM(WPE)
     void captureFrame();
 #endif
@@ -134,7 +134,7 @@ private:
     // The last size we sent to the web process.
     WebCore::IntSize m_lastSentSize;
 
-    Vector<Function<void ()>> m_callbacks;
+    Vector<Function<void (const DrawingAreaProxyCoordinatedGraphics&)>> m_callbacks;
 
 #if !PLATFORM(WPE)
     bool m_isBackingStoreDiscardable { true };

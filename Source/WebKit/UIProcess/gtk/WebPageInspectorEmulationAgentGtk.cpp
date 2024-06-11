@@ -46,6 +46,7 @@ bool windowHasManyTabs(GtkWidget* widget) {
 
 void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Function<void (const String& error)>&& callback)
 {
+    WebCore::IntSize viewSize(width, height);
     GtkWidget* viewWidget = m_page.viewWidget();
     GtkWidget* window = gtk_widget_get_toplevel(viewWidget);
     if (!window) {
@@ -78,13 +79,33 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
     height += windowAllocation.height - viewAllocation.height;
 
     if (auto* drawingArea = static_cast<DrawingAreaProxyCoordinatedGraphics*>(m_page.drawingArea())) {
-        drawingArea->waitForSizeUpdate([callback = WTFMove(callback)]() {
-            callback(String());
+        bool didNotHaveInitialAllocation = !windowAllocation.width && !windowAllocation.height;
+        // The callback can only be called if the page is still alive, so we can safely capture `this`.
+        drawingArea->waitForSizeUpdate([this, callback = WTFMove(callback), didNotHaveInitialAllocation, viewSize](const DrawingAreaProxyCoordinatedGraphics& drawingArea) mutable {
+            if (viewSize == drawingArea.size()) {
+                callback(String());
+                return;
+            }
+            if (didNotHaveInitialAllocation) {
+                // In gtk4 resize request may be lost (overridden by default one) if the window is not yet
+                // allocated when we are changing the size, so we try again.
+                platformSetSize(viewSize.width(), viewSize.height(), WTFMove(callback));
+                return;
+            }
+            callback("Failed to resize window"_s);
+            return;
         });
     } else {
         callback("No backing store for window"_s);
     }
+#if USE(GTK4)
+    // Depending on whether default size has been applied or not, we need to
+    // do one of the calls, so we just do both.
+    gtk_window_set_default_size(GTK_WINDOW(window), width, height);
+    gtk_widget_set_size_request(window, width, height);
+#else
     gtk_window_resize(GTK_WINDOW(window), width, height);
+#endif
 }
 
 } // namespace WebKit
