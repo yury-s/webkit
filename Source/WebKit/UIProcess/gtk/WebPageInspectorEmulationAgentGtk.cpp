@@ -82,6 +82,7 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
         bool didNotHaveInitialAllocation = !windowAllocation.width && !windowAllocation.height;
         // The callback can only be called if the page is still alive, so we can safely capture `this`.
         drawingArea->waitForSizeUpdate([this, callback = WTFMove(callback), didNotHaveInitialAllocation, viewSize](const DrawingAreaProxyCoordinatedGraphics& drawingArea) mutable {
+#if USE(GTK4)
             if (viewSize == drawingArea.size()) {
                 callback(String());
                 return;
@@ -93,7 +94,10 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
                 return;
             }
             callback("Failed to resize window"_s);
-            return;
+#else
+            UNUSED_PARAM(drawingArea);
+            callback(String());
+#endif
         });
     } else {
         callback("No backing store for window"_s);
