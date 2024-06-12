@@ -68,10 +68,10 @@ public:
     void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) override;
     void willDestroyFrontendAndBackend(Inspector::DisconnectReason) override;
 
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
     void didPaint(sk_sp<SkImage>&& surface);
 #endif
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
     void didPaint(cairo_surface_t*);
 #endif
 

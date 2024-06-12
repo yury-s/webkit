@@ -41,7 +41,7 @@
 
 #include "config.h"
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 
 #include "CairoJpegEncoder.h"
 

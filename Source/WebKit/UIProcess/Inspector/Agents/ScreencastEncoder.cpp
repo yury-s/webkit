@@ -39,14 +39,14 @@
 #include <wtf/WorkQueue.h>
 #include <wtf/text/StringConcatenateNumbers.h>
 
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkCanvas.h>
 #include <skia/core/SkData.h>
 #include <skia/core/SkImage.h>
 #endif
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 #include <WebCore/RefPtrCairo.h>
 #endif
 
@@ -134,11 +134,11 @@ class ScreencastEncoder::VPXFrame {
     WTF_MAKE_NONCOPYABLE(VPXFrame);
     WTF_MAKE_FAST_ALLOCATED;
 public:
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
     explicit VPXFrame(sk_sp<SkImage>&& surface)
         : m_surface(WTFMove(surface))
     { }
-#elif USE(CAIRO)
+#elif USE(CAIRO) || PLATFORM(GTK)
     explicit VPXFrame(RefPtr<cairo_surface_t>&& surface)
         : m_surface(WTFMove(surface))
     { }
@@ -154,7 +154,7 @@ public:
 
     void convertToVpxImage(vpx_image_t* image)
     {
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
         // Convert the updated region to YUV ready for encoding.
         SkImageInfo info = SkImageInfo::Make(m_surface->width(), m_surface->height(), kN32_SkColorType, kPremul_SkAlphaType);
         int argb_stride = info.minRowBytes();
@@ -163,7 +163,7 @@ public:
         uint8_t* argb_data = buffer.get();
         if (!m_surface->readPixels(info, argb_data, argb_stride, 0, 0))
             fprintf(stderr, "Read SkImage to ARGB buffer\n");
-#elif USE(CAIRO)
+#elif USE(CAIRO) || PLATFORM(GTK)
         // Convert the updated region to YUV ready for encoding.
         const uint8_t* argb_data = cairo_image_surface_get_data(m_surface.get());
         int argb_stride = cairo_image_surface_get_stride(m_surface.get());
@@ -189,9 +189,9 @@ public:
     }
 
 private:
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
     sk_sp<SkImage> m_surface;
-#elif USE(CAIRO)
+#elif USE(CAIRO) || PLATFORM(GTK)
     RefPtr<cairo_surface_t> m_surface;
 #elif PLATFORM(MAC)
     RetainPtr<CGImageRef> m_windowImage;
@@ -354,7 +354,7 @@ void ScreencastEncoder::flushLastFrame()
     m_lastFrameTimestamp = now;
 }
 
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
 void ScreencastEncoder::encodeFrame(sk_sp<SkImage>&& image, IntSize size)
 {
     flushLastFrame();
@@ -378,7 +378,7 @@ void ScreencastEncoder::encodeFrame(sk_sp<SkImage>&& image, IntSize size)
     canvas.drawImage(image, 0, 0);
     m_lastFrame = makeUnique<VPXFrame>(surface.asImage());
 }
-#elif USE(CAIRO)
+#elif USE(CAIRO) || PLATFORM(GTK)
 void ScreencastEncoder::encodeFrame(cairo_surface_t* drawingAreaSurface, IntSize size)
 {
     flushLastFrame();

@@ -50,7 +50,7 @@
 #include <skia/encode/SkJpegEncoder.h>
 #endif
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 #include "CairoJpegEncoder.h"
 #include "DrawingAreaProxyCoordinatedGraphics.h"
 #include "DrawingAreaProxy.h"
@@ -96,7 +96,7 @@ void InspectorScreencastAgent::willDestroyFrontendAndBackend(DisconnectReason)
     m_encoder = nullptr;
 }
 
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
 void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
 {
     sk_sp<SkImage> image(surface);
@@ -172,7 +172,7 @@ void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
 }
 #endif
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 void InspectorScreencastAgent::didPaint(cairo_surface_t* surface)
 {
 #if PLATFORM(WPE)
@@ -379,7 +379,7 @@ void InspectorScreencastAgent::encodeFrame()
 }
 #endif
 
-#if USE(CAIRO) && !PLATFORM(WPE)
+#if (USE(CAIRO) && !PLATFORM(WPE)) || PLATFORM(GTK)
 void InspectorScreencastAgent::encodeFrame()
 {
     if (!m_encoder && !m_screencast)

@@ -52,9 +52,9 @@ public:
     ScreencastEncoder(std::unique_ptr<VPXCodec>&&, WebCore::IntSize);
     ~ScreencastEncoder();
 
-#if USE(SKIA)
+#if USE(SKIA) && !PLATFORM(GTK)
     void encodeFrame(sk_sp<SkImage>&&, WebCore::IntSize);
-#elif USE(CAIRO)
+#elif USE(CAIRO) || PLATFORM(GTK)
     void encodeFrame(cairo_surface_t*, WebCore::IntSize);
 #elif PLATFORM(MAC)
     void encodeFrame(RetainPtr<CGImageRef>&&);
