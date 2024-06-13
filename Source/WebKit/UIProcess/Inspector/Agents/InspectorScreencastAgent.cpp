@@ -117,16 +117,15 @@ void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
         m_encoder->encodeFrame(sk_sp<SkImage>(image), displaySize);
     if (m_screencast) {
         {
-            SkBitmap bitmap;
-            bitmap.setInfo(SkImageInfo::Make(image->width(), image->height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType));
-            if (!bitmap.tryAllocPixels() || !image->readPixels(bitmap.pixmap(), 0, 0)) {
-                fprintf(stderr, "Failed to read pixels from SkImage\n");
+            SkPixmap pixmap;
+            if (!image->peekPixels(&pixmap)) {
+                fprintf(stderr, "Failed to peek pixels from SkImage to compute hash\n");
                 return;
             }
             // Do not send the same frame over and over.
-            size_t len = bitmap.computeByteSize();
+            size_t len = pixmap.computeByteSize();
             auto cryptoDigest = PAL::CryptoDigest::create(PAL::CryptoDigest::Algorithm::SHA_1);
-            cryptoDigest->addBytes(std::span(reinterpret_cast<unsigned char*>(bitmap.getPixels()), len));
+            cryptoDigest->addBytes(std::span(reinterpret_cast<const unsigned char*>(pixmap.addr()), len));
             auto digest = cryptoDigest->computeHash();
             if (m_lastFrameDigest == digest)
                 return;
@@ -138,13 +137,8 @@ void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
         // Scale image to fit width / height
         double scale = std::min(m_screencastWidth / displaySize.width(), m_screencastHeight / displaySize.height());
         if (scale < 1) {
-            // Create a destination bitmap with the desired size
-            SkImageInfo dstInfo = SkImageInfo::MakeN32Premul(displaySize.width() * scale, displaySize.height() * scale);
             SkBitmap dstBitmap;
-            if (!dstBitmap.allocPixels(dstInfo)) {
-                fprintf(stderr, "Failed to allocate dstBitmap\n");
-                return;
-            }
+            dstBitmap.allocPixels(SkImageInfo::MakeN32Premul(displaySize.width() * scale, displaySize.height() * scale));
             SkCanvas canvas(dstBitmap);
             canvas.scale(scale, scale);
             canvas.drawImage(image, 0, 0);
@@ -153,7 +147,7 @@ void InspectorScreencastAgent::didPaint(sk_sp<SkImage>&& surface)
 
         SkPixmap pixmap;
         if (!image->peekPixels(&pixmap)) {
-            fprintf(stderr, "Failed to peek pixels from SkImage\n");
+            fprintf(stderr, "Failed to peek pixels from SkImage for JPEG encoding\n");
             return;
         }
 
