@@ -6,6 +6,16 @@
             "id": "TimeSinceEpoch",
             "description": "UTC time in seconds, counted from January 1, 1970.",
             "type": "number"
+        },
+        {
+            "id": "TouchPoint",
+            "type": "object",
+            "description": "Touch point.",
+            "properties": [
+                { "name": "x", "type": "integer", "description": "X coordinate of the event relative to the main frame's viewport in CSS pixels." },
+                { "name": "y", "type": "integer", "description": "Y coordinate of the event relative to the main frame's viewport in CSS pixels." },
+                { "name": "id", "type": "integer", "description": "Identifier used to track touch sources between events, must be unique within an event." }
+            ]
         }
     ],
     "commands": [
@@ -216,6 +226,37 @@
                     "description": "Bit field representing pressed modifier keys. Alt=1, Ctrl=2, Meta/Command=4, Shift=8\n(default: 0).",
                     "optional": true,
                     "type": "integer"
+                }
+            ]
+        },
+        {
+            "name": "dispatchTouchEvent",
+            "description": "Dispatches a touch event to the page.",
+            "async": true,
+            "parameters": [
+                {
+                    "name": "type",
+                    "description": "Type of the touch event.",
+                    "type": "string",
+                    "enum": [
+                        "touchStart",
+                        "touchMove",
+                        "touchEnd",
+                        "touchCancel"
+                    ]
+                },
+                {
+                    "name": "modifiers",
+                    "description": "Bit field representing pressed modifier keys. Alt=1, Ctrl=2, Meta/Command=4, Shift=8\n(default: 0).",
+                    "optional": true,
+                    "type": "integer"
+                },
+                {
+                    "name": "touchPoints",
+                    "description": "List of touch points",
+                    "type": "array",
+                    "optional": true,
+                    "items": { "$ref": "TouchPoint" }
                 }
             ]
         }

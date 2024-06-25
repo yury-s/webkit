@@ -95,6 +95,8 @@ void WebPageInspectorEmulationAgent::platformSetSize(int width, int height, Func
             }
             callback("Failed to resize window"_s);
 #else
+            UNUSED_PARAM(this);
+            UNUSED_PARAM(didNotHaveInitialAllocation);
             UNUSED_PARAM(drawingArea);
             callback(String());
 #endif

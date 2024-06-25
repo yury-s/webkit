@@ -30,8 +30,9 @@
 #include "NativeWebKeyboardEvent.h"
 #include "NativeWebMouseEvent.h"
 #include "NativeWebWheelEvent.h"
-#include "WebWheelEvent.h"
 #include "WebPageProxy.h"
+#include "WebTouchEvent.h"
+#include "WebWheelEvent.h"
 #include <wtf/MathExtras.h>
 #include <wtf/HexNumber.h>
 #include <WebCore/Scrollbar.h>
@@ -297,8 +298,67 @@ void WebPageInspectorInputAgent::dispatchMouseEvent(const String& type, int x, i
 #endif
 }
 
-void WebPageInspectorInputAgent::dispatchTapEvent(int x, int y, std::optional<int>&& modifiers, Ref<DispatchTapEventCallback>&& callback) {
+void WebPageInspectorInputAgent::dispatchTapEvent(int x, int y, std::optional<int>&& modifiers, Ref<DispatchTapEventCallback>&& callback)
+{
     m_page.sendWithAsyncReply(Messages::WebPage::FakeTouchTap(WebCore::IntPoint(x, y), modifiers ? *modifiers : 0), [callback]() {
+        callback->sendSuccess();
+    });
+}
+
+void WebPageInspectorInputAgent::dispatchTouchEvent(const String& type, std::optional<int>&& modifiers, RefPtr<JSON::Array>&& in_touchPoints, Ref<DispatchTouchEventCallback>&& callback)
+{
+    float rotationAngle = 0.0;
+    float force = 1.0;
+    const WebCore::IntSize radius(1, 1);
+
+    uint8_t unsignedModifiers = modifiers ? static_cast<uint8_t>(*modifiers) : 0;
+    OptionSet<WebEventModifier> eventModifiers;
+    eventModifiers = eventModifiers.fromRaw(unsignedModifiers);
+
+    WebPlatformTouchPoint::State state;
+    if (type == "touchStart"_s)
+        state = WebPlatformTouchPoint::State::Pressed;
+    else if (type == "touchMove"_s)
+        state = WebPlatformTouchPoint::State::Moved;
+    else if (type == "touchEnd"_s)
+        state = WebPlatformTouchPoint::State::Released;
+    else if (type == "touchCancel"_s)
+        state = WebPlatformTouchPoint::State::Cancelled;
+    else {
+        callback->sendFailure("Unsupported event type"_s);
+        return;
+    }
+
+    Vector<WebPlatformTouchPoint> touchPoints;
+    for (unsigned i = 0; i < in_touchPoints->length(); ++i) {
+        RefPtr<JSON::Value> item = in_touchPoints->get(i);
+        RefPtr<JSON::Object> obj = item->asObject();
+        if (!obj) {
+            callback->sendFailure("Invalid TouchPoint format"_s);
+            return;
+        }
+        std::optional<int> x = obj->getInteger("x"_s);
+        if (!x) {
+            callback->sendFailure("TouchPoint does not have x"_s);
+            return;
+        }
+        std::optional<int> y = obj->getInteger("y"_s);
+        if (!y) {
+            callback->sendFailure("TouchPoint does not have y"_s);
+            return;
+        }
+        std::optional<int> optionalId = obj->getInteger("id"_s);
+        int id = optionalId ? *optionalId : 0;
+        const WebCore::IntPoint position(*x, *y);
+        touchPoints.append(WebPlatformTouchPoint(id, state, position, position, radius, rotationAngle, force));
+    }
+
+    WebTouchEvent touchEvent({WebEventType::TouchStart, eventModifiers, WallTime::now()}, WTFMove(touchPoints));
+    m_page.sendWithAsyncReply(Messages::WebPage::TouchEvent(touchEvent), [callback] (std::optional<WebEventType> eventType, bool) {
+        if (!eventType) {
+            callback->sendFailure("Failed to dispatch touch event."_s);
+            return;
+        }
         callback->sendSuccess();
     });
 }
