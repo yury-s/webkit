@@ -683,6 +683,9 @@ void InspectorNetworkAgent::didFailLoading(ResourceLoaderIdentifier identifier, 
     String requestId = IdentifiersFactory::requestId(identifier.toUInt64());
 
     if (loader && m_resourcesData->resourceType(requestId) == InspectorPageAgent::DocumentResource) {
+        if (m_stoppingLoadingDueToProcessSwap)
+            return;
+
         auto* frame = loader->frame();
         if (frame && frame->loader().documentLoader() && frame->document()) {
             m_resourcesData->addResourceSharedBuffer(requestId,
@@ -912,6 +915,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorNetworkAgent::disable()
     m_instrumentingAgents.setEnabledNetworkAgent(nullptr);
     m_resourcesData->clear();
     m_extraRequestHeaders.clear();
+    m_stoppingLoadingDueToProcessSwap = false;
 
     continuePendingRequests();
     continuePendingResponses();
@@ -1212,6 +1216,11 @@ void InspectorNetworkAgent::interceptResponse(const ResourceResponse& response, 
         return;
 
     m_frontendDispatcher->responseIntercepted(requestId, resourceResponse.releaseNonNull());
+}
+
+void InspectorNetworkAgent::setStoppingLoadingDueToProcessSwap(bool stopping)
+{
+    m_stoppingLoadingDueToProcessSwap = stopping;
 }
 
 Inspector::Protocol::ErrorStringOr<void> InspectorNetworkAgent::interceptContinue(const Inspector::Protocol::Network::RequestId& requestId, Inspector::Protocol::Network::NetworkStage networkStage)

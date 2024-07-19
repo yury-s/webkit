@@ -924,6 +924,12 @@ void InspectorInstrumentation::interceptResponseImpl(InstrumentingAgents& instru
         networkAgent->interceptResponse(response, identifier, WTFMove(handler));
 }
 
+void InspectorInstrumentation::setStoppingLoadingDueToProcessSwapImpl(InstrumentingAgents& instrumentingAgents, bool value)
+{
+    if (auto* networkAgent = instrumentingAgents.enabledNetworkAgent())
+        networkAgent->setStoppingLoadingDueToProcessSwap(value);
+}
+
 // JavaScriptCore InspectorDebuggerAgent should know Console MessageTypes.
 static bool isConsoleAssertMessage(MessageSource source, MessageType type)
 {

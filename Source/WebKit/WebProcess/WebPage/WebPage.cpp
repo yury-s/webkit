@@ -233,6 +233,7 @@
 #include <WebCore/ImageAnalysisQueue.h>
 #include <WebCore/ImageOverlay.h>
 #include <WebCore/InspectorController.h>
+#include <WebCore/InspectorInstrumentationWebKit.h>
 #include <WebCore/JSDOMExceptionHandling.h>
 #include <WebCore/KeyboardEvent.h>
 #include <WebCore/LegacySchemeRegistry.h>
@@ -2219,7 +2220,9 @@ void WebPage::stopLoading()
 void WebPage::stopLoadingDueToProcessSwap()
 {
     SetForScope isStoppingLoadingDueToProcessSwap(m_isStoppingLoadingDueToProcessSwap, true);
+    InspectorInstrumentationWebKit::setStoppingLoadingDueToProcessSwap(m_page.get(), true);
     stopLoading();
+    InspectorInstrumentationWebKit::setStoppingLoadingDueToProcessSwap(m_page.get(), false);
 }
 
 bool WebPage::defersLoading() const

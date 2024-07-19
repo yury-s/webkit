@@ -253,6 +253,7 @@ public:
     static bool shouldInterceptResponse(const LocalFrame&, const ResourceResponse&);
     static void interceptRequest(ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     static void interceptResponse(const LocalFrame&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(const ResourceResponse&, RefPtr<FragmentedSharedBuffer>)>&&);
+    static void setStoppingLoadingDueToProcessSwap(Page*, bool);
 
     static void addMessageToConsole(Page&, std::unique_ptr<Inspector::ConsoleMessage>);
     static void addMessageToConsole(WorkerOrWorkletGlobalScope&, std::unique_ptr<Inspector::ConsoleMessage>);
@@ -479,6 +480,7 @@ private:
     static bool shouldInterceptResponseImpl(InstrumentingAgents&, const ResourceResponse&);
     static void interceptRequestImpl(InstrumentingAgents&, ResourceLoader&, Function<void(const ResourceRequest&)>&&);
     static void interceptResponseImpl(InstrumentingAgents&, const ResourceResponse&, ResourceLoaderIdentifier, CompletionHandler<void(const ResourceResponse&, RefPtr<FragmentedSharedBuffer>)>&&);
+    static void setStoppingLoadingDueToProcessSwapImpl(InstrumentingAgents&, bool);
 
     static void addMessageToConsoleImpl(InstrumentingAgents&, std::unique_ptr<Inspector::ConsoleMessage>);
 
@@ -1397,6 +1399,13 @@ inline void InspectorInstrumentation::interceptResponse(const LocalFrame& frame,
     ASSERT(InspectorInstrumentation::shouldInterceptResponse(frame, response));
     if (auto* agents = instrumentingAgents(frame))
         interceptResponseImpl(*agents, response, identifier, WTFMove(handler));
+}
+
+inline void InspectorInstrumentation::setStoppingLoadingDueToProcessSwap(Page* page, bool value)
+{
+    ASSERT(InspectorInstrumentationPublic::hasFrontends());
+    if (auto* agents = instrumentingAgents(page))
+        setStoppingLoadingDueToProcessSwapImpl(*agents, value);
 }
 
 inline void InspectorInstrumentation::didOpenDatabase(Database& database)
