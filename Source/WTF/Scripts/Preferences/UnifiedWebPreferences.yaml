@@ -1800,7 +1800,7 @@ CrossOriginEmbedderPolicyEnabled:
 # Playwright: disable setting.
 CrossOriginOpenerPolicyEnabled:
   type: bool
-  status: preview
+  status: stable
   category: security
   humanReadableName: "Cross-Origin-Opener-Policy (COOP) header"
   humanReadableDescription: "Support for Cross-Origin-Opener-Policy (COOP) header"
@@ -1808,7 +1808,7 @@ CrossOriginOpenerPolicyEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
       default: false
 
