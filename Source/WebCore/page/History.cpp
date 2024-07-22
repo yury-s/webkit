@@ -32,6 +32,7 @@
 #include "FrameLoader.h"
 #include "HistoryController.h"
 #include "HistoryItem.h"
+#include "InspectorInstrumentation.h"
 #include "LocalFrame.h"
 #include "LocalFrameLoaderClient.h"
 #include "Logging.h"
@@ -304,6 +305,8 @@ ExceptionOr<void> History::stateObjectAdded(RefPtr<SerializedScriptValue>&& data
 
     auto historyBehavior = stateObjectType == StateObjectType::Replace ? NavigationHistoryBehavior::Replace : NavigationHistoryBehavior::Push;
     frame->loader().updateURLAndHistory(fullURL, WTFMove(data), historyBehavior);
+    InspectorInstrumentation::didNavigateWithinPage(*frame);
+
     return { };
 }
 
