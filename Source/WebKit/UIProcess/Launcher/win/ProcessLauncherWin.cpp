@@ -91,6 +91,10 @@ void ProcessLauncher::launchProcess()
         commandLineBuilder.append(" -configure-jsc-for-testing"_s);
     if (!m_client->isJITEnabled())
         commandLineBuilder.append(" -disable-jit"_s);
+// Playwright begin
+    if (m_launchOptions.processType == ProcessLauncher::ProcessType::Web && m_client->shouldEnableSharedArrayBuffer())
+        commandLineBuilder.append(" -enable-shared-array-buffer"_s);
+// Playwright end
     commandLineBuilder.append('\0');
 
     auto commandLine = commandLineBuilder.toString().wideCharacters();
