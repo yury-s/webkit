@@ -38,6 +38,15 @@
 
 namespace WebKit {
 
+static bool hasArgument(const char* argument, int argc, char** argv)
+{
+    for (int i = 0; i < argc; ++i) {
+        if (!strcmp(argument, argv[i]))
+            return true;
+    }
+    return false;
+}
+
 AuxiliaryProcessMainCommon::AuxiliaryProcessMainCommon()
 {
 #if ENABLE(BREAKPAD)
@@ -57,6 +66,10 @@ bool AuxiliaryProcessMainCommon::parseCommandLine(int argc, char** argv)
     if (argc > 3 && argv[3] && !strcmp(argv[3], "--configure-jsc-for-testing"))
         JSC::Config::configureForTesting();
 #endif
+// Playwright begin
+    if (hasArgument("--enable-shared-array-buffer", argc, argv))
+        m_parameters.shouldEnableSharedArrayBuffer = true;
+// Playwright end
     return true;
 }
 
