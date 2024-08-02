@@ -444,7 +444,7 @@ static gboolean webViewDecidePolicy(WebKitWebView *webView, WebKitPolicyDecision
             return FALSE;
 
         const gchar* mimeType = webkit_uri_response_get_mime_type(webkit_response_policy_decision_get_response(responseDecision));
-        if (!webkit_response_policy_decision_is_mime_type_supported(responseDecision) && mimeType && mimeType[0] != '\0') {
+        if (!webkit_response_policy_decision_is_mime_type_supported(responseDecision) && mimeType && mimeType[0] != '\0' && !g_ascii_strcasecmp(mimeType, "application/x-zerosize")) {
             webkit_policy_decision_download(decision);
             return TRUE;
         }
