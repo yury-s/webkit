@@ -60,7 +60,7 @@ void WebPageInspectorEmulationAgent::willDestroyFrontendAndBackend(DisconnectRea
 
 void WebPageInspectorEmulationAgent::setDeviceMetricsOverride(int width, int height, bool fixedlayout, std::optional<double>&& deviceScaleFactor, Ref<SetDeviceMetricsOverrideCallback>&& callback)
 {
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || PLATFORM(WPE)
     // On gtk, fixed layout doesn't work with compositing enabled
     // FIXME: This turns off compositing forever, even if fixedLayout is disabled.
     if (fixedlayout) {
