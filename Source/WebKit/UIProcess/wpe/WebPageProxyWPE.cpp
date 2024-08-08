@@ -30,6 +30,7 @@
 #include "InputMethodState.h"
 #include "PageClientImpl.h"
 #include "WebProcessProxy.h"
+#include <wpe/wpe-platform.h>
 #include <WebCore/PlatformEvent.h>
 
 #if USE(ATK)
