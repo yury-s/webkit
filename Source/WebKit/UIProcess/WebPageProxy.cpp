@@ -7177,14 +7177,7 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL&, bool, WebFramePolicyListen
 
 void WebPageProxy::decidePolicyForNavigationActionAsync(NavigationActionData&& data, CompletionHandler<void(PolicyDecision&&)>&& completionHandler)
 {
-    if (m_inspectorController->shouldPauseLoading()) {
-        decidePolicyForNavigationActionAsyncShared(protectedLegacyMainFrameProcess(), WTFMove(data), WTFMove(completionHandler));
-        m_inspectorController->setContinueLoadingCallback([this, protectedThis = Ref { *this }, data = WTFMove(data), completionHandler = WTFMove(completionHandler)] () mutable {
-            decidePolicyForNavigationActionAsyncShared(protectedLegacyMainFrameProcess(), WTFMove(data), WTFMove(completionHandler));
-        });
-    } else {
-        decidePolicyForNavigationActionAsyncShared(protectedLegacyMainFrameProcess(), WTFMove(data), WTFMove(completionHandler));
-    }
+    decidePolicyForNavigationActionAsyncShared(protectedLegacyMainFrameProcess(), WTFMove(data), WTFMove(completionHandler));
 }
 
 void WebPageProxy::decidePolicyForNavigationActionAsyncShared(Ref<WebProcessProxy>&& process, NavigationActionData&& data, CompletionHandler<void(PolicyDecision&&)>&& completionHandler)
