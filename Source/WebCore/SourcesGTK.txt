@@ -113,4 +113,9 @@ platform/unix/SharedMemoryUnix.cpp
 
 platform/xdg/MIMETypeRegistryXdg.cpp
 
-Modules/mediastream/RTCRtpSFrameTransformerOpenSSL.cpp
+// Playwright: begin.
+JSSpeechSynthesisErrorCode.cpp
+JSSpeechSynthesisErrorEvent.cpp
+JSSpeechSynthesisErrorEventInit.cpp
+JSSpeechSynthesisEventInit.cpp
+// Playwright: end.

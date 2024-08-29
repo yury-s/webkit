@@ -30,6 +30,7 @@
 #include <wtf/HashMap.h>
 #include <wtf/Ref.h>
 #include <wtf/WeakPtr.h>
+#include "WebPageProxy.h"
 
 namespace WebKit {
 class WebNavigationState;
@@ -53,7 +54,6 @@ enum class FrameLoadType : uint8_t;
 
 namespace WebKit {
 
-class WebPageProxy;
 class WebBackForwardListItem;
 
 class WebNavigationState : public CanMakeWeakPtr<WebNavigationState> {
