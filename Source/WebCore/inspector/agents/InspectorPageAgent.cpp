@@ -1012,21 +1012,34 @@ void InspectorPageAgent::frameNavigated(LocalFrame& frame)
     m_frontendDispatcher->frameNavigated(buildObjectForFrame(&frame));
 }
 
-String InspectorPageAgent::makeFrameID(ProcessIdentifier processID,  FrameIdentifier frameID)
+String InspectorPageAgent::serializeFrameID(FrameIdentifier frameID)
 {
-    return makeString(processID.toUInt64(), '.', frameID.object().toUInt64());
+    return makeString(frameID.processIdentifier().toUInt64(), '.', frameID.object().toUInt64());
 }
 
-static String globalIDForFrame(Frame& frame)
+std::optional<FrameIdentifier> InspectorPageAgent::parseFrameID(String frameID)
 {
-    // TODO(playwright): for OOPIF we have to use id of the web process where the frame is hosted.
-    // Working at the moment because OOPIF is diabled.
-    return InspectorPageAgent::makeFrameID(Process::identifier(), frame.frameID());
+    size_t dotPos = frameID.find("."_s);
+    if (dotPos == notFound)
+        return std::nullopt;
+
+    if (!frameID.containsOnlyASCII())
+        return std::nullopt;
+
+    String processIDString = frameID.left(dotPos);
+    uint64_t pid = strtoull(processIDString.ascii().data(), 0, 10);
+    auto processID = ObjectIdentifier<WebCore::ProcessIdentifierType>(pid);
+    String frameIDString = frameID.substring(dotPos + 1);
+    uint64_t frameIDNumber = strtoull(frameIDString.ascii().data(), 0, 10);
+    return WebCore::FrameIdentifier {
+       ObjectIdentifier<WebCore::FrameIdentifierType>(frameIDNumber),
+       processID
+    };
 }
 
 void InspectorPageAgent::frameDetached(LocalFrame& frame)
 {
-    String identifier = globalIDForFrame(frame);
+    String identifier = serializeFrameID(frame.frameID());
     if (!m_identifierToFrame.take(identifier))
         return;
 
@@ -1042,7 +1055,7 @@ String InspectorPageAgent::frameId(Frame* frame)
 {
     if (!frame)
         return emptyString();
-    String identifier = globalIDForFrame(*frame);
+    String identifier = serializeFrameID(frame->frameID());
     m_identifierToFrame.set(identifier, frame);
     return identifier;
 }

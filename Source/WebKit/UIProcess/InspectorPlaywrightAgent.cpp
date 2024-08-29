@@ -634,33 +634,13 @@ Inspector::Protocol::ErrorStringOr<String /* pageProxyID */> InspectorPlaywright
 
 WebFrameProxy* InspectorPlaywrightAgent::frameForID(const String& frameID, String& error)
 {
-    size_t dotPos = frameID.find("."_s);
-    if (dotPos == notFound) {
+    std::optional<WebCore::FrameIdentifier> frameIdentifier = WebCore::InspectorPageAgent::parseFrameID(frameID);
+    if (!frameIdentifier) {
         error = "Invalid frame id"_s;
         return nullptr;
     }
 
-    if (!frameID.containsOnlyASCII()) {
-        error = "Invalid frame id"_s;
-        return nullptr;
-    }
-
-    String processIDString = frameID.left(dotPos);
-    uint64_t pid = strtoull(processIDString.ascii().data(), 0, 10);
-    auto processID = ObjectIdentifier<WebCore::ProcessIdentifierType>(pid);
-    auto process = WebProcessProxy::processForIdentifier(processID);
-    if (!process) {
-        error = "Cannot find web process for the frame id"_s;
-        return nullptr;
-    }
-
-    String frameIDString = frameID.substring(dotPos + 1);
-    uint64_t frameIDNumber = strtoull(frameIDString.ascii().data(), 0, 10);
-    auto frameIdentifier = WebCore::FrameIdentifier {
-       ObjectIdentifier<WebCore::FrameIdentifierType>(frameIDNumber),
-       processID
-    };
-    WebFrameProxy* frame = WebFrameProxy::webFrame(frameIdentifier);
+    WebFrameProxy* frame = WebFrameProxy::webFrame(*frameIdentifier);
     if (!frame) {
         error = "Cannot find web frame for the frame id"_s;
         return nullptr;
@@ -946,7 +926,7 @@ void InspectorPlaywrightAgent::downloadCreated(const String& uuid, const WebCore
 {
     if (!m_isEnabled)
         return;
-    String frameID = WebCore::InspectorPageAgent::makeFrameID(page->legacyMainFrameProcess().coreProcessIdentifier(), frameInfoData.frameID);
+    String frameID = WebCore::InspectorPageAgent::serializeFrameID(frameInfoData.frameID);
     m_downloads.set(uuid, download);
     m_frontendDispatcher->downloadCreated(
         toPageProxyIDProtocolString(*page),

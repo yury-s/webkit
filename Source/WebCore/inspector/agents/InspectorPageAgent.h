@@ -85,7 +85,8 @@ public:
         OtherResource,
     };
 
-    WEBCORE_EXPORT static String makeFrameID(ProcessIdentifier processID,  FrameIdentifier frameID);
+    WEBCORE_EXPORT static String serializeFrameID(FrameIdentifier frameID);
+    WEBCORE_EXPORT static std::optional<FrameIdentifier> parseFrameID(String frameID);
     static bool sharedBufferContent(RefPtr<FragmentedSharedBuffer>&&, const String& textEncodingName, bool withBase64Encode, String* result);
     static Vector<CachedResource*> cachedResourcesForFrame(LocalFrame*);
     static void resourceContent(Inspector::Protocol::ErrorString&, LocalFrame*, const URL&, String* result, bool* base64Encoded);
