@@ -75,7 +75,6 @@ class WebProcessProxy;
 
 struct FrameInfoData;
 struct FrameTreeCreationParameters;
-struct NavigationActionData;
 
 class RemotePageProxy : public IPC::MessageReceiver {
     WTF_MAKE_TZONE_ALLOCATED(RemotePageProxy);
