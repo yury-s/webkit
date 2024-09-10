@@ -32,7 +32,7 @@
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/WeakPtr.h>
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 #include <cairo.h>
 #endif
 
