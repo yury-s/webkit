@@ -69,6 +69,7 @@ public:
     void keyStroke(unsigned keyVal, unsigned keyModifiers = 0);
 
     void showInWindow(int width = 0, int height = 0);
+    void setUseFixedLayout(bool);
 
 #if PLATFORM(GTK)
     void emitPopupMenuSignal();

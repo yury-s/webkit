@@ -550,6 +550,10 @@ WEBKIT_API gboolean
 webkit_web_view_is_playing_audio                     (WebKitWebView             *web_view);
 
 WEBKIT_API void
+webkit_web_view_set_use_fixed_layout                 (WebKitWebView             *web_view,
+                                                      gboolean                   fixed);
+
+WEBKIT_API void
 webkit_web_view_set_is_muted                         (WebKitWebView             *web_view,
                                                       gboolean                   muted);
 

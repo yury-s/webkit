@@ -3590,6 +3590,13 @@ gboolean webkit_web_view_is_playing_audio(WebKitWebView* webView)
     return getPage(webView).isPlayingAudio();
 }
 
+void webkit_web_view_set_use_fixed_layout(WebKitWebView* webView, gboolean useFixedLayout)
+{
+    g_return_if_fail(WEBKIT_IS_WEB_VIEW(webView));
+
+    getPage(webView).setUseFixedLayout(useFixedLayout);
+}
+
 /**
  * webkit_web_view_set_is_muted:
  * @web_view: a #WebKitWebView

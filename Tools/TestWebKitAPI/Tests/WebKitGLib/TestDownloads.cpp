@@ -971,6 +971,53 @@ static void testDownloadDestinationURI(Test* test, gconstpointer)
 }
 #endif
 
+static void testFixedLayout(WebViewDownloadTest* test, gconstpointer)
+{
+    test->showInWindow();
+
+    test->setUseFixedLayout(true);
+    test->resizeView(300, 400);
+
+    const char* pageHTML = "<meta name = \"viewport\" content = \"initial-scale = 1, user-scalable = no\">";
+    test->loadHtml(pageHTML, kServer->getURIForPath("/").data());
+    test->waitUntilLoadFinished();
+
+    {
+        GUniqueOutPtr<GError> error;
+        JSCValue* value = test->runJavaScriptAndWaitUntilFinished("String(window.innerWidth)", &error.outPtr());
+        g_assert_nonnull(value);
+        g_assert_no_error(error.get());
+        GUniquePtr<char> valueString(WebViewTest::javascriptResultToCString(value));
+        g_assert_cmpstr(valueString.get(), ==, "300");
+    }
+    {
+        GUniqueOutPtr<GError> error;
+        JSCValue* value = test->runJavaScriptAndWaitUntilFinished("String(window.innerHeight)", &error.outPtr());
+        g_assert_nonnull(value);
+        g_assert_no_error(error.get());
+        GUniquePtr<char> valueString(WebViewTest::javascriptResultToCString(value));
+        g_assert_cmpstr(valueString.get(), ==, "400");
+    }
+    {
+        GUniqueOutPtr<GError> error;
+        JSCValue* value = test->runJavaScriptAndWaitUntilFinished("String(window.orientation)", &error.outPtr());
+        g_assert_nonnull(value);
+        g_assert_no_error(error.get());
+        GUniquePtr<char> valueString(WebViewTest::javascriptResultToCString(value));
+        g_assert_cmpstr(valueString.get(), ==, "0");
+    }
+    test->resizeView(400, 300);
+    {
+        GUniqueOutPtr<GError> error;
+        JSCValue* value = test->runJavaScriptAndWaitUntilFinished("String(window.orientation)", &error.outPtr());
+        g_assert_nonnull(value);
+        g_assert_no_error(error.get());
+        GUniquePtr<char> valueString(WebViewTest::javascriptResultToCString(value));
+        g_assert_cmpstr(valueString.get(), ==, "90");
+    }
+
+}
+
 #if PLATFORM(GTK)
 static void testContextMenuDownloadActions(WebViewDownloadTest* test, gconstpointer)
 {
@@ -1056,6 +1103,7 @@ void beforeAll()
     DownloadTest::add("Downloads", "remote-file", testDownloadRemoteFile);
     DownloadErrorTest::add("Downloads", "remote-file-error", testDownloadRemoteFileError);
     WebViewDownloadTest::add("WebKitWebView", "download-uri", testWebViewDownloadURI);
+    WebViewDownloadTest::add("WebKitWebView", "fixed-layout", testFixedLayout);
     WebViewDownloadTest::add("Downloads", "async-decide-destination", testDownloadAsyncDecideDestination);
     AsyncCancellationTest::add("Downloads", "async-decide-destination-cancel", testDownloadAsyncDecideDestinationCancel);
     PolicyResponseDownloadTest::add("Downloads", "policy-decision-download", testPolicyResponseDownload);

@@ -39,12 +39,20 @@ void WebViewTest::quitMainLoopAfterProcessingPendingEvents()
 void WebViewTest::resizeView(int width, int height)
 {
     // FIXME: implement.
+    auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(m_webView));
+    wpe_view_backend_dispatch_set_size(backend, width, height);
 }
 
 void WebViewTest::showInWindow(int, int)
 {
     auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(m_webView));
     wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_visible | wpe_view_activity_state_in_window | wpe_view_activity_state_focused);
+}
+
+void WebViewTest::setUseFixedLayout(bool useFixedLayout)
+{
+    fprintf(stderr, "WebViewTest::setUseFixedLayout(%d)\n", useFixedLayout);
+    webkit_web_view_set_use_fixed_layout(m_webView, useFixedLayout);
 }
 
 void WebViewTest::hideView()
