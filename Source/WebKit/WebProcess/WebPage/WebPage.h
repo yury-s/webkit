@@ -71,6 +71,7 @@
 #include <WebCore/MediaKeySystemRequest.h>
 #include <WebCore/NowPlayingMetadataObserver.h>
 #include <WebCore/OwnerPermissionsPolicyData.h>
+#include <WebCore/Page.h>
 #include <WebCore/PageIdentifier.h>
 #include <WebCore/PageOverlay.h>
 #include <WebCore/PlatformLayerIdentifier.h>
@@ -1174,11 +1175,11 @@ public:
     void clearSelection();
     void restoreSelectionInFocusedEditableElement();
 
-#if ENABLE(DRAG_SUPPORT) && PLATFORM(GTK)
+#if ENABLE(DRAG_SUPPORT) && (PLATFORM(GTK) || PLATFORM(WPE)) 
     void performDragControllerAction(DragControllerAction, const WebCore::IntPoint& clientPosition, const WebCore::IntPoint& globalPosition, OptionSet<WebCore::DragOperation> draggingSourceOperationMask, WebCore::SelectionData&&, OptionSet<WebCore::DragApplicationFlags>, CompletionHandler<void(std::optional<WebCore::DragOperation>, WebCore::DragHandlingMethod, bool, unsigned, WebCore::IntRect, WebCore::IntRect, std::optional<WebCore::RemoteUserInputEventData>)>&&);
 #endif
 
-#if ENABLE(DRAG_SUPPORT) && !PLATFORM(GTK)
+#if ENABLE(DRAG_SUPPORT) && !PLATFORM(GTK) && !PLATFORM(WPE)
     void performDragControllerAction(std::optional<WebCore::FrameIdentifier>, DragControllerAction, WebCore::DragData&&, CompletionHandler<void(std::optional<WebCore::DragOperation>, WebCore::DragHandlingMethod, bool, unsigned, WebCore::IntRect, WebCore::IntRect, std::optional<WebCore::RemoteUserInputEventData>)>&&);
     void performDragOperation(WebCore::DragData&&, SandboxExtension::Handle&&, Vector<SandboxExtension::Handle>&&, CompletionHandler<void(bool)>&&);
 #endif
@@ -1193,6 +1194,9 @@ public:
     void didStartDrag();
     void dragCancelled();
     OptionSet<WebCore::DragSourceAction> allowedDragSourceActions() const { return m_allowedDragSourceActions; }
+#if PLATFORM(MAC)
+    void setDragPasteboardName(const String& pasteboardName) { m_page->setDragPasteboardName(pasteboardName); }
+#endif
 #endif
 
     void beginPrinting(WebCore::FrameIdentifier, const PrintInfo&);
@@ -1268,8 +1272,11 @@ public:
     void gestureEvent(WebCore::FrameIdentifier, const WebGestureEvent&, CompletionHandler<void(std::optional<WebEventType>, bool, std::optional<WebCore::RemoteUserInputEventData>)>&&);
 #endif
 
-#if PLATFORM(IOS_FAMILY)
+#if ENABLE(ORIENTATION_EVENTS)
     void setDeviceOrientation(WebCore::IntDegrees);
+#endif
+
+#if PLATFORM(IOS_FAMILY)
     void dynamicViewportSizeUpdate(const DynamicViewportSizeUpdate&);
     bool scaleWasSetByUIProcess() const { return m_scaleWasSetByUIProcess; }
     void willStartUserTriggeredZooming();
@@ -1419,6 +1426,7 @@ public:
     void connectInspector(const String& targetId, Inspector::FrontendChannel::ConnectionType);
     void disconnectInspector(const String& targetId);
     void sendMessageToTargetBackend(const String& targetId, const String& message);
+    void resumeInspectorIfPausedInNewWindow();
 
     void insertNewlineInQuotedContent();
 
@@ -1938,6 +1946,7 @@ private:
     void createProvisionalFrame(ProvisionalFrameCreationParameters&&, WebCore::FrameIdentifier);
     void destroyProvisionalFrame(WebCore::FrameIdentifier);
     void loadDidCommitInAnotherProcess(WebCore::FrameIdentifier, std::optional<WebCore::LayerHostingContextIdentifier>);
+    void loadRequestInFrameForInspector(LoadParameters&&, WebCore::FrameIdentifier);
     void loadRequest(LoadParameters&&);
     [[noreturn]] void loadRequestWaitingForProcessLaunch(LoadParameters&&, URL&&, WebPageProxyIdentifier, bool);
     void loadData(LoadParameters&&);
@@ -1979,6 +1988,7 @@ private:
     void updatePotentialTapSecurityOrigin(const WebTouchEvent&, bool wasHandled);
 #elif ENABLE(TOUCH_EVENTS)
     void touchEvent(const WebTouchEvent&, CompletionHandler<void(std::optional<WebEventType>, bool)>&&);
+    void fakeTouchTap(const WebCore::IntPoint& position, uint8_t modifiers, CompletionHandler<void()>&& completionHandler);
 #endif
 
     void cancelPointer(WebCore::PointerID, const WebCore::IntPoint&);
@@ -2124,9 +2134,7 @@ private:
     void addLayerForFindOverlay(CompletionHandler<void(std::optional<WebCore::PlatformLayerIdentifier>)>&&);
     void removeLayerForFindOverlay(CompletionHandler<void()>&&);
 
-#if USE(COORDINATED_GRAPHICS)
     void sendViewportAttributesChanged(const WebCore::ViewportArguments&);
-#endif
 
     void didChangeSelectedIndexForActivePopupMenu(int32_t newIndex);
     void setTextForActivePopupMenu(int32_t index);
@@ -2732,6 +2740,7 @@ private:
     UserActivity m_userActivity;
 
     Markable<WebCore::NavigationIdentifier> m_pendingNavigationID;
+    Markable<WebCore::NavigationIdentifier> m_pendingFrameNavigationID;
     std::optional<WebsitePoliciesData> m_pendingWebsitePolicies;
 
     bool m_mainFrameProgressCompleted { false };
