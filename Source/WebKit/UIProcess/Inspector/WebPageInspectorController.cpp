@@ -506,6 +506,9 @@ void WebPageInspectorController::adjustPageSettings()
         m_inspectedPage->preferences().setMediaStreamEnabled(true);
         m_inspectedPage->preferences().setPeerConnectionEnabled(true);
     }
+
+    // Disable local storage partitioning. See https://github.com/microsoft/playwright/issues/32230
+    m_inspectedPage->preferences().setStorageBlockingPolicy(static_cast<uint32_t>(WebCore::StorageBlockingPolicy::AllowAll));
 }
 
 } // namespace WebKit
