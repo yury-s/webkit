@@ -10,6 +10,7 @@
       <dep package="glib"/>
       <dep package="glib-networking"/>
       <dep package="icu"/>
+      <dep package="libavif"/>
       <dep package="libdrm"/>
       <dep package="libjxl"/>
       <dep package="libsoup"/>
@@ -28,11 +29,11 @@
       <dep package="glib"/>
       <dep package="glib-networking"/>
       <dep package="icu"/>
+      <dep package="libavif"/>
       <dep package="libdrm"/>
       <dep package="libjxl"/>
       <dep package="libsoup"/>
       <dep package="libvpx"/>
-      <dep package="openxr"/>
       <dep package="wayland"/>
       <dep package="wayland-protocols"/>
       <dep package="wpebackend-fdo"/>
@@ -40,40 +41,22 @@
   </metamodule>
 
   <!-- Please use http/https to access repositories to be friendly to users stuck behind firewalls. -->
-  <repository type="git" name="github.com"
-      href="https://github.com"/>
-  <repository type="tarball" name="github-tarball"
-      href="https://github.com"/>
-  <repository type="tarball" name="sourceware.org-mirror"
-      href="http://mirrors.kernel.org/sources.redhat.com/"/>
-  <repository type="tarball" name="ftp.gnome.org"
-      href="http://ftp.gnome.org"/>
-  <repository type="tarball" name="download.gnome.org"
-      href="https://download.gnome.org"/>
-  <repository type="git" name="git.gnome.org"
-      href="https://git.gnome.org/browse/"/>
-  <repository type="tarball" name="cairographics.org"
-      href="http://cairographics.org"/>
-  <repository type="tarball" name="freedesktop.org"
-      href="http://www.freedesktop.org"/>
-  <repository type="tarball" name="xorg"
-      href="http://xorg.freedesktop.org"/>
-  <repository type="tarball" name="xmlsoft.org"
-      href="http://xmlsoft.org"/>
-  <repository type="tarball" name="savannah.gnu.org"
-      href="http://download.savannah.gnu.org/releases/"/>
- <repository type="tarball" name="dri.freedesktop.org"
-      href="https://dri.freedesktop.org"/>
-  <repository type="tarball" name="mesa.freedesktop.org"
-      href="https://mesa.freedesktop.org"/>
+  <!-- Git repositories. -->
+  <repository type="git" name="aomedia.googlesource.com"
+      href="https://aomedia.googlesource.com"/>
+  <repository type="git" name="chromium.googlesource.com"
+      href="https://chromium.googlesource.com"/>
   <repository type="git" name="git.freedesktop.org"
       href="https://gitlab.freedesktop.org"/>
-  <repository type="tarball" name="llvm.org"
-      href="http://llvm.org"/>
-  <repository type="tarball" name="webkitgtk-jhbuild-mirror"
-      href="http://webkitgtk.org/jhbuild_mirror/"/>
-  <repository type="tarball" name="gnupg.org"
-      href="https://www.gnupg.org/ftp/gcrypt/"/>
+  <repository type="git" name="github.com"
+      href="https://github.com"/>
+  <!-- Tarball repositories. -->
+  <repository type="tarball" name="download.gnome.org"
+      href="https://download.gnome.org"/>
+  <repository type="tarball" name="github-tarball"
+      href="https://github.com"/>
+  <repository type="tarball" name="ftp.gnome.org"
+      href="http://ftp.gnome.org"/>
 
   <!-- meson 0.62.2 required to build gstreamer-1.22.7 -->
   <if condition-set="require-meson">
@@ -117,6 +100,32 @@
     </branch>
   </autotools>
 
+  <cmake id="libyuv">
+    <branch module="libyuv/libyuv"
+            repo="chromium.googlesource.com"
+            tag="stable"/>
+  </cmake>
+
+  <cmake id="libaom" cmakeargs="-DENABLE_DOCS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TOOLS=OFF -DENABLE_TESTS=OFF">
+    <pkg-config>libaom.pc</pkg-config>
+    <branch module="aom"
+            repo="aomedia.googlesource.com"
+            tag="v3.3.0"
+            version="3.3.0" />
+  </cmake>
+
+  <cmake id="libavif" cmakeargs="-DCMAKE_BUILD_TYPE=Release -DAVIF_ENABLE_WERROR=OFF">
+    <pkg-config>libavif.pc</pkg-config>
+    <dependencies>
+      <dep package="libyuv"/>
+      <dep package="libaom"/>
+    </dependencies>
+    <branch module="AOMediaCodec/libavif"
+            repo="github.com"
+            tag="v0.9.3"
+            version="0.9.3" />
+  </cmake>
+
   <!-- libdrm required for function 'drmGetFormatName' (defined since 'libdrm-2.4.113') -->
   <meson id="libdrm" mesonargs="-Dtegra=enabled -Dcairo-tests=disabled -Dman-pages=disabled -Dvalgrind=disabled -Dudev=false -Dtests=false">
     <pkg-config>libdrm.pc</pkg-config>
@@ -128,7 +137,6 @@
   </meson>
 
   <meson id="libsoup" mesonargs="-Dgssapi=disabled -Dvapi=disabled -Dntlm=disabled -Dsysprof=disabled -Dautobahn=disabled -Dpkcs11_tests=disabled">
-    <pkg-config>libsoup-3.0.pc</pkg-config>
     <dependencies>
       <dep package="glib"/>
       <dep package="glib-networking"/>
