@@ -677,8 +677,6 @@ class BundleCreator(object):
             # bunddle WebKit libraries
             objects_to_copy.extend(self._get_webkit_binaries())
             objects_to_copy.append(self._get_webkit_lib('InjectedBundle'))
-            if self._platform == 'wpe':
-                objects_to_copy.append(self._get_webkit_lib('InspectorResources'))
             # Bundle extra system related libraries
             gio_modules = self._get_gio_modules()
             objects_to_copy.extend(gio_modules)
@@ -765,6 +763,9 @@ class BundleCreator(object):
                         needs_to_create_wpe_backend_symlink = True
         if needs_to_create_wpe_backend_symlink:
             self._ensure_wpe_backend_symlink()
+
+        if self._platform == 'wpe':
+            self._bundler.copy(os.path.join(self._buildpath, 'WebInspectorUI', 'DerivedSources', 'inspector.gresource'))
 
         # Now copy data files to share dir (only needed when bunding all for MiniBrowser).
         # We assume that the system uses standard paths at /usr/share and /etc for this resources
