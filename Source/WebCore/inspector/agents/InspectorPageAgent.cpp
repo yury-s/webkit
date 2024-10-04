@@ -575,6 +575,13 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::overrideSetting(Ins
 #endif
         return { };
 
+    case Protocol::Page::Setting::FixedBackgroundsPaintRelativeToDocument:
+        // Enable this setting similar to iOS to ensure scrolling works with
+        // `background-attachment: fixed`.
+        // See https://github.com/microsoft/playwright/issues/31551.
+        inspectedPageSettings.setFixedBackgroundsPaintRelativeToDocument(value.value_or(false));
+        return { };
+
 #if ENABLE(POINTER_LOCK)
     case Protocol::Page::Setting::PointerLockEnabled:
         inspectedPageSettings.setPointerLockEnabled(value.value_or(false));

@@ -27,7 +27,8 @@
                 "NotificationsEnabled",
                 "FullScreenEnabled",
                 "InputTypeMonthEnabled",
-                "InputTypeWeekEnabled"
+                "InputTypeWeekEnabled",
+                "FixedBackgroundsPaintRelativeToDocument"
             ]
         },
         {
