@@ -4,6 +4,7 @@ set_property(DIRECTORY . PROPERTY FOLDER "skia")
 find_package(Freetype 2.9.0 REQUIRED)
 find_package(Fontconfig 2.13.0 REQUIRED)
 find_package(WebP REQUIRED COMPONENTS mux)
+find_package(Threads REQUIRED)
 
 #
 # SKIA_ROOT_DIR may point to a checkout from the upstream Skia repository,
@@ -900,6 +901,7 @@ target_link_libraries(Skia PRIVATE
     JPEG::JPEG
     PNG::PNG
     WebP::mux
+    Threads::Threads
 )
 
 WEBKIT_ADD_TARGET_CXX_FLAGS(Skia
