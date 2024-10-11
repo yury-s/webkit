@@ -43,7 +43,7 @@
 #include <skia/core/SkImage.h>
 #endif
 
-#if USE(CAIRO)
+#if USE(CAIRO) || PLATFORM(GTK)
 #include <cairo.h>
 #endif
 
