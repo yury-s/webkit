@@ -34,6 +34,7 @@
 #include <vpx/vp8.h>
 #include <vpx/vp8cx.h>
 #include <vpx/vpx_encoder.h>
+#include <wtf/Compiler.h>
 #include <wtf/RunLoop.h>
 #include <wtf/UniqueArray.h>
 #include <wtf/WorkQueue.h>
@@ -50,6 +51,8 @@
 #if USE(CAIRO) || PLATFORM(GTK)
 #include <WebCore/RefPtrCairo.h>
 #endif
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 using namespace WebCore;
 
@@ -436,3 +439,5 @@ void ScreencastEncoder::finish(Function<void()>&& callback)
 
 
 } // namespace WebKit
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

@@ -30,6 +30,7 @@
 
 #include "InspectorPlaywrightAgent.h"
 #include <JavaScriptCore/InspectorFrontendChannel.h>
+#include <wtf/Compiler.h>
 #include <wtf/MainThread.h>
 #include <wtf/RunLoop.h>
 #include <wtf/UniqueArray.h>
@@ -44,6 +45,8 @@
 #if PLATFORM(WIN)
 #include <io.h>
 #endif
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 namespace WebKit {
 
@@ -223,3 +226,5 @@ void RemoteInspectorPipe::workerRun()
 } // namespace WebKit
 
 #endif // ENABLE(REMOTE_INSPECTOR)
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
