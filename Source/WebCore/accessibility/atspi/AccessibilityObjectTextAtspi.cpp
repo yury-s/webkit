@@ -287,7 +287,7 @@ String AccessibilityObjectAtspi::text() const
     if (!value.isNull())
         return value;
 
-    auto text = m_coreObject->textUnderElement(TextUnderElementMode(TextUnderElementMode::Children::IncludeAllChildren));
+    auto text = m_coreObject->textUnderElement({ TextUnderElementMode::Children::IncludeAllChildren });
     if (auto* renderer = m_coreObject->renderer()) {
         if (is<RenderListItem>(*renderer) && downcast<RenderListItem>(*renderer).markerRenderer()) {
             if (renderer->style().direction() == TextDirection::LTR) {
@@ -313,7 +313,7 @@ unsigned AccessibilityObject::getLengthForTextRange() const
         textLength = downcast<RenderText>(*renderer).text().length();
 
     if (!textLength && allowsTextRanges())
-        textLength = textUnderElement(TextUnderElementMode(TextUnderElementMode::Children::IncludeAllChildren)).length();
+        textLength = textUnderElement({ TextUnderElementMode::Children::IncludeAllChildren }).length();
 
     return textLength;
 }
