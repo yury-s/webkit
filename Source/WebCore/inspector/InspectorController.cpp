@@ -555,6 +555,11 @@ void InspectorController::resumeIfPausedInNewWindow()
     m_pauseWhenShown = false;
 }
 
+void InspectorController::didCreateNewWindowPage()
+{
+    didShowNewWindow();
+}
+
 void InspectorController::didShowNewWindow()
 {
     if (!m_pauseWhenShown)

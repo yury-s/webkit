@@ -4717,6 +4717,11 @@ std::pair<RefPtr<Frame>, CreatedNewPage> createWindow(LocalFrame& openerFrame, F
     if (!frame->page())
         return { nullptr, CreatedNewPage::No };
 
+    // Playwright: for window.open WebPage calls WebPage::Show from the constructor
+    // which is too early, so we do the call for such page here, when it was
+    // created, added to the page map and shown. This is to workaround crashes
+    // after 285059@main.
+    page->inspectorController().didCreateNewWindowPage();
     return { WTFMove(frame), CreatedNewPage::Yes };
 }
 

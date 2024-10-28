@@ -106,6 +106,7 @@ public:
     WEBCORE_EXPORT void pauseWhenShown();
     WEBCORE_EXPORT void resumeIfPausedInNewWindow();
     WEBCORE_EXPORT void didShowNewWindow();
+    WEBCORE_EXPORT void didCreateNewWindowPage();
 
     // Testing support.
     WEBCORE_EXPORT bool isUnderTest() const;
