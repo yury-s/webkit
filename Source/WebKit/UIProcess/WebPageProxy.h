@@ -135,7 +135,7 @@ class DragData;
 class Exception;
 class FloatPoint;
 class FloatQuad;
-typedef HashMap<unsigned, Vector<String>> DragDataMap;
+typedef UncheckedKeyHashMap<unsigned, Vector<String>> DragDataMap;
 class FloatRect;
 class FloatSize;
 class FontAttributeChanges;

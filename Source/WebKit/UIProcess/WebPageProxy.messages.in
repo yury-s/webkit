@@ -326,7 +326,7 @@ messages -> WebPageProxy {
 #endif
 
 #if PLATFORM(WIN) && ENABLE(DRAG_SUPPORT)
-    StartDrag(HashMap<unsigned, Vector<String>> dragDataMap)
+    StartDrag(UncheckedKeyHashMap<unsigned, Vector<String>> dragDataMap)
 #endif
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(DRAG_SUPPORT)
