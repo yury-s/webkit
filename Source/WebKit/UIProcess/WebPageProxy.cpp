@@ -1948,11 +1948,6 @@ WebProcessProxy& WebPageProxy::ensureRunningProcess()
     return m_legacyMainFrameProcess;
 }
 
-<<<<<<< HEAD
-RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, std::unique_ptr<NavigationActionData>&& lastNavigationAction, API::Object* userData)
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-RefPtr<API::Navigation> WebPageProxy::loadRequest(ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, API::Object* userData)
-=======
 RefPtr<API::Navigation> WebPageProxy::loadRequestForInspector(WebCore::ResourceRequest&& request, WebFrameProxy* frame)
 {
     if (!frame || frame == mainFrame())
@@ -1968,8 +1963,7 @@ RefPtr<API::Navigation> WebPageProxy::loadRequestForInspector(WebCore::ResourceR
     return navigation;
 }
 
-RefPtr<API::Navigation> WebPageProxy::loadRequest(ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, API::Object* userData)
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
+RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, std::unique_ptr<NavigationActionData>&& lastNavigationAction, API::Object* userData)
 {
     if (m_isClosed)
         return nullptr;
@@ -6605,14 +6599,8 @@ void WebPageProxy::didDestroyNavigationShared(Ref<WebProcessProxy>&& process, We
 
     RefPtr protectedPageClient { pageClient() };
 
-<<<<<<< HEAD
     protectedNavigationState()->didDestroyNavigation(process->coreProcessIdentifier(), navigationID);
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-    m_navigationState->didDestroyNavigation(process->coreProcessIdentifier(), navigationID);
-=======
-    m_navigationState->didDestroyNavigation(process->coreProcessIdentifier(), navigationID);
     m_inspectorController->didDestroyNavigation(navigationID);
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
 }
 
 void WebPageProxy::didStartProvisionalLoadForFrame(FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, URL&& url, URL&& unreachableURL, const UserData& userData, WallTime timestamp)
@@ -8309,13 +8297,8 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     if (RefPtr page = originatingFrameInfo->page())
         openerAppInitiatedState = page->lastNavigationWasAppInitiated();
 
-<<<<<<< HEAD
     auto navigationDataForNewProcess = navigationActionData.hasOpener ? nullptr : makeUnique<NavigationActionData>(navigationActionData);
-
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-=======
     m_inspectorController->willCreateNewPage(windowFeatures, request.url());
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
     auto completionHandler = [
         this,
         protectedThis = Ref { *this },

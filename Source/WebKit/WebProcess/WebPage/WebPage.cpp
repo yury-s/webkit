@@ -1116,18 +1116,12 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         m_page->chrome().show();
         m_page->setOpenedByDOM();
     }
-<<<<<<< HEAD
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-    m_page->mainFrame().tree().setSpecifiedName(AtomString(parameters.openedMainFrameName));
-=======
     // This call goes potentially _after_ this page was shown in the call
     // `m_page->chrome().show();` above to avoid pausing while the page is not
     // fully constructed and added to the map yet. The pause will happen a bit
     // later in that case, when `didCreateNewWindowPage` is called.
     if (parameters.shouldPauseInInspectorWhenShown)
         m_page->inspectorController().pauseWhenShown();
-    m_page->mainFrame().tree().setSpecifiedName(AtomString(parameters.openedMainFrameName));
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
 }
 
 void WebPage::updateAfterDrawingAreaCreation(const WebPageCreationParameters& parameters)

@@ -207,12 +207,6 @@ private:
     InspectorOverlay* m_overlay { nullptr };
 
     MemoryCompactRobinHoodHashMap<String, WeakPtr<Frame>> m_identifierToFrame;
-<<<<<<< HEAD
-    UncheckedKeyHashMap<DocumentLoader*, String> m_loaderToIdentifier;
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-    HashMap<DocumentLoader*, String> m_loaderToIdentifier;
-=======
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
     String m_userAgentOverride;
     String m_platformOverride;
     AtomString m_emulatedMedia;

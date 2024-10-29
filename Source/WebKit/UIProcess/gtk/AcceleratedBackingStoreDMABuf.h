@@ -242,16 +242,10 @@ private:
     RefPtr<Buffer> m_pendingBuffer;
     RefPtr<Buffer> m_committedBuffer;
     WebCore::Region m_pendingDamageRegion;
-<<<<<<< HEAD
     UncheckedKeyHashMap<uint64_t, RefPtr<Buffer>> m_buffers;
-||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
-    HashMap<uint64_t, RefPtr<Buffer>> m_buffers;
-=======
-    HashMap<uint64_t, RefPtr<Buffer>> m_buffers;
 // Playwright begin
     RefPtr<cairo_surface_t> m_flippedSurface;
 // Playwright end
->>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
 };
 
 } // namespace WebKit
