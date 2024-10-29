@@ -74,6 +74,11 @@
 #include <WebCore/PlatformTextAlternatives.h>
 #endif
 
+#if USE(SKIA)
+#include <skia/core/SkData.h>
+#include <skia/core/SkImage.h>
+#endif
+
 OBJC_CLASS AVPlayerViewController;
 OBJC_CLASS CALayer;
 OBJC_CLASS NSFileWrapper;
@@ -95,6 +100,34 @@ OBJC_CLASS WKView;
 #endif
 #endif
 
+<<<<<<< HEAD
+||||||| parent of b0017dc7d62b (chore(webkit): bootstrap build #2097)
+namespace WebKit {
+class PageClient;
+}
+
+namespace WTF {
+template<typename T> struct IsDeprecatedWeakRefSmartPointerException;
+template<> struct IsDeprecatedWeakRefSmartPointerException<WebKit::PageClient> : std::true_type { };
+}
+
+=======
+#if PLATFORM(GTK) || PLATFORM(WPE)
+#if USE(CAIRO)
+#include <WebCore/RefPtrCairo.h>
+#endif
+#endif
+
+namespace WebKit {
+class PageClient;
+}
+
+namespace WTF {
+template<typename T> struct IsDeprecatedWeakRefSmartPointerException;
+template<> struct IsDeprecatedWeakRefSmartPointerException<WebKit::PageClient> : std::true_type { };
+}
+
+>>>>>>> b0017dc7d62b (chore(webkit): bootstrap build #2097)
 namespace API {
 class Attachment;
 class HitTestResult;
@@ -372,7 +405,20 @@ public:
     virtual void selectionDidChange() = 0;
 #endif
 
-#if PLATFORM(COCOA) || PLATFORM(GTK)
+// Paywright begin
+#if PLATFORM(COCOA)
+    virtual RetainPtr<CGImageRef> takeSnapshotForAutomation() = 0;
+#elif PLATFORM(WPE)
+#if USE(SKIA)
+    virtual sk_sp<SkImage> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution = false) = 0;
+#elif USE(CAIRO)
+    virtual RefPtr<cairo_surface_t> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution = false) = 0;
+#endif
+#elif PLATFORM(GTK)
+    virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&, bool nominalResolution = false) = 0;
+#endif
+// Paywright end
+#if PLATFORM(COCOA)
     virtual RefPtr<ViewSnapshot> takeViewSnapshot(std::optional<WebCore::IntRect>&&) = 0;
 #endif
 
