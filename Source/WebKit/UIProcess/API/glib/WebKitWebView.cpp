@@ -2707,7 +2707,7 @@ RefPtr<WebPageProxy> webkitWebViewCreateNewPage(WebKitWebView* webView, Ref<API:
         return nullptr;
 
     Ref newPage = getPage(newWebView);
-    if (&getPage(webView) != newPage->configuration().relatedPage() || openerInfo != newPage->configuration().openerInfo()) {
+    if (openerInfo != newPage->configuration().openerInfo()) {
         g_warning("WebKitWebView returned by WebKitWebView::create signal was not created with the related WebKitWebView");
         return nullptr;
     }

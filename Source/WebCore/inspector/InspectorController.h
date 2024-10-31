@@ -103,10 +103,11 @@ public:
     WEBCORE_EXPORT void willComposite(LocalFrame&);
     WEBCORE_EXPORT void didComposite(LocalFrame&);
 
-    WEBCORE_EXPORT void pauseWhenShown();
+    enum class PauseCondition { DONT_PAUSE, WHEN_SHOWN, WHEN_CREATION_FINISHED };
+    WEBCORE_EXPORT void pauseOnStart(PauseCondition);
     WEBCORE_EXPORT void resumeIfPausedInNewWindow();
-    WEBCORE_EXPORT void didShowNewWindow();
-    WEBCORE_EXPORT void didCreateNewWindowPage();
+    WEBCORE_EXPORT void didShowPage();
+    WEBCORE_EXPORT void didFinishPageCreation();
 
     // Testing support.
     WEBCORE_EXPORT bool isUnderTest() const;
@@ -138,6 +139,7 @@ private:
 
     PageAgentContext pageAgentContext();
     void createLazyAgents();
+    void runLoopWhilePaused();
 
     Ref<InstrumentingAgents> m_instrumentingAgents;
     std::unique_ptr<WebInjectedScriptManager> m_injectedScriptManager;
@@ -161,7 +163,7 @@ private:
     bool m_isAutomaticInspection { false };
     bool m_pauseAfterInitialization = { false };
     bool m_didCreateLazyAgents { false };
-    bool m_pauseWhenShown { false };
+    PauseCondition m_pauseOnStart { PauseCondition::DONT_PAUSE };
 };
 
 } // namespace WebCore

@@ -935,6 +935,7 @@ void WebProcess::createWebPage(PageIdentifier pageID, WebPageCreationParameters&
         accessibilityRelayProcessSuspended(false);
     }
     ASSERT(result.iterator->value);
+    result.iterator->value->didAddWebPageToWebProcess();
 }
 
 void WebProcess::removeWebPage(PageIdentifier pageID)

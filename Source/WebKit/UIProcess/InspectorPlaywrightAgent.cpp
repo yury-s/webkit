@@ -378,7 +378,7 @@ void InspectorPlaywrightAgent::didCreateInspectorController(WebPageProxy& page)
 
     String browserContextID = toBrowserContextIDProtocolString(page.sessionID());
     String pageProxyID = toPageProxyIDProtocolString(page);
-    auto* opener = page.configuration().relatedPage();
+    auto* opener = page.configuration().openerPageForInspector();
     String openerId;
     if (opener)
         openerId = toPageProxyIDProtocolString(*opener);

@@ -1445,6 +1445,7 @@ public:
     void disconnectInspector(const String& targetId);
     void sendMessageToTargetBackend(const String& targetId, const String& message);
     void resumeInspectorIfPausedInNewWindow();
+    void didAddWebPageToWebProcess();
 
     void insertNewlineInQuotedContent();
 
