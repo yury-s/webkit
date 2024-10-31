@@ -1948,11 +1948,6 @@ WebProcessProxy& WebPageProxy::ensureRunningProcess()
     return m_legacyMainFrameProcess;
 }
 
-<<<<<<< HEAD
-RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, std::unique_ptr<NavigationActionData>&& lastNavigationAction, API::Object* userData)
-||||||| parent of d6b3d9893409 (chore(webkit): bootstrap build #2098)
-RefPtr<API::Navigation> WebPageProxy::loadRequest(ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, API::Object* userData)
-=======
 RefPtr<API::Navigation> WebPageProxy::loadRequestForInspector(WebCore::ResourceRequest&& request, WebFrameProxy* frame)
 {
     if (!frame || frame == mainFrame())
@@ -1968,8 +1963,7 @@ RefPtr<API::Navigation> WebPageProxy::loadRequestForInspector(WebCore::ResourceR
     return navigation;
 }
 
-RefPtr<API::Navigation> WebPageProxy::loadRequest(ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, API::Object* userData)
->>>>>>> d6b3d9893409 (chore(webkit): bootstrap build #2098)
+RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback isPerformingHTTPFallback, std::unique_ptr<NavigationActionData>&& lastNavigationAction, API::Object* userData)
 {
     if (m_isClosed)
         return nullptr;
@@ -8303,13 +8297,9 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     if (RefPtr page = originatingFrameInfo->page())
         openerAppInitiatedState = page->lastNavigationWasAppInitiated();
 
-<<<<<<< HEAD
-    auto navigationDataForNewProcess = navigationActionData.hasOpener ? nullptr : makeUnique<NavigationActionData>(navigationActionData);
-
-||||||| parent of d6b3d9893409 (chore(webkit): bootstrap build #2098)
-=======
     m_inspectorController->willCreateNewPage(windowFeatures, request.url());
->>>>>>> d6b3d9893409 (chore(webkit): bootstrap build #2098)
+
+    auto navigationDataForNewProcess = navigationActionData.hasOpener ? nullptr : makeUnique<NavigationActionData>(navigationActionData);
     auto completionHandler = [
         this,
         protectedThis = Ref { *this },
