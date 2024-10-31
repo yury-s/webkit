@@ -65,6 +65,7 @@ public:
     // Target messages.
     void sendMessageFromTargetToFrontend(const String& targetId, const String& message);
 
+    bool shouldPauseOnStart() const { return m_shouldPauseOnStart; }
     bool isConnected() { return m_isConnected; }
 
 private:

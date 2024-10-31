@@ -2054,11 +2054,29 @@ void WebPageProxy::loadRequestWithNavigationShared(Ref<WebProcessProxy>&& proces
 
         navigation->setIsLoadedWithNavigationShared(true);
         protectedProcess->markProcessAsRecentlyUsed();
-        if (!protectedProcess->isLaunching() || !url.protocolIsFile())
-            protectedProcess->send(Messages::WebPage::LoadRequest(WTFMove(loadParameters)), webPageID);
+
+        // Pause loading for new window navigation.
+        Function<void()> continuation = [
+            weakThis = WeakPtr { protectedThis },
+            weakProcess = WeakPtr { protectedProcess },
+            loadParameters = WTFMove(loadParameters),
+            webPageID,
+            url
+        ]() mutable {
+            RefPtr innerProtectedProcess = weakProcess.get();
+            RefPtr innerProtectedThis = weakThis.get();
+            if (!innerProtectedProcess || !innerProtectedThis)
+                return;
+            if (!innerProtectedProcess->isLaunching() || !url.protocolIsFile())
+                innerProtectedProcess->send(Messages::WebPage::LoadRequest(WTFMove(loadParameters)), webPageID);
+            else
+                innerProtectedProcess->send(Messages::WebPage::LoadRequestWaitingForProcessLaunch(WTFMove(loadParameters), innerProtectedThis->internals().pageLoadState.resourceDirectoryURL(), innerProtectedThis->identifier(), true), webPageID);
+            innerProtectedProcess->startResponsivenessTimer();
+        };
+        if (protectedThis->m_inspectorController->shouldPauseLoadRequest())
+            protectedThis->m_inspectorController->setContinueLoadingCallback(WTFMove(continuation));
         else
-            protectedProcess->send(Messages::WebPage::LoadRequestWaitingForProcessLaunch(WTFMove(loadParameters), protectedThis->internals().pageLoadState.resourceDirectoryURL(), protectedThis->identifier(), true), webPageID);
-        protectedProcess->startResponsivenessTimer();
+            continuation();
     });
 }
 
@@ -8368,6 +8386,7 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     configuration->setInitialSandboxFlags(effectiveSandboxFlags);
     configuration->setWindowFeatures(WTFMove(windowFeatures));
     configuration->setOpenedMainFrameName(openedMainFrameName);
+    configuration->setOpenerPageForInspector(*this);
 
     if (RefPtr openerFrame = WebFrameProxy::webFrame(originatingFrameInfoData.frameID); navigationActionData.hasOpener && openerFrame) {
         configuration->setRelatedPage(*this);
@@ -11472,7 +11491,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
 
     parameters.httpsUpgradeEnabled = preferences->upgradeKnownHostsToHTTPSEnabled() ? configuration->httpsUpgradeEnabled() : false;
 
-    parameters.shouldPauseInInspectorWhenShown = m_inspectorController->shouldPauseLoading();
+    parameters.shouldPauseInInspectorWhenShown = m_inspectorController->shouldPauseInInspectorWhenShown();
 
 #if PLATFORM(IOS) || PLATFORM(VISION)
     // FIXME: This is also being passed over the to WebProcess via the PreferencesStore.

@@ -1111,17 +1111,17 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     setLinkDecorationFilteringData(WTFMove(parameters.linkDecorationFilteringData));
     setAllowedQueryParametersForAdvancedPrivacyProtections(WTFMove(parameters.allowedQueryParametersForAdvancedPrivacyProtections));
 #endif
+    // For popup windows WebPage::Show() maybe called in the next lines from the constructor,
+    // at which point the page is not in the WebProcess's map yet and it is not safe to
+    // dispatch nested message loop and receive IPC messages. To mitigate that, the actual
+    // pause is postponed until the page is added to the map.
+    if (parameters.shouldPauseInInspectorWhenShown)
+        m_page->inspectorController().pauseOnStart(parameters.windowFeatures ? InspectorController::PauseCondition::WHEN_CREATION_FINISHED : InspectorController::PauseCondition::WHEN_SHOWN);
     if (parameters.windowFeatures) {
         m_page->applyWindowFeatures(*parameters.windowFeatures);
         m_page->chrome().show();
         m_page->setOpenedByDOM();
     }
-    // This call goes potentially _after_ this page was shown in the call
-    // `m_page->chrome().show();` above to avoid pausing while the page is not
-    // fully constructed and added to the map yet. The pause will happen a bit
-    // later in that case, when `didCreateNewWindowPage` is called.
-    if (parameters.shouldPauseInInspectorWhenShown)
-        m_page->inspectorController().pauseWhenShown();
 }
 
 void WebPage::updateAfterDrawingAreaCreation(const WebPageCreationParameters& parameters)
@@ -4147,6 +4147,11 @@ void WebPage::resumeInspectorIfPausedInNewWindow()
     m_page->inspectorController().resumeIfPausedInNewWindow();
 }
 
+void WebPage::didAddWebPageToWebProcess()
+{
+    m_page->inspectorController().didFinishPageCreation();
+}
+
 void WebPage::insertNewlineInQuotedContent()
 {
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
@@ -4388,7 +4393,7 @@ void WebPage::didCompletePageTransition()
 void WebPage::show()
 {
     send(Messages::WebPageProxy::ShowPage());
-    m_page->inspectorController().didShowNewWindow();
+    m_page->inspectorController().didShowPage();
 }
 
 void WebPage::setIsTakingSnapshotsForApplicationSuspension(bool isTakingSnapshotsForApplicationSuspension)

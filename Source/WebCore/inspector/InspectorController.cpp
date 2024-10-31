@@ -291,7 +291,7 @@ void InspectorController::disconnectFrontend(FrontendChannel& frontendChannel)
         // Unplug all instrumentations since they aren't needed now.
         InspectorInstrumentation::unregisterInstrumentingAgents(m_instrumentingAgents.get());
 
-        m_pauseWhenShown = false;
+        m_pauseOnStart = PauseCondition::DONT_PAUSE;
     }
 
     m_inspectorClient->frontendCountChanged(m_frontendRouter->frontendCount());
@@ -311,7 +311,7 @@ void InspectorController::disconnectAllFrontends()
     // The frontend should call setInspectorFrontendClient(nullptr) under closeWindow().
     ASSERT(!m_inspectorFrontendClient);
 
-    m_pauseWhenShown = false;
+    m_pauseOnStart = PauseCondition::DONT_PAUSE;
 
     if (!m_frontendRouter->hasFrontends())
         return;
@@ -545,26 +545,31 @@ void InspectorController::didComposite(LocalFrame& frame)
     InspectorInstrumentation::didComposite(frame);
 }
 
-void InspectorController::pauseWhenShown()
+void InspectorController::pauseOnStart(PauseCondition condition)
 {
-    m_pauseWhenShown = true;
+    m_pauseOnStart = condition;
 }
 
 void InspectorController::resumeIfPausedInNewWindow()
 {
-    m_pauseWhenShown = false;
+    m_pauseOnStart = PauseCondition::DONT_PAUSE;
 }
 
-void InspectorController::didCreateNewWindowPage()
+void InspectorController::didFinishPageCreation()
 {
-    didShowNewWindow();
+    if (m_pauseOnStart == PauseCondition::WHEN_CREATION_FINISHED)
+        runLoopWhilePaused();
 }
 
-void InspectorController::didShowNewWindow()
+void InspectorController::didShowPage()
 {
-    if (!m_pauseWhenShown)
-        return;
-    while (m_pauseWhenShown) {
+    if (m_pauseOnStart == PauseCondition::WHEN_SHOWN)
+        runLoopWhilePaused();
+}
+
+void InspectorController::runLoopWhilePaused()
+{
+    while (m_pauseOnStart != PauseCondition::DONT_PAUSE) {
         if (RunLoop::cycle() == RunLoop::CycleResult::Stop)
             break;
     }

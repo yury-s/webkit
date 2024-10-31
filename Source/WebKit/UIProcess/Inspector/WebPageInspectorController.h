@@ -142,7 +142,8 @@ public:
 
     void setPauseOnStart(bool);
 
-    bool shouldPauseLoading() const;
+    bool shouldPauseLoadRequest() const;
+    bool shouldPauseInInspectorWhenShown() const;
     void setContinueLoadingCallback(WTF::Function<void()>&&);
 
     bool shouldPauseLoading(const ProvisionalPageProxy&) const;

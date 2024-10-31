@@ -369,7 +369,7 @@ void WebPageInspectorController::setPauseOnStart(bool shouldPause)
     m_targetAgent->setPauseOnStart(shouldPause);
 }
 
-bool WebPageInspectorController::shouldPauseLoading() const
+bool WebPageInspectorController::shouldPauseLoadRequest() const
 {
     if (!m_frontendRouter->hasFrontends())
         return false;
@@ -378,8 +378,24 @@ bool WebPageInspectorController::shouldPauseLoading() const
         return false;
 
     auto* target = m_targets.get(WebPageInspectorTarget::toTargetID(m_inspectedPage->webPageIDInMainFrameProcess()));
+    // The method is expeted to be called only when the WebPage has already been
+    // initilized, so the target must exist.
     ASSERT(target);
     return target->isPaused();
+}
+
+bool WebPageInspectorController::shouldPauseInInspectorWhenShown() const
+{
+    if (!m_frontendRouter->hasFrontends())
+        return false;
+
+    if (!m_inspectedPage->isPageOpenedByDOMShowingInitialEmptyDocument())
+        return false;
+
+    // The method is called from WebPageProxy::initializePage and the
+    // target is not created yet (it is created after the new page is
+    //  initialized and attached to the process).
+    return m_targetAgent->shouldPauseOnStart();
 }
 
 void WebPageInspectorController::setContinueLoadingCallback(WTF::Function<void()>&& callback)
