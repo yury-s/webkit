@@ -52,8 +52,6 @@
 #include <wtf/text/Base64.h>
 #include <wtf/text/CString.h>
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-
 namespace WebCore {
 
 using HTMLNames::bodyTag;
@@ -410,7 +408,7 @@ std::unique_ptr<DOMPatchSupport::Digest> DOMPatchSupport::createDigest(Node& nod
     SHA1 sha1;
 
     auto nodeType = node.nodeType();
-    sha1.addBytes(std::span { reinterpret_cast<const uint8_t*>(&nodeType), sizeof(nodeType) });
+    sha1.addBytes(std::bit_cast<std::array<uint8_t, sizeof(Node::NodeType)>>(nodeType));
     addStringToSHA1(sha1, node.nodeName());
     addStringToSHA1(sha1, node.nodeValue());
 
@@ -518,5 +516,3 @@ void DOMPatchSupport::dumpMap(const ResultMap& map, const String& name)
 #endif
 
 } // namespace WebCore
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
