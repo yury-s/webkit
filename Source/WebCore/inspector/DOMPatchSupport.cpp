@@ -52,7 +52,7 @@
 #include <wtf/text/Base64.h>
 #include <wtf/text/CString.h>
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+// WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 namespace WebCore {
 
@@ -519,4 +519,4 @@ void DOMPatchSupport::dumpMap(const ResultMap& map, const String& name)
 
 } // namespace WebCore
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+// WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
