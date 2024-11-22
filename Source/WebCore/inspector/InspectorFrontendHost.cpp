@@ -83,7 +83,7 @@
 #include <wtf/spi/darwin/OSVariantSPI.h>
 #endif
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+// WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 namespace WebCore {
 
@@ -696,7 +696,7 @@ bool InspectorFrontendHost::showCertificate(const String& serializedCertificate)
     if (!data)
         return false;
 
-    WTF::Persistence::Decoder decoder({ data->data(), data->size() });
+    WTF::Persistence::Decoder decoder(data->span());
     std::optional<CertificateInfo> certificateInfo;
     decoder >> certificateInfo;
     if (!certificateInfo)
@@ -894,4 +894,4 @@ void InspectorFrontendHost::setPath(OffscreenCanvasRenderingContext2D& context, 
 
 } // namespace WebCore
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+// WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
