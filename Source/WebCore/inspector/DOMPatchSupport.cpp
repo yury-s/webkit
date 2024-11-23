@@ -48,6 +48,7 @@
 #include <wtf/Deque.h>
 #include <wtf/HashTraits.h>
 #include <wtf/RefPtr.h>
+#include <wtf/StdLibExtras.h>
 #include <wtf/SHA1.h>
 #include <wtf/text/Base64.h>
 #include <wtf/text/CString.h>
@@ -407,8 +408,7 @@ std::unique_ptr<DOMPatchSupport::Digest> DOMPatchSupport::createDigest(Node& nod
     digest->node = &node;
     SHA1 sha1;
 
-    auto nodeType = node.nodeType();
-    sha1.addBytes(std::bit_cast<std::array<uint8_t, sizeof(Node::NodeType)>>(nodeType));
+    sha1.addBytes(asByteSpan(node.nodeType()));
     addStringToSHA1(sha1, node.nodeName());
     addStringToSHA1(sha1, node.nodeValue());
 
