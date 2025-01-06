@@ -133,6 +133,7 @@ static void addBindingToFrame(LocalFrame& frame, const String& name)
 {
     JSC::JSGlobalObject* globalObject = frame.script().globalObject(mainThreadNormalWorld());
     auto& vm = globalObject->vm();
+    JSC::JSLockHolder lock(vm);
     globalObject->putDirectNativeFunction(vm, globalObject, JSC::Identifier::fromString(vm, name), 1, bindingCallback, JSC::ImplementationVisibility::Public, JSC::NoIntrinsic, JSC::attributesForStructure(static_cast<unsigned>(JSC::PropertyAttribute::Function)));
 }
 
