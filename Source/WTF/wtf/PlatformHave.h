@@ -1230,7 +1230,8 @@
 #endif
 
 #if PLATFORM(MAC)
-#define HAVE_GPU_AVAILABILITY_CHECK 1
+// Playwright: disable the check to make WebGL always work.
+#define HAVE_GPU_AVAILABILITY_CHECK 0
 #endif
 
 #if !defined(HAVE_LOCKDOWN_MODE_PDF_ADDITIONS) && \
