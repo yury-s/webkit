@@ -100,6 +100,7 @@ private:
     Inspector::Protocol::ErrorStringOr<void> grantFileReadAccess(const String& pageProxyID, Ref<JSON::Array>&& paths) override;
     void takePageScreenshot(const String& pageProxyID, int x, int y, int width, int height, std::optional<bool>&& omitDeviceScaleFactor, Ref<TakePageScreenshotCallback>&&) override;
     Inspector::Protocol::ErrorStringOr<void> setIgnoreCertificateErrors(const String& browserContextID, bool ignore) override;
+    Inspector::Protocol::ErrorStringOr<void> scaleView(const String& pageProxyID, double scale) override;
 
     void getAllCookies(const String& browserContextID, Ref<GetAllCookiesCallback>&&) override;
     void setCookies(const String& browserContextID, Ref<JSON::Array>&& in_cookies, Ref<SetCookiesCallback>&&) override;

@@ -753,6 +753,16 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setIgnoreCert
     return { };
 }
 
+Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::scaleView(const String& pageProxyID, double scale)
+{
+    auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
+    if (!pageProxyChannel)
+        return makeUnexpected("Unknown pageProxyID"_s);
+
+    pageProxyChannel->page().scaleView(scale);
+    return { };
+}
+
 void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref<GetAllCookiesCallback>&& callback) {
     String errorString;
     BrowserContext* browserContext = lookupBrowserContext(errorString, browserContextID);

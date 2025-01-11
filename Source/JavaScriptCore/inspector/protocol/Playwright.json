@@ -173,6 +173,14 @@
             ]
         },
         {
+            "name": "scaleView",
+            "description": "Changes view scale factor (zoom).",
+            "parameters": [
+                { "name": "pageProxyId", "$ref": "PageProxyID", "description": "Unique identifier of the page proxy." },
+                { "name": "scale", "type": "number" }
+            ]
+        },
+        {
             "name": "getAllCookies",
             "description": "Returns all cookies in the given browser context.",
             "async": true,
