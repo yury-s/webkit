@@ -186,7 +186,6 @@
   </meson>
 
   <meson id="libsoup" mesonargs="-Dgssapi=disabled -Dvapi=disabled -Dntlm=disabled -Dsysprof=disabled -Dautobahn=disabled -Dpkcs11_tests=disabled">
-    <pkg-config>libsoup-3.0.pc</pkg-config>
     <dependencies>
       <dep package="glib"/>
       <dep package="glib-networking"/>

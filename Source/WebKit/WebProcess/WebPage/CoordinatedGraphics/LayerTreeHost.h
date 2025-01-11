@@ -132,6 +132,7 @@ public:
 #if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
     void preferredBufferFormatsDidChange();
 #endif
+
 private:
     WebCore::FloatRect visibleContentsRect() const;
     void layerFlushTimerFired();
