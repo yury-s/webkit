@@ -753,6 +753,16 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setIgnoreCert
     return { };
 }
 
+Inspector::Protocol::ErrorStringOr<void> InspectorPlaywrightAgent::setPageZoomFactor(const String& pageProxyID, double zoomFactor)
+{
+    auto* pageProxyChannel = m_pageProxyChannels.get(pageProxyID);
+    if (!pageProxyChannel)
+        return makeUnexpected("Unknown pageProxyID"_s);
+
+    pageProxyChannel->page().setPageZoomFactor(zoomFactor);
+    return { };
+}
+
 void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref<GetAllCookiesCallback>&& callback) {
     String errorString;
     BrowserContext* browserContext = lookupBrowserContext(errorString, browserContextID);
