@@ -129,10 +129,6 @@ RefPtr<ImageBuffer> snapshotFrameRectWithClip(LocalFrame& frame, const IntRect& 
     if (!buffer)
         return nullptr;
 
-#if !PLATFORM(MAC)
-    buffer->context().scale(scaleFactor);
-#endif
-
     buffer->context().translate(-imageRect.location());
     if (coordinateSpace != LocalFrameView::ViewCoordinates)
         buffer->context().scale(1 / frame.page()->pageScaleFactor());
