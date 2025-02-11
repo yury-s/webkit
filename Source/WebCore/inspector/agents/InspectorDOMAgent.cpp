@@ -1846,13 +1846,17 @@ static FloatPoint contentsToRootView(LocalFrameView& containingView, const Float
     return containingView.convertToRootView(point - toFloatSize(containingView.documentScrollPositionRelativeToViewOrigin()));
 }
 
-static void frameQuadToViewport(LocalFrameView& containingView, FloatQuad& quad, float pageScaleFactor)
+static void frameQuadToViewport(LocalFrameView& containingView, FloatQuad& quad, Page& inspectedPage)
 {
+    float pageScaleFactor = inspectedPage.pageScaleFactor();
+    auto mainFrame = inspectedPage.localMainFrame();
+    float scale = pageScaleFactor * mainFrame->pageZoomFactor();
+
     // Return css (not dip) coordinates by scaling back.
-    quad.setP1(contentsToRootView(containingView, quad.p1()).scaled(1 / pageScaleFactor));
-    quad.setP2(contentsToRootView(containingView, quad.p2()).scaled(1 / pageScaleFactor));
-    quad.setP3(contentsToRootView(containingView, quad.p3()).scaled(1 / pageScaleFactor));
-    quad.setP4(contentsToRootView(containingView, quad.p4()).scaled(1 / pageScaleFactor));
+    quad.setP1(contentsToRootView(containingView, quad.p1()).scaled(1 / scale));
+    quad.setP2(contentsToRootView(containingView, quad.p2()).scaled(1 / scale));
+    quad.setP3(contentsToRootView(containingView, quad.p3()).scaled(1 / scale));
+    quad.setP4(contentsToRootView(containingView, quad.p4()).scaled(1 / scale));
 }
 
 static Ref<Inspector::Protocol::DOM::Quad> buildObjectForQuad(const FloatQuad& quad)
@@ -1965,7 +1969,7 @@ Protocol::ErrorStringOr<Ref<JSON::ArrayOf<Protocol::DOM::Quad>>> InspectorDOMAge
     Vector<FloatQuad> quads;
     CollectQuads(node, quads);
     for (auto& quad : quads)
-        frameQuadToViewport(*containingView, quad, m_inspectedPage->pageScaleFactor());
+        frameQuadToViewport(*containingView, quad, m_inspectedPage.get());
     return buildArrayOfQuads(quads);
 }
 

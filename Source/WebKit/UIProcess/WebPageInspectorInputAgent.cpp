@@ -265,7 +265,7 @@ void WebPageInspectorInputAgent::dispatchMouseEvent(const String& type, int x, i
     m_mouseCallbacks->append(WTFMove(callback));
 
     // Convert css coordinates to view coordinates (dip).
-    double totalScale = m_page.pageScaleFactor() * m_page.viewScaleFactor();
+    double totalScale = m_page.pageScaleFactor() * m_page.viewScaleFactor() * m_page.pageZoomFactor();
     x = clampToInteger(roundf(x * totalScale));
     y = clampToInteger(roundf(y * totalScale));
     eventDeltaX = clampToInteger(roundf(eventDeltaX * totalScale));
@@ -378,7 +378,7 @@ void WebPageInspectorInputAgent::dispatchWheelEvent(int x, int y, std::optional<
     m_wheelCallbacks->append(WTFMove(callback));
 
     // Convert css coordinates to view coordinates (dip).
-    double totalScale = m_page.pageScaleFactor() * m_page.viewScaleFactor();
+    double totalScale = m_page.pageScaleFactor() * m_page.viewScaleFactor() * m_page.pageZoomFactor();
     x = clampToInteger(roundf(x * totalScale));
     y = clampToInteger(roundf(y * totalScale));
 
