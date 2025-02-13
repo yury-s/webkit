@@ -3787,7 +3787,7 @@ InputTypeMonthEnabled:
       "PLATFORM(IOS_FAMILY)": true
       default: false
     WebKit:
-      "PLATFORM(IOS_FAMILY) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      "PLATFORM(IOS_FAMILY) || PLATFORM(GTK)": true
       default: false
     WebCore:
       default: false
@@ -3818,7 +3818,7 @@ InputTypeWeekEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(IOS_FAMILY) && !PLATFORM(APPLETV) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      "PLATFORM(IOS_FAMILY) && !PLATFORM(APPLETV) || PLATFORM(GTK)": true
       default: false
     WebCore:
       default: false

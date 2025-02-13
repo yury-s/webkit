@@ -578,17 +578,11 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::overrideSetting(Ins
 #endif
 
     case Protocol::Page::Setting::InputTypeMonthEnabled:
-// Playwright client sends it even if it's not supported.
-#if ENABLE(INPUT_TYPE_MONTH)
         inspectedPageSettings.setInputTypeMonthEnabled(value.value_or(false));
-#endif
         return { };
 
     case Protocol::Page::Setting::InputTypeWeekEnabled:
-// Playwright client sends it even if it's not supported.
-#if ENABLE(INPUT_TYPE_WEEK)
         inspectedPageSettings.setInputTypeWeekEnabled(value.value_or(false));
-#endif
         return { };
 
     case Protocol::Page::Setting::FixedBackgroundsPaintRelativeToDocument:
