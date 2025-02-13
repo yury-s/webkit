@@ -80,6 +80,7 @@ private:
     void show() override;
     void showContextMenuWithItems(Vector<Ref<WebContextMenuItem>>&&) override;
     void useContextMenuItems(Vector<Ref<WebContextMenuItem>>&&) override;
+    void hide() override;
 
     bool showAfterPostProcessingContextData();
 
