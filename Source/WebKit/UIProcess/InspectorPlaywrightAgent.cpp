@@ -777,12 +777,7 @@ void InspectorPlaywrightAgent::getAllCookies(const String& browserContextID, Ref
                 return;
             auto cookies = JSON::ArrayOf<Inspector::Protocol::Playwright::Cookie>::create();
 
-// Soup returns cookies in the reverse order.
-#if USE(SOUP)
-            for (const auto& cookie : makeReversedRange(allCookies))
-#else
             for (const auto& cookie : allCookies)
-#endif
                 cookies->addItem(buildObjectForCookie(cookie));
             callback->sendSuccess(WTFMove(cookies));
         });
